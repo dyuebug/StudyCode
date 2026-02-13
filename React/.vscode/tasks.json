@@ -1,0 +1,59 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "运行：01. 变量声明",
+      "type": "shell",
+      "command": "node",
+      "args": ["docs/react_basics/01_js_variables.jsx"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "运行：02. 数据类型",
+      "type": "shell",
+      "command": "node",
+      "args": ["docs/react_basics/02_js_datatypes.jsx"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "运行：03. 模板字符串",
+      "type": "shell",
+      "command": "node",
+      "args": ["docs/react_basics/03_js_template_strings.jsx"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "运行：04. 综合练习",
+      "type": "shell",
+      "command": "node",
+      "args": ["docs/react_basics/04_practice_hello.jsx"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "运行所有学习文件",
+      "type": "shell",
+      "command": "node docs/react_basics/01_js_variables.jsx && node docs/react_basics/02_js_datatypes.jsx && node docs/react_basics/03_js_template_strings.jsx && node docs/react_basics/04_practice_hello.jsx",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

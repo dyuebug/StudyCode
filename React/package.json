@@ -1,0 +1,23 @@
+{
+  "name": "react-learning-system",
+  "version": "1.0.0",
+  "description": "17周系统化React学习计划",
+  "main": "index.js",
+  "scripts": {
+    "day1-01": "node docs/react_basics/01_js_variables.jsx",
+    "day1-02": "node docs/react_basics/02_js_datatypes.jsx",
+    "day1-03": "node docs/react_basics/03_js_template_strings.jsx",
+    "day1-04": "node docs/react_basics/04_practice_hello.jsx",
+    "day1-all": "npm run day1-01 && npm run day1-02 && npm run day1-03 && npm run day1-04",
+    "start": "node docs/react_basics/01_js_variables.jsx"
+  },
+  "keywords": [
+    "react",
+    "learning",
+    "javascript",
+    "es6",
+    "tutorial"
+  ],
+  "author": "",
+  "license": "MIT"
+}

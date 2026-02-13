@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ritwickdey.liveserver",
+    "formulahendry.code-runner",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "xabikos.javascriptsnippets",
+    "christian-kohler.path-intellisense"
+  ]
+}

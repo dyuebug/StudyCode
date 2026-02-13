@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript学习 - 第1天</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .file-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .file-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .file-card.active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+        }
+        .file-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .file-card p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        #console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 20px 0;
+        }
+        .console-line {
+            margin: 5px 0;
+        }
+        .console-log {
+            color: #d4d4d4;
+        }
+        .console-error {
+            color: #f48771;
+        }
+        .console-warn {
+            color: #dcdcaa;
+        }
+        .console-info {
+            color: #4fc1ff;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+        .btn-clear {
+            background: #dc3545;
+        }
+        .btn-clear:hover {
+            background: #c82333;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 JavaScript学习 - 第1天</h1>
+        <p class="subtitle">React学习之旅的第一步</p>
+
+        <div class="info-box">
+            <strong>📌 使用说明：</strong>
+            <ol>
+                <li>点击下方的文件卡片选择要运行的学习材料</li>
+                <li>代码会自动运行，输出显示在控制台区域</li>
+                <li>建议按顺序学习：01 → 02 → 03 → 04</li>
+                <li>也可以按 <kbd>F12</kbd> 打开浏览器控制台查看更详细的输出</li>
+            </ol>
+        </div>
+
+        <h2>📚 选择学习材料</h2>
+        <div class="file-selector">
+            <div class="file-card" onclick="loadFile('01_js_variables.jsx')">
+                <h3>01. 变量声明</h3>
+                <p>let、const、var的区别</p>
+                <p>⏱️ 预计30分钟</p>
+            </div>
+            <div class="file-card" onclick="loadFile('02_js_datatypes.jsx')">
+                <h3>02. 数据类型</h3>
+                <p>5种基本数据类型详解</p>
+                <p>⏱️ 预计30分钟</p>
+            </div>
+            <div class="file-card" onclick="loadFile('03_js_template_strings.jsx')">
+                <h3>03. 模板字符串</h3>
+                <p>反引号和${}语法</p>
+                <p>⏱️ 预计20分钟</p>
+            </div>
+            <div class="file-card" onclick="loadFile('04_practice_hello.jsx')">
+                <h3>04. 综合练习</h3>
+                <p>自我介绍程序</p>
+                <p>⏱️ 预计40分钟</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-clear" onclick="clearConsole()">🗑️ 清空控制台</button>
+        </div>
+
+        <h2>💻 控制台输出</h2>
+        <div class="warning-box">
+            <strong>⚠️ 提示：</strong>点击上方的文件卡片开始学习，输出会显示在下方。
+        </div>
+        <div id="console-output">等待加载文件...</div>
+
+        <div class="success-box">
+            <strong>✅ 学习建议：</strong>
+            <ul>
+                <li>仔细阅读每个文件的注释，理解概念</li>
+                <li>观察代码的输出结果，思考为什么</li>
+                <li>完成每个文件末尾的练习题</li>
+                <li>遇到不理解的地方，立即提问</li>
+                <li>学习结束后说"学习结束"生成今日日志</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+        const consoleOutput = document.getElementById('console-output');
+
+        // 重写console.log以捕获输出
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const originalInfo = console.info;
+
+        function appendToConsole(message, type = 'log') {
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            line.textContent = message;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return String(arg);
+            }).join(' ');
+            appendToConsole(message, 'log');
+            originalLog.apply(console, args);
+        };
+
+        console.error = function(...args) {
+            const message = args.join(' ');
+            appendToConsole('❌ ' + message, 'error');
+            originalError.apply(console, args);
+        };
+
+        console.warn = function(...args) {
+            const message = args.join(' ');
+            appendToConsole('⚠️ ' + message, 'warn');
+            originalWarn.apply(console, args);
+        };
+
+        console.info = function(...args) {
+            const message = args.join(' ');
+            appendToConsole('ℹ️ ' + message, 'info');
+            originalInfo.apply(console, args);
+        };
+
+        function clearConsole() {
+            consoleOutput.innerHTML = '控制台已清空，点击文件卡片重新加载。';
+        }
+
+        function loadFile(filename) {
+            // 清空控制台
+            consoleOutput.innerHTML = '';
+
+            // 更新文件卡片状态
+            document.querySelectorAll('.file-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // 显示加载信息
+            console.log('='.repeat(60));
+            console.log(`📖 正在加载：${filename}`);
+            console.log('='.repeat(60));
+            console.log('');
+
+            // 移除之前加载的脚本
+            const oldScript = document.getElementById('dynamic-script');
+            if (oldScript) {
+                oldScript.remove();
+            }
+
+            // 动态加载脚本
+            const script = document.createElement('script');
+            script.id = 'dynamic-script';
+            script.src = `react_basics/${filename}`;
+            script.onerror = function() {
+                console.error(`无法加载文件：${filename}`);
+                console.error('请确保文件路径正确：docs/react_basics/' + filename);
+            };
+            script.onload = function() {
+                console.log('');
+                console.log('='.repeat(60));
+                console.log('✅ 文件加载完成！');
+                console.log('='.repeat(60));
+            };
+            document.body.appendChild(script);
+
+            currentFile = filename;
+        }
+
+        // 页面加载完成后的提示
+        window.onload = function() {
+            console.log('🎉 欢迎来到JavaScript学习平台！');
+            console.log('');
+            console.log('📚 今天的学习内容：');
+            console.log('  1. 变量声明（let、const、var）');
+            console.log('  2. 数据类型（string、number、boolean、null、undefined）');
+            console.log('  3. 模板字符串（反引号和${}）');
+            console.log('  4. 综合练习（自我介绍程序）');
+            console.log('');
+            console.log('💡 点击上方的文件卡片开始学习！');
+            console.log('');
+        };
+    </script>
+</body>
+</html>
