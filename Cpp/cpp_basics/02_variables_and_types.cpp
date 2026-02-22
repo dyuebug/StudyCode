@@ -27,9 +27,12 @@
 
 #include <iostream>
 #include <string>    // 使用 string 类型需要包含这个头文件
+#include <cstdlib>   // 包含 system() 函数
+
 using namespace std;
 
 int main() {
+   system("chcp 65001");  // 设置控制台为UTF-8编码，解决中文乱码问题
     cout << string(60, '=') << endl;
     cout << "第一部分：核心概念详解" << endl;
     cout << string(60, '=') << endl;

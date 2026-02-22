@@ -27,9 +27,11 @@
 #include <iostream>
 #include <iomanip>   // 用于格式化输出
 #include <string>    // 用于字符串类型
+#include <cstdlib>
 using namespace std;
 
 int main() {
+   system("chcp 65001");  // 设置控制台编码为 UTF-8，支持中文输出
     // ============================================
     // 第一部分：程序介绍
     // ============================================
