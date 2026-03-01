@@ -1,0 +1,52 @@
+{
+  "inviteSkillSelections": {
+    "assistant": [
+      "\\\\?\\E:\\Code\\ProjectsCode\\WorkSpace\\ClaudeCode\\StudyCode\\.golutra\\skills\\project-development-quality-maintainability"
+    ],
+    "member": [
+      "\\\\?\\E:\\Code\\ProjectsCode\\WorkSpace\\ClaudeCode\\StudyCode\\.golutra\\skills\\project-development-quality-maintainability"
+    ]
+  },
+  "memberSequence": {
+    "claude-assistant-studycode": 2
+  },
+  "members": [
+    {
+      "autoStartTerminal": false,
+      "avatar": "css:orbit",
+      "id": "01J00000000000000000000000",
+      "name": "群主",
+      "role": "",
+      "roleKey": "members.roles.owner",
+      "roleType": "owner",
+      "status": "online"
+    },
+    {
+      "autoStartTerminal": true,
+      "avatar": "css:mint",
+      "collaborationMode": true,
+      "id": "01KJMZPF5GXQBP49M84MTFG59M",
+      "name": "1-claude-assistant-studycode",
+      "role": "",
+      "roleKey": "members.roles.aiAssistant",
+      "roleType": "assistant",
+      "sandboxed": false,
+      "skillPaths": [
+        "E:\\Code\\ProjectsCode\\WorkSpace\\ClaudeCode\\StudyCode\\.golutra\\skills\\project-development-quality-maintainability"
+      ],
+      "status": "online",
+      "terminalCommand": "claude",
+      "terminalType": "claude",
+      "unlimitedAccess": true
+    }
+  ],
+  "projectId": "f5a08e0e7ff698fa4df8cab9c222a2a972521be40c18bd3e1af39fefbf2540cc",
+  "roadmap": {
+    "objective": "",
+    "tasks": []
+  },
+  "terminal": {
+    "recentClosedTabs": []
+  },
+  "version": 1
+}
