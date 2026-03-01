@@ -123,7 +123,34 @@ int main() {
     // TODO: 使用if-else if-else判断等级
     // 提示：先判断是否在0-100范围内
     // 然后从高到低判断等级
-
+    if (score >= 0 && score <= 100)
+    {
+        if (score >= 90)
+        {
+            cout << "优秀" << endl;
+        }
+        else if(score >= 80)
+        {
+            cout << "良好" << endl;
+        }
+        else if(score >= 70)
+        {
+            cout << "中等" << endl;
+        }
+        else if(score >= 60)
+        {
+            cout << "及格" << endl;
+        }
+        else
+        {
+            cout << "不及格" << endl;
+        }
+    }
+    else
+    {
+        cout << "输入无效，分数必须在0-100之间" << endl;
+    }
+    
 
     cout << endl;
 
