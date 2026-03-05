@@ -46,7 +46,12 @@
     "tasks": []
   },
   "terminal": {
-    "recentClosedTabs": []
+    "recentClosedTabs": [
+      {
+        "closedAt": 1772382375314,
+        "memberId": "01KJMZPF5GXQBP49M84MTFG59M"
+      }
+    ]
   },
   "version": 1
 }
