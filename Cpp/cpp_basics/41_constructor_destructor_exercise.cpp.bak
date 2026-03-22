@@ -1,0 +1,895 @@
+// ============================================
+// 构造函数与析构函数练习 - 超详细注释版
+// 日期：2026-03-18（第12天）
+// 难度：⭐⭐ 中级
+// ============================================
+
+/*
+【核心概念】构造函数与析构函数的实战应用
+
+是什么？
+- 通过实际案例学习如何使用构造函数和析构函数管理资源
+- 培养RAII（资源获取即初始化）思维
+
+为什么需要？
+- 理论结合实践，加深理解
+- 学习资源管理的最佳实践
+- 防止内存泄漏和资源泄漏
+
+核心特点：
+- 构造函数获取资源
+- 析构函数释放资源
+- 利用对象生命周期自动管理
+*/
+
+// ============================================
+// 第一部分：动态字符串类
+// ============================================
+
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+// 定义一个动态字符串类
+// 功能：管理动态分配的字符串内存
+class MyString {
+private:
+    char* data;     // 指向字符串数据的指针
+    int length;     // 字符串长度
+
+public:
+    // 构造函数1：默认构造函数
+    // 功能：创建空字符串
+    MyString() {
+        length = 0;
+        data = new char[1];  // 分配1个字节
+        data[0] = '\0';      // 空字符串
+        cout << "构造函数1：创建空字符串" << endl;
+    }
+
+    // 构造函数2：从C风格字符串创建
+    // 参数：str - C风格字符串
+    MyString(const char* str) {
+        if (str == nullptr) {
+            length = 0;
+            data = new char[1];
+            data[0] = '\0';
+        } else {
+            length = strlen(str);
+            data = new char[length + 1];  // +1是为了存储'\0'
+            strcpy(data, str);
+        }
+        cout << "构造函数2：创建字符串 \"" << data << "\"" << endl;
+    }
+
+    // 析构函数：释放内存
+    ~MyString() {
+        cout << "析构函数：释放字符串 \"" << data << "\" 的内存" << endl;
+        delete[] data;
+        data = nullptr;
+    }
+
+    // 获取字符串长度
+    int getLength() const {
+        return length;
+    }
+
+    // 获取C风格字符串
+    const char* c_str() const {
+        return data;
+    }
+
+    // 显示字符串信息
+    void display() const {
+        cout << "字符串：\"" << data << "\", 长度：" << length << endl;
+    }
+
+    // 追加字符串
+    void append(const char* str) {
+        if (str == nullptr) return;
+
+        int newLength = length + strlen(str);
+        char* newData = new char[newLength + 1];
+
+        // 复制原字符串
+        strcpy(newData, data);
+        // 追加新字符串
+        strcat(newData, str);
+
+        // 释放旧内存
+        delete[] data;
+
+        // 更新成员变量
+        data = newData;
+        length = newLength;
+    }
+};
+
+int main() {
+    cout << string(60, '=') << endl;
+    cout << "第一部分：动态字符串类" << endl;
+    cout << string(60, '=') << endl;
+
+    // --------------------------------------------
+    // 1.1 创建字符串对象
+    // --------------------------------------------
+
+    cout << "\n1.1 创建字符串对象" << endl;
+    cout << string(60, '-') << endl;
+
+    {
+        // 使用默认构造函数
+        MyString str1;
+        str1.display();
+
+        // 使用带参数的构造函数
+        MyString str2("Hello");
+        str2.display();
+
+        MyString str3("World");
+        str3.display();
+
+        // 离开作用域：自动调用析构函数，释放内存
+    }
+    cout << "\n所有字符串对象已销毁" << endl;
+
+    // --------------------------------------------
+    // 1.2 字符串操作
+    // --------------------------------------------
+
+    cout << "\n1.2 字符串操作" << endl;
+    cout << string(60, '-') << endl;
+
+    {
+        MyString str("Hello");
+        str.display();
+
+        cout << "\n追加字符串：" << endl;
+        str.append(" World");
+        str.display();
+
+        str.append("!");
+        str.display();
+    }
+    cout << "\n字符串对象已销毁" << endl;
+
+    return 0;
+}
+
+// ============================================
+// 第二部分：智能数组类
+// ============================================
+
+#include <iostream>
+using namespace std;
+
+// 定义一个智能数组类
+// 功能：自动管理动态数组内存，提供边界检查
+class SmartArray {
+private:
+    int* data;      // 指向数组数据的指针
+    int capacity;   // 数组容量
+    int size;       // 当前元素个数
+
+public:
+    // 构造函数：创建指定容量的数组
+    // 参数：cap - 数组容量
+    SmartArray(int cap = 10) : capacity(cap), size(0) {
+        data = new int[capacity];
+        cout << "构造函数：创建容量为 " << capacity << " 的数组" << endl;
+
+        // 初始化为0
+        for (int i = 0; i < capacity; i++) {
+            data[i] = 0;
+        }
+    }
+
+    // 析构函数：释放内存
+    ~SmartArray() {
+        cout << "析构函数：释放数组内存" << endl;
+        delete[] data;
+        data = nullptr;
+    }
+
+    // 添加元素
+    // 参数：value - 要添加的值
+    // 返回：bool - 是否添加成功
+    bool push(int value) {
+        if (size >= capacity) {
+            cout << "错误：数组已满" << endl;
+            return false;
+        }
+
+        data[size] = value;
+        size++;
+        return true;
+    }
+
+    // 获取元素
+    // 参数：index - 索引
+    // 返回：元素值（如果索引无效返回-1）
+    int get(int index) const {
+        if (index < 0 || index >= size) {
+            cout << "错误：索引越界" << endl;
+            return -1;
+        }
+        return data[index];
+    }
+
+    // 设置元素
+    // 参数：index - 索引，value - 值
+    // 返回：bool - 是否设置成功
+    bool set(int index, int value) {
+        if (index < 0 || index >= size) {
+            cout << "错误：索引越界" << endl;
+            return false;
+        }
+        data[index] = value;
+        return true;
+    }
+
+    // 获取当前元素个数
+    int getSize() const {
+        return size;
+    }
+
+    // 获取容量
+    int getCapacity() const {
+        return capacity;
+    }
+
+    // 显示数组
+    void display() const {
+        cout << "数组内容（" << size << "/" << capacity << "）：";
+        for (int i = 0; i < size; i++) {
+            cout << data[i] << " ";
+        }
+        cout << endl;
+    }
+};
+
+int main() {
+    cout << string(60, '=') << endl;
+    cout << "第二部分：智能数组类" << endl;
+    cout << string(60, '=') << endl;
+
+    // --------------------------------------------
+    // 2.1 创建智能数组
+    // --------------------------------------------
+
+    cout << "\n2.1 创建智能数组" << endl;
+    cout << string(60, '-') << endl;
+
+    {
+        // 创建容量为5的数组
+        SmartArray arr(5);
+
+        // 添加元素
+        arr.push(10);
+        arr.push(20);
+        arr.push(30);
+
+        arr.display();
+
+        // 离开作用域：自动释放内存
+    }
+    cout << "\n数组对象已销毁" << endl;
+
+    // --------------------------------------------
+    // 2.2 数组操作
+    // --------------------------------------------
+
+    cout << "\n2.2 数组操作" << endl;
+    cout << string(60, '-') << endl;
+
+    {
+        SmartArray arr(10);
+
+        // 添加元素
+        for (int i = 0; i < 5; i++) {
+            arr.push(i * 10);
+        }
+
+        arr.display();
+
+        // 修改元素
+        cout << "\n修改索引2的元素：" << endl;
+        arr.set(2, 999);
+        arr.display();
+
+        // 获取元素
+        cout << "\n获取索引3的元素：" << arr.get(3) << endl;
+
+        // 边界检查
+        cout << "\n测试边界检查：" << endl;
+        arr.get(100);  // 索引越界
+        arr.set(-1, 0);  // 索引越界
+    }
+    cout << "\n数组对象已销毁" << endl;
+
+    return 0;
+}
+
+// ============================================
+// 第三部分：文件管理类
+// ============================================
+
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+// 定义一个文件管理类
+// 功能：自动管理文件的打开和关闭
+class FileManager {
+private:
+    string filename;    // 文件名
+    fstream file;       // 文件流对象
+    bool isOpen;        // 文件是否打开
+
+public:
+    // 构造函数：打开文件
+    // 参数：fname - 文件名
+    FileManager(string fname) : filename(fname), isOpen(false) {
+        cout << "构造函数：准备打开文件 \"" << filename << "\"" << endl;
+    }
+
+    // 析构函数：关闭文件
+    ~FileManager() {
+        if (isOpen) {
+            file.close();
+            cout << "析构函数：关闭文件 \"" << filename << "\"" << endl;
+        } else {
+            cout << "析构函数：文件未打开，无需关闭" << endl;
+        }
+    }
+
+    // 打开文件（写入模式）
+    // 返回：bool - 是否打开成功
+    bool openForWrite() {
+        file.open(filename, ios::out);
+        isOpen = file.is_open();
+
+        if (isOpen) {
+            cout << "成功打开文件（写入模式）：\"" << filename << "\"" << endl;
+        } else {
+            cout << "打开文件失败：\"" << filename << "\"" << endl;
+        }
+
+        return isOpen;
+    }
+
+    // 打开文件（读取模式）
+    // 返回：bool - 是否打开成功
+    bool openForRead() {
+        file.open(filename, ios::in);
+        isOpen = file.is_open();
+
+        if (isOpen) {
+            cout << "成功打开文件（读取模式）：\"" << filename << "\"" << endl;
+        } else {
+            cout << "打开文件失败：\"" << filename << "\"" << endl;
+        }
+
+        return isOpen;
+    }
+
+    // 写入一行文本
+    // 参数：text - 要写入的文本
+    // 返回：bool - 是否写入成功
+    bool writeLine(string text) {
+        if (!isOpen) {
+            cout << "错误：文件未打开" << endl;
+            return false;
+        }
+
+        file << text << endl;
+        return true;
+    }
+
+    // 读取一行文本
+    // 参数：line - 存储读取的文本
+    // 返回：bool - 是否读取成功
+    bool readLine(string& line) {
+        if (!isOpen) {
+            cout << "错误：文件未打开" << endl;
+            return false;
+        }
+
+        return (bool)getline(file, line);
+    }
+};
+
+int main() {
+    cout << string(60, '=') << endl;
+    cout << "第三部分：文件管理类" << endl;
+    cout << string(60, '=') << endl;
+
+    // --------------------------------------------
+    // 3.1 写入文件
+    // --------------------------------------------
+
+    cout << "\n3.1 写入文件" << endl;
+    cout << string(60, '-') << endl;
+
+    {
+        FileManager fm("test.txt");
+
+        if (fm.openForWrite()) {
+            fm.writeLine("第一行：Hello World");
+            fm.writeLine("第二行：C++ Programming");
+            fm.writeLine("第三行：Constructor and Destructor");
+            cout << "文件写入完成" << endl;
+        }
+
+        // 离开作用域：自动关闭文件
+    }
+    cout << "\n文件已自动关闭" << endl;
+
+    // --------------------------------------------
+    // 3.2 读取文件
+    // --------------------------------------------
+
+    cout << "\n3.2 读取文件" << endl;
+    cout << string(60, '-') << endl;
+
+    {
+        FileManager fm("test.txt");
+
+        if (fm.openForRead()) {
+            string line;
+            int lineNum = 1;
+
+            cout << "\n文件内容：" << endl;
+            while (fm.readLine(line)) {
+                cout << "行" << lineNum << "：" << line << endl;
+                lineNum++;
+            }
+        }
+
+        // 离开作用域：自动关闭文件
+    }
+    cout << "\n文件已自动关闭" << endl;
+
+    return 0;
+}
+
+/*
+==============================================
+🔍 深入理解：RAII设计模式（选学）
+==============================================
+
+如果你想知道"为什么"，可以阅读这部分。
+如果觉得难，可以跳过，不影响后续学习。
+
+【RAII（Resource Acquisition Is Initialization）】
+
+核心思想：
+- 资源的生命周期与对象的生命周期绑定
+- 构造函数获取资源
+- 析构函数释放资源
+- 利用C++的自动析构机制管理资源
+
+优势：
+1. 异常安全
+   - 即使发生异常，析构函数也会被调用
+   - 保证资源一定会被释放
+
+2. 自动管理
+   - 不需要手动释放资源
+   - 不会忘记释放
+
+3. 代码简洁
+   - 资源管理逻辑集中在类中
+   - 使用时只需创建对象
+
+示例对比：
+
+// 传统方式（容易出错）
+void processFile() {
+    FILE* f = fopen("test.txt", "r");
+    if (f == nullptr) return;
+
+    // 处理文件...
+
+    if (error) {
+        // 容易忘记关闭文件
+        return;
+    }
+
+    fclose(f);  // 必须记得关闭
+}
+
+// RAII方式（自动管理）
+void processFile() {
+    FileManager fm("test.txt");
+    if (!fm.openForRead()) return;
+
+    // 处理文件...
+
+    if (error) {
+        return;  // 自动关闭文件
+    }
+
+    // 自动关闭文件
+}
+
+C++标准库中的RAII：
+- std::string：自动管理字符串内存
+- std::vector：自动管理动态数组内存
+- std::unique_ptr：自动管理动态对象内存
+- std::lock_guard：自动管理互斥锁
+- std::fstream：自动管理文件
+
+==============================================
+*/
+
+// ============================================
+// 第四部分：常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+
+#include <iostream>
+using namespace std;
+
+int main() {
+    cout << string(60, '=') << endl;
+    cout << "常见错误和陷阱 ⭐⭐⭐⭐⭐" << endl;
+    cout << string(60, '=') << endl;
+
+    // --------------------------------------------
+    // 4.1 错误1：忘记释放内存
+    // --------------------------------------------
+
+    cout << "\n4.1 错误1：忘记释放内存" << endl;
+    cout << string(60, '-') << endl;
+
+    cout << R"(
+❌ 错误代码：
+class BadClass {
+private:
+    int* data;
+public:
+    BadClass(int size) {
+        data = new int[size];
+    }
+    // 没有析构函数！
+};
+
+结果：内存泄漏
+
+原因：动态分配的内存没有释放
+
+✅ 正确代码：
+class GoodClass {
+private:
+    int* data;
+public:
+    GoodClass(int size) {
+        data = new int[size];
+    }
+    ~GoodClass() {
+        delete[] data;  // 释放内存
+    }
+};
+
+记忆技巧：
+- 有new就要有delete
+- 在析构函数中释放所有动态分配的资源
+)" << endl;
+
+    // --------------------------------------------
+    // 4.2 错误2：delete和delete[]混用
+    // --------------------------------------------
+
+    cout << "\n4.2 错误2：delete和delete[]混用" << endl;
+    cout << string(60, '-') << endl;
+
+    cout << R"(
+❌ 错误代码：
+int* arr = new int[10];
+delete arr;  // 错误：应该用delete[]
+
+结果：未定义行为，可能崩溃
+
+原因：new[]和delete[]必须配对使用
+
+✅ 正确代码：
+int* arr = new int[10];
+delete[] arr;  // 正确：使用delete[]
+
+规则：
+- new → delete
+- new[] → delete[]
+- 不能混用
+
+记忆技巧：
+- 有[]就要配对使用
+)" << endl;
+
+    // --------------------------------------------
+    // 4.3 错误3：重复释放内存
+    // --------------------------------------------
+
+    cout << "\n4.3 错误3：重复释放内存" << endl;
+    cout << string(60, '-') << endl;
+
+    cout << R"(
+❌ 错误代码：
+int* p = new int(10);
+delete p;
+delete p;  // 错误：重复释放
+
+结果：程序崩溃
+
+原因：同一块内存不能释放两次
+
+✅ 正确代码：
+int* p = new int(10);
+delete p;
+p = nullptr;  // 设置为nullptr
+
+if (p != nullptr) {
+    delete p;  // 不会执行
+}
+
+记忆技巧：
+- delete后立即设置为nullptr
+- 释放前检查是否为nullptr
+)" << endl;
+
+    // --------------------------------------------
+    // 4.4 错误4：析构函数中抛出异常
+    // --------------------------------------------
+
+    cout << "\n4.4 错误4：析构函数中抛出异常" << endl;
+    cout << string(60, '-') << endl;
+
+    cout << R"(
+❌ 错误代码：
+~MyClass() {
+    if (error) {
+        throw exception();  // 危险！
+    }
+}
+
+结果：程序可能终止
+
+原因：析构函数中抛出异常是危险的
+
+✅ 正确代码：
+~MyClass() {
+    try {
+        // 清理资源
+    } catch (...) {
+        // 捕获所有异常，不让其传播
+    }
+}
+
+记忆技巧：
+- 析构函数不应该抛出异常
+- 如果可能出错，用try-catch捕获
+)" << endl;
+
+    // --------------------------------------------
+    // 4.5 错误5：浅拷贝问题
+    // --------------------------------------------
+
+    cout << "\n4.5 错误5：浅拷贝问题" << endl;
+    cout << string(60, '-') << endl;
+
+    cout << R"(
+❌ 错误代码：
+class MyClass {
+private:
+    int* data;
+public:
+    MyClass(int size) {
+        data = new int[size];
+    }
+    ~MyClass() {
+        delete[] data;
+    }
+    // 没有定义拷贝构造函数和赋值运算符
+};
+
+MyClass obj1(10);
+MyClass obj2 = obj1;  // 浅拷贝：两个对象共享同一块内存
+
+结果：重复释放内存，程序崩溃
+
+原因：默认拷贝构造函数只复制指针，不复制数据
+
+✅ 正确代码：
+class MyClass {
+private:
+    int* data;
+    int size;
+public:
+    MyClass(int s) : size(s) {
+        data = new int[size];
+    }
+
+    // 拷贝构造函数（深拷贝）
+    MyClass(const MyClass& other) : size(other.size) {
+        data = new int[size];
+        for (int i = 0; i < size; i++) {
+            data[i] = other.data[i];
+        }
+    }
+
+    ~MyClass() {
+        delete[] data;
+    }
+};
+
+记忆技巧：
+- 有动态内存就要定义拷贝构造函数
+- 实现深拷贝，不要共享内存
+- 后续会详细学习拷贝构造函数
+)" << endl;
+
+    // --------------------------------------------
+    // 4.6 错误6：构造函数中抛出异常
+    // --------------------------------------------
+
+    cout << "\n4.6 错误6：构造函数中抛出异常" << endl;
+    cout << string(60, '-') << endl;
+
+    cout << R"(
+❌ 错误代码：
+class MyClass {
+private:
+    int* data1;
+    int* data2;
+public:
+    MyClass() {
+        data1 = new int[100];
+        // 如果这里抛出异常，data1不会被释放
+        data2 = new int[100];
+    }
+    ~MyClass() {
+        delete[] data1;
+        delete[] data2;
+    }
+};
+
+结果：如果构造函数抛出异常，已分配的资源不会被释放
+
+原因：构造函数未完成，析构函数不会被调用
+
+✅ 正确代码：
+class MyClass {
+private:
+    int* data1;
+    int* data2;
+public:
+    MyClass() : data1(nullptr), data2(nullptr) {
+        try {
+            data1 = new int[100];
+            data2 = new int[100];
+        } catch (...) {
+            delete[] data1;  // 手动清理
+            delete[] data2;
+            throw;  // 重新抛出异常
+        }
+    }
+    ~MyClass() {
+        delete[] data1;
+        delete[] data2;
+    }
+};
+
+记忆技巧：
+- 构造函数中要处理异常
+- 如果抛出异常，手动清理已分配的资源
+)" << endl;
+
+    // --------------------------------------------
+    // 4.7 错误7：虚析构函数
+    // --------------------------------------------
+
+    cout << "\n4.7 错误7：基类析构函数不是虚函数" << endl;
+    cout << string(60, '-') << endl;
+
+    cout << R"(
+❌ 错误代码：
+class Base {
+public:
+    ~Base() { }  // 不是虚函数
+};
+
+class Derived : public Base {
+private:
+    int* data;
+public:
+    Derived() { data = new int[100]; }
+    ~Derived() { delete[] data; }
+};
+
+Base* p = new Derived();
+delete p;  // 只调用Base的析构函数，内存泄漏！
+
+结果：派生类的析构函数不会被调用，内存泄漏
+
+原因：基类析构函数不是虚函数
+
+✅ 正确代码：
+class Base {
+public:
+    virtual ~Base() { }  // 虚析构函数
+};
+
+class Derived : public Base {
+private:
+    int* data;
+public:
+    Derived() { data = new int[100]; }
+    ~Derived() { delete[] data; }
+};
+
+Base* p = new Derived();
+delete p;  // 正确调用Derived的析构函数
+
+记忆技巧：
+- 如果类会被继承，析构函数要声明为virtual
+- 后续学习继承时会详细讲解
+)" << endl;
+
+    return 0;
+}
+
+// ============================================
+// 练习题
+// ============================================
+
+#include <iostream>
+using namespace std;
+
+int main() {
+    cout << string(60, '=') << endl;
+    cout << "练习题" << endl;
+    cout << string(60, '=') << endl;
+
+    cout << R"(
+1. 设计一个栈类（Stack）
+   要求：
+   - 使用动态数组实现
+   - 提供push、pop、top、isEmpty、isFull方法
+   - 在构造函数中分配内存
+   - 在析构函数中释放内存
+   提示：需要管理动态数组的内存
+
+2. 设计一个日志类（Logger）
+   要求：
+   - 构造函数打开日志文件
+   - 提供log方法写入日志
+   - 析构函数关闭日志文件
+   提示：使用RAII管理文件资源
+
+3. 设计一个计数器类（Counter）
+   要求：
+   - 静态成员变量记录创建的对象总数
+   - 构造函数中计数+1
+   - 析构函数中计数-1
+   - 提供静态方法获取当前对象数量
+   提示：使用静态成员变量
+
+4. 设计一个矩阵类（Matrix）
+   要求：
+   - 使用二维动态数组存储矩阵
+   - 提供构造函数初始化矩阵
+   - 提供析构函数释放内存
+   - 提供set、get方法访问元素
+   提示：二维数组需要两层new和delete
+
+5. 设计一个资源管理类（ResourceManager）
+   要求：
+   - 管理多个资源（内存、文件等）
+   - 构造函数获取所有资源
+   - 析构函数释放所有资源
+   - 如果获取资源失败，要清理已获取的资源
+   提示：注意异常安全
+)" << endl;
+
+    return 0;
+}

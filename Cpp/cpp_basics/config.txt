@@ -1,0 +1,7 @@
+# 应用配置文件
+app_name=MyApp
+version=1.0.0
+debug=true
+# 数据库配置
+db_host=localhost
+db_port=3306
