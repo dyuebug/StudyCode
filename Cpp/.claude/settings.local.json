@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "mcp__contextweaver__codebase-retrieval"
+      "mcp__contextweaver__codebase-retrieval",
+      "mcp__plugin_claude-mem_mcp-search__smart_outline"
     ]
   }
 }
