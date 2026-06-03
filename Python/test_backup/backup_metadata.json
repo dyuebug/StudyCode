@@ -1,0 +1,26 @@
+{
+  "file1.txt": {
+    "hash": "6ea7338ed282a5ff2a113ab9d3a15f137edeb10c86c6c8682efd7e3d551a271d",
+    "size": 140,
+    "mtime": 1780217592.001822,
+    "backup": "incremental_backup_20260531_165312.zip"
+  },
+  "file2.txt": {
+    "hash": "566b6363aed3e8b7d173ad637a5205f3747f8fbb996ec0016bc781729da4ffc0",
+    "size": 170,
+    "mtime": 1780217591.9954302,
+    "backup": "full_backup_20260531_165311.zip"
+  },
+  "file3.txt": {
+    "hash": "729efd6b259026330b74cd655e3ad1f396fa52fda4d0fbb9d64f00192e4a2f26",
+    "size": 170,
+    "mtime": 1780217591.9954302,
+    "backup": "full_backup_20260531_165311.zip"
+  },
+  "file4.txt": {
+    "hash": "0a43cf83cdc627efc4e9e5717eab3f1b9e3f53b7636cead151d05aca6ce0f858",
+    "size": 130,
+    "mtime": 1780217592.0033247,
+    "backup": "incremental_backup_20260531_165312.zip"
+  }
+}
