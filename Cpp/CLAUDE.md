@@ -66,21 +66,58 @@
 **已完成阶段**：
 - ✅ 阶段1：C++基础（变量、输入输出、条件、循环、函数、数组、字符串）
 - ✅ 阶段2：C++进阶（指针、引用、const、动态内存、结构体、枚举、命名空间、文件操作）
+- ✅ 阶段3：面向对象编程（类与对象、继承、多态、运算符重载、友元、静态成员）
+- ✅ 阶段4：STL和高级特性（容器、算法、迭代器、Lambda、模板、智能指针）
+- ✅ 阶段5：项目实战（学生管理系统完整版）
+- ✅ 阶段6：C++ 高级特性（移动语义、完美转发、可变参数模板、SFINAE、C++20 四大特性）
 
-**当前状态**：🎯 **C++面向对象编程学习完成** - 第17天已完成（friend 使用场景、静态成员变量、静态成员函数、friend 与 static 综合练习）
+**当前状态**：🎯 **阶段11学习中** - 第57天已完成（中断处理、HAL硬件抽象层、RTOS基础概念、综合练习状态机）
 
-**当前学习重点**（阶段3：面向对象编程）：
-- ✅ 类与对象、访问控制、封装
-- ✅ 构造函数与析构函数
-- ✅ 拷贝构造函数
-- ✅ 深拷贝与浅拷贝
-- ✅ 赋值运算符重载与三法则
-- ✅ 继承基础
-- ✅ 构造/析构顺序
-- ✅ 方法重写（override）
-- ✅ 虚函数与多态
-- ✅ 运算符重载基础
-- ✅ friend 与 static 基础
+**已完成阶段10**（Qt 多线程编程）：
+- ✅ QThread 基础（工作线程、moveToThread、线程间信号槽）
+- ✅ 多线程实战（斐波那契计算器、进度更新、取消机制）
+- ✅ 线程同步（QMutex、QMutexLocker、QReadWriteLock、死锁预防）
+- ✅ QtConcurrent 高级并发（run、mapped、filtered、QFuture、QFutureWatcher）
+- ✅ 多线程文件搜索工具（并发搜索、实时结果、取消机制）
+- ✅ 阶段10总结（多线程速查表、Qt 学习回顾、综合项目规划）
+
+**已完成项目**：个人任务管理器（Qt 综合项目）✅
+- ✅ 第1阶段：基础框架
+- ✅ 第2阶段：核心功能
+- ✅ 第3阶段：UI 美化
+
+**已完成总结**：
+- ✅ 项目总结文档（PROJECT_SUMMARY.md）
+- ✅ Qt 技能清单（qt_skills_checklist.md）
+- ✅ 学习历程总结（learning_journey_summary.md）
+
+**下一步**：待定（深入C++、扩展Qt、游戏开发、其他方向）
+
+**当前状态**：🎯 **阶段6完成，准备开始阶段7** - 第37天已完成（C++20 总结与综合实践）
+
+**已完成阶段6**（C++ 高级特性 - C++20）：
+- ✅ STL 容器分类与选型思维
+- ✅ vector 基本操作（创建、增删查改、遍历）
+- ✅ list/map/set 基础操作与适用场景
+- ✅ 迭代器基础（begin/end、迭代器类型、const迭代器）
+- ✅ STL 常用算法（sort、find、find_if、count、reverse、for_each、transform）
+- ✅ Lambda 表达式与函数对象
+- ✅ 模板编程（函数模板、类模板）
+- ✅ 智能指针（unique_ptr、shared_ptr、weak_ptr）
+- ✅ 移动语义与右值引用
+- ✅ 现代 C++ 语法糖（auto、范围for、nullptr）
+- ✅ 可变参数模板（参数包、折叠表达式）
+- ✅ SFINAE（enable_if、类型萃取）
+- ✅ C++20 概念（Concepts）与约束（Constraints）
+- ✅ C++20 Ranges（视图、管道操作符、惰性求值）
+- ✅ C++20 Coroutines 概念（co_yield、co_await、co_return、生成器、异步协程）
+- ✅ C++20 Modules（module、import、export、BMI、模块接口单元、模块实现单元、模块分区）
+- ✅ C++20 四大特性总结与综合实践
+
+**下一步学习**（阶段7：Qt 图形界面编程）：
+- 📝 Qt 框架介绍与环境配置
+- 📝 Qt 核心概念（QObject、信号与槽）
+- 📝 Qt 基础控件与布局管理
 
 **已完成内容**：
 - ✅ Hello World 程序
@@ -109,11 +146,24 @@
 - ✅ 虚函数、动态绑定、抽象类、多态实战
 - ✅ 运算符重载、友元函数、输入输出重载、前置/后置自增
 - ✅ friend 使用场景、静态成员变量、静态成员函数、friend 与 static 综合练习
+- ✅ STL 容器总览：分类、选容器决策树
+- ✅ vector 基础：创建方式、增删查改、遍历、resize/reserve
+- ✅ list/map/set 入门：基本操作、词频统计、去重
+- ✅ 迭代器基础：begin/end、迭代器类型、const迭代器、反向迭代器
+- ✅ STL 常用算法：sort、find、find_if、count、reverse、for_each、transform
+- ✅ 容器与算法综合练习：成绩分析、单词统计、数字处理、学生管理
+- ✅ Lambda 表达式详解：捕获列表、函数对象、STL 适配器
+- ✅ 函数模板与类模板：模板参数推导、模板实例化
+- ✅ 智能指针与 RAII：unique_ptr、shared_ptr、weak_ptr
+- ✅ 移动语义与完美转发：右值引用、std::move、std::forward
+- ✅ 现代 C++ 语法：auto、decltype、范围 for、nullptr
+- ✅ 可变参数模板：参数包、递归展开、折叠表达式
+- ✅ SFINAE：enable_if、类型萃取、自定义类型检测
+- ✅ 通用打印函数：综合应用可变参数模板和 SFINAE
 
 **下一步**：
-- 学习 STL 容器总览
-- 学习 `vector` 的基本使用
-- 初步认识 `list`、`map`、`set` 的使用场景
+- 学习 C++20 概念（Concepts）与约束（Constraints）
+- 或者开始 Qt 图形界面编程
 
 ---
 
@@ -951,17 +1001,17 @@ X小时
 
 **学习进度**：
 - 开始日期：2026-02-25
-- 当前日期：2026-04-14
-- 累计天数：17天
-- 实际学习：17天
-- 当前阶段：🎯 **阶段3已完成，准备进入 STL 和高级特性** - 第17天已完成，已掌握 friend 与 static 基础
+- 当前日期：2026-06-03
+- 累计天数：57天
+- 实际学习：57天
+- 当前阶段：🎉 **C++ 学习之旅阶段性完成**
 
 **学习统计**：
-- 总学习时长：14.00小时
-- 平均每天：0.82小时
-- 完成文件数：56个
-- 完成项目：0个
-- 掌握技能：31个
+- 总学习时长：45.5小时
+- 平均每天：0.80小时
+- 完成文件数：177个
+- 完成项目：8个（全部完成）✅
+- 掌握技能：395个
 
 **历史学习记录**：
 - 2026-02-25（第1天）：学习 if-else 和 switch-case，完成练习题，学习时长 0.5小时
@@ -981,8 +1031,48 @@ X小时
 - 2026-04-08（第15天）：学习虚函数、动态绑定、纯虚函数、抽象类、多态实战，完成全部练习，学习时长 1.0小时
 - 2026-04-09（第16天）：学习运算符重载、友元函数、输入输出重载、前置/后置自增，完成全部练习，学习时长 0.83小时
 - 2026-04-14（第17天）：学习 friend 使用场景、静态成员变量、静态成员函数、friend 与 static 综合练习，完成全部练习，学习时长 0.5小时
+- 2026-05-04（第18天）：学习 STL 容器总览、vector 基础、list/map/set 入门，完成全部练习，学习时长 0.5小时
+- 2026-05-05（第19天）：学习迭代器基础、STL 常用算法、容器与算法综合练习，完成全部练习，学习时长 0.5小时
+- 2026-05-06（第20天）：学习 Lambda 表达式、函数对象、STL 适配器，完成全部练习，学习时长 0.5小时
+- 2026-05-07（第21天）：学习函数模板、类模板、模板综合练习，完成全部练习，学习时长 0.5小时
+- 2026-05-08（第22天）：学习智能指针基础、RAII 与资源管理、智能指针综合练习，完成全部练习，学习时长 0.5小时
+- 2026-05-26（第23天）：学习移动语义与右值引用、现代 C++ 语法糖、综合练习，完成全部练习，学习时长 0.5小时
+- 2026-05-27（第24天）：完成阶段4所有学习内容（移动语义、现代C++语法），学习时长 0.5小时
+- 2026-05-28（第25天）：阶段4总结与复习，完成资源管理器综合项目，学习时长 0.5小时
+- 2026-05-29（第26天）：开始阶段5项目实战，完成学生管理系统基础版（Student类、StudentManager类、主程序菜单），学习时长 0.5小时
+- 2026-05-28（第27天）：扩展学生管理系统，添加成绩管理、统计功能、高级查询（Course类、Lambda过滤、function对象），学习时长 0.5小时
+- 2026-05-29（第28天）：完善学生管理系统，添加数据验证、批量导入、单元测试、项目文档，学习时长 2.0小时
+- 2026-05-29（第29天）：完成学生管理系统项目（代码重构、单元测试、完整文档），学习时长 2.0小时
+- 2026-05-30（第30天）：学习智能指针（unique_ptr、shared_ptr、weak_ptr）和 RAII 原理，完成全部练习，学习时长 1.5小时
+- 2026-05-31（第31天）：深入学习移动语义与完美转发，完成全部练习，学习时长 2.0小时
+- 2026-06-01（第32天）：学习可变参数模板与 SFINAE，实现通用打印函数，完成全部练习，学习时长 2.0小时
+- 2026-06-02（第33天）：学习 C++20 概念（Concepts）与约束，用概念重写通用打印函数，完成全部练习，学习时长 2.0小时
+- 2026-06-03（第34天）：学习 C++20 Ranges 库，掌握视图、管道操作符、惰性求值，完成全部练习，学习时长 2.0小时
+- 2026-06-04（第35天）：学习 C++20 Coroutines 概念，掌握三个关键字（co_yield、co_await、co_return）、生成器、异步协程，完成全部练习，学习时长 2.0小时
+- 2026-06-05（第36天）：学习 C++20 Modules，掌握模块化编程（module、import、export、BMI、模块结构），完成全部练习，学习时长 2.0小时
+- 2026-06-06（第37天）：C++20 四大特性总结与综合实践，完成阶段6学习，学习时长 2.0小时
+- 2026-05-29（第38天）：开始学习 Qt 图形界面编程，掌握 Qt 环境配置、核心概念（QObject、信号与槽）、简单窗口应用，学习时长 0.5小时
+- 2026-05-30（第39天）：学习更多 Qt 控件（QComboBox、QCheckBox、QRadioButton、QSpinBox）和高级布局（QGridLayout、QFormLayout），完成用户注册表单实战，学习时长 0.5小时
+- 2026-05-31（第40天）：学习 Qt 样式表与美化（Qt Style Sheets、选择器、伪状态、控件样式定制、深色/浅色主题设计），学习时长 0.5小时
+- 2026-06-01（第41天）：学习 Qt 对话框（QMessageBox四种类型、QInputDialog、QFileDialog、QColorDialog、自定义QDialog、模态/非模态），完成增强版注册表单实战，学习时长 0.5小时
+- 2026-06-02（第42天）：完成 Qt 实战项目：简单计算器（状态机设计、QGridLayout布局、连续运算、除零保护、深色主题），学习时长 0.5小时
+- 2026-06-03（第43天）：完成 Qt 实战项目：记事本应用（QMainWindow、QAction、QMenuBar、QToolBar、QStatusBar、QFile文件读写、closeEvent关闭确认），学习时长 0.5小时
+- 2026-06-04（第44天）：阶段7总结与综合实践（速查表、记事本查找替换、计算器键盘支持+历史记录），阶段7全部完成，学习时长 0.5小时
+- 2026-06-05（第45天）：开始阶段8，学习 Qt SQL 基础（QSqlDatabase、QSqlQuery、CRUD、参数化查询、QSqlTableModel+QTableView、联系人管理实战），学习时长 0.5小时
+- 2026-06-06（第46天）：Qt 数据库进阶（事务transaction/commit/rollback、INNER/LEFT JOIN、GROUP BY聚合、QSqlRelationalTableModel、带分组联系人管理），学习时长 0.5小时
+- 2026-06-07（第47天）：阶段8收尾+阶段9开始，SQL速查表 + Qt网络编程基础（QNetworkAccessManager、GET/POST、QJsonDocument、公开API调用实战），学习时长 0.5小时
+- 2026-06-08（第48天）：Qt 网络编程进阶（文件下载器：downloadProgress/进度条/速度/取消；天气查询应用：wttr.in API/嵌套JSON/卡片UI），学习时长 0.5小时
+- 2026-05-30（第49天）：阶段9总结 + 阶段10开始（网络编程速查表、QThread 基础、moveToThread 模式、线程间通信、多线程实战：斐波那契计算器），学习时长 0.5小时
+- 2026-05-31（第50天）：Qt 多线程进阶（线程同步：QMutex/QMutexLocker/QReadWriteLock/死锁预防；QtConcurrent：run/mapped/filtered/QFuture/QFutureWatcher；多线程文件搜索工具），学习时长 0.5小时
+- 2026-06-01（第51天）：阶段10总结 + Qt 综合项目规划（多线程速查表、Qt 学习回顾：阶段7-10、5个项目候选方案、推荐项目详细设计：个人任务管理器），学习时长 0.5小时
+- 2026-05-31（第52天）：Qt 综合项目开始（个人任务管理器第1阶段：项目结构、数据库设计、Task/Category/DatabaseManager类、MainWindow框架、任务列表/筛选/删除/标记完成/统计），学习时长 0.5小时
+- 2026-06-01（第53天）：Qt 综合项目第2阶段（TaskDialog对话框：添加模式/编辑模式、QDateEdit日期选择、表单验证、onAddTask/onEditTask实现、自动刷新列表），学习时长 0.5小时
+- 2026-06-02（第54天）：Qt 综合项目第3阶段（深色主题样式表：QSS语法/13种控件样式/伪状态/资源文件管理、布局优化、表格排序），学习时长 0.5小时
+- 2026-06-03（第55天）：项目总结与回顾（PROJECT_SUMMARY.md、Qt技能清单100个技能点、54天学习历程总结、下一步方向规划），学习时长 0.5小时
+- 2026-06-03（第56天）：阶段11开始（嵌入式系统概述：平台对比/固定宽度整数/位操作/volatile/内存布局；嵌入式C++特点：constexpr/内联函数/enum class/类封装驱动/内存优化），学习时长 0.5小时
+- 2026-06-03（第57天）：嵌入式进阶（中断处理/ISR规范/环形缓冲区/atomic；HAL硬件抽象层/IGpio/IUart/依赖注入；RTOS基础/Mutex/信号量/消息队列/FreeRTOS对照；状态机设计+完整系统集成），学习时长 1.5小时
 
-**已掌握技能**：29个
+**已掌握技能**：169个
 
 **核心技能分类**：
 - **控制结构**：if-else 条件判断、switch-case 分支语句、for/while/do-while 循环、break/continue 循环控制
@@ -999,9 +1089,101 @@ X小时
 - **继承与多态**：继承基础、构造析构顺序、方法重写、override、虚函数、动态绑定、纯虚函数、抽象类、多态实战
 - **运算符重载**：成员运算符重载、友元函数重载、输入输出运算符重载、前置/后置自增
 - **友元与静态成员**：friend 使用场景、友元类、静态成员变量、静态成员函数、friend 与 static 综合应用
+- **STL 容器基础**：STL 容器分类与选型、vector 基本操作、list/map/set 入门
+- **迭代器与算法**：迭代器基础（begin/end、迭代器类型、const迭代器）、STL 常用算法（sort/find/count/reverse）、容器+算法组合模式
+- **Lambda 与函数对象**：Lambda 表达式语法、捕获列表（值捕获/引用捕获）、函数对象（仿函数）、STL 适配器（bind）、Lambda 与算法配合
+- **模板编程**：函数模板语法、类模板语法、模板参数推导、模板实例化机制、多个模板参数、默认模板参数、模板与 STL
+- **智能指针与 RAII**：unique_ptr（独占所有权）、shared_ptr（共享所有权、引用计数）、weak_ptr（打破循环引用）、RAII 原则（资源获取即初始化）、自动内存管理、异常安全、make_unique/make_shared、智能指针选择原则、循环引用问题与解决
+- **移动语义**：左值与右值、右值引用（&&）、移动构造函数、移动赋值运算符、std::move、五法则（Rule of Five）、noexcept、返回值优化（RVO）、移动语义深入理解、移动后对象状态
+- **完美转发**：std::forward、万能引用（Universal Reference）、引用折叠规则、可变参数模板与完美转发、工厂函数实现、包装器函数
+- **可变参数模板**：模板参数包（typename... Args）、函数参数包（Args... args）、sizeof... 运算符、递归展开（递归终止条件）、折叠表达式（C++17）、左折叠与右折叠、初始化列表展开、逗号运算符展开、可变参数构造函数、参数包索引访问（get_nth）、可变参数模板类（递归定义）
+- **SFINAE 与类型萃取**：SFINAE 原理（Substitution Failure Is Not An Error）、enable_if 三种用法（返回类型、模板参数、函数参数）、enable_if_t（C++14）、类型萃取（is_integral、is_floating_point、is_pointer、is_arithmetic、is_same）、自定义类型萃取（has_size、has_push_back、has_iterator）、decltype + declval 技巧、条件编译（if constexpr）、条件类型选择（conditional）、模板函数重载选择、循环依赖解决（前向声明 + SFINAE）
+- **C++20 概念与约束**：概念（Concepts）定义语法、概念的四种使用方式（requires 子句、简写形式、尾置 requires、auto 参数）、requires 表达式四种形式（简单要求、类型要求、复合要求、嵌套要求）、约束组合（&&、||、!）、概念特化、标准库概念（integral、floating_point、container、iterator、equality_comparable、totally_ordered、movable、copyable、invocable、predicate）、概念 vs SFINAE 对比、通用打印函数（概念版）
+- **C++20 Ranges**：视图（View）、管道操作符（|）、惰性求值、零拷贝、常用视图适配器（filter、transform、take、drop、reverse、keys、values、split、join、iota、drop_while、take_while）、Ranges 算法（sort、find、count、reverse、max、min、copy）、Ranges vs 传统 STL 对比
+- **C++20 Coroutines 概念**：协程定义、协程 vs 函数对比、三个关键字（co_yield 生成器、co_await 异步等待、co_return 返回结果）、协程生命周期（创建、暂停、恢复、完成）、生成器概念（惰性求值、节省内存、无限序列）、异步协程（避免回调地狱、同步代码可读性 + 异步代码高效性）、协程应用场景（生成器、异步I/O、状态机、协作式多任务、游戏开发）、真实协程 vs 模拟实现对比
+- **C++20 Modules**：模块定义、模块 vs 传统头文件对比、三个关键字（module 声明模块、export 导出接口、import 导入模块）、模块结构（模块接口单元、模块实现单元、模块分区、子模块）、BMI（二进制接口文件）、模块编译流程、模块的可见性控制、模块 vs 命名空间、传统头文件的问题（重复包含、编译慢、符号污染、依赖不清晰、顺序依赖）、模块的优势（编译速度快 10-100 倍、封装性强、依赖清晰、无宏污染）、模块的劣势（编译器支持不完善、学习曲线陡峭）、何时使用模块何时使用头文件、迁移策略
+- **现代 C++ 语法**：auto 自动类型推导、decltype 类型推导、范围 for 循环、统一初始化列表（{}）、nullptr 空指针、constexpr 编译期常量、const auto& 最佳实践
+- **项目实战技能**：嵌套容器（vector<Course>）、function对象作为参数、pair容器、多文件项目组织、成绩等级计算、数据统计与排名、灵活过滤接口设计、格式化输出（setw/setprecision）、错误处理与边界情况、const正确性（双版本方法）
+- **Qt 图形界面编程**：Qt 框架介绍、Qt Creator IDE、Qt 项目结构（.pro、main.cpp、.h、.cpp、.ui）、QObject 基类、对象树与自动内存管理、信号与槽机制（Signal & Slot）、connect() 连接方式、自定义信号和槽、Q_OBJECT 宏、MOC 元对象编译器、QWidget 基础、基本控件（QLabel、QLineEdit、QPushButton）、布局管理（QVBoxLayout、QHBoxLayout）、事件处理、Lambda 表达式与槽函数、Qt vs 传统 GUI 对比、QComboBox（下拉框）、QCheckBox（复选框）、QRadioButton（单选按钮）、QSpinBox（数字输入框）、QButtonGroup（按钮组）、QGridLayout（网格布局）、QFormLayout（表单布局）、布局嵌套技巧、表单验证、QMessageBox（消息框）、用户反馈机制、Qt Style Sheets（样式表语法、选择器、伪状态、子控件选择器）、控件样式定制（按钮/输入框/标签/下拉框）、深色主题、浅色主题、主题切换、QMessageBox四种类型（information/warning/critical/question）、QInputDialog（getText/getInt/getDouble/getItem）、QFileDialog（getOpenFileName/getSaveFileName/getExistingDirectory/getOpenFileNames）、QColorDialog、QFontDialog、自定义QDialog（继承/getter方法/QDialogButtonBox）、模态对话框（exec）、非模态对话框（show/WA_DeleteOnClose）、对话框验证模式、QMainWindow（菜单栏/工具栏/状态栏/中心控件）、QAction（动作对象）、QMenuBar（菜单栏）、QToolBar（工具栏）、QStatusBar（状态栏）、closeEvent（关闭事件）、文件读写（QFile）、QSqlDatabase（数据库连接）、QSqlQuery（SQL 查询）、CRUD 操作（增删改查）、参数化查询（防 SQL 注入）、QSqlTableModel（表格模型）、QTableView（表格视图）、Model-View 架构、事务（transaction/commit/rollback）、JOIN 查询（INNER/LEFT）、GROUP BY 聚合、QSqlRelationalTableModel（关联表模型）、外键关系、QNetworkAccessManager（网络请求管理器）、QNetworkRequest（网络请求对象）、QNetworkReply（网络响应对象）、HTTP GET/POST 请求、QJsonDocument（JSON 文档）、QJsonObject（JSON 对象）、QJsonArray（JSON 数组）、JSON 解析、公开 API 调用、downloadProgress（下载进度）、文件下载（流式写入）、取消下载（abort）、嵌套 JSON 解析、QUrl::toPercentEncoding（URL 编码）
+- **Qt 多线程编程**：多线程的必要性（避免 UI 卡顿）、Qt 线程模型（主线程 + 工作线程）、QThread 基础（start/quit/wait/isRunning）、moveToThread 模式（推荐）、线程间信号槽通信（自动队列连接）、线程安全规则（不在工作线程操作 UI）、取消机制（布尔标志）、线程生命周期管理、QObject 线程亲和性、连接类型（AutoConnection/DirectConnection/QueuedConnection）、常见错误（工作线程操作 UI、moveToThread 设置父对象、忘记启动线程、忘记清理线程、工作线程使用 QTimer）、数据竞争问题（多线程同时访问共享数据）、QMutex 互斥锁（lock/unlock/tryLock）、QMutexLocker 自动锁管理（RAII）、QReadWriteLock 读写锁（lockForRead/lockForWrite）、死锁问题（互相等待）、死锁预防（固定加锁顺序、tryLock、减少锁持有时间）、锁的粒度（粗粒度 vs 细粒度）、QtConcurrent 高级并发（自动线程池管理）、QtConcurrent::run()（在线程池中运行函数）、QtConcurrent::mapped()（并行映射）、QtConcurrent::filtered()（并行过滤）、QFuture 异步任务结果（result/isFinished/cancel）、QFutureWatcher 监听任务完成（finished/progressValueChanged）、QThreadPool 线程池（全局线程池、maxThreadCount）、QThread vs QtConcurrent（手动管理 vs 自动管理）
 
 **已完成项目**：
-- 暂无
+1. **学生管理系统（完整版）** - 第25-29天完成
+   - 功能：学生信息增删改查、课程成绩管理、统计分析、高级查询、数据持久化、批量导入、数据验证
+   - 技术：类与对象、STL容器（vector、pair）、STL算法（find_if、sort）、Lambda表达式、function对象、格式化输出、文件I/O、CSV解析、单元测试
+   - 文件：Student.h/cpp、StudentManager.h/cpp、Course.h/cpp、main.cpp、test_student_manager.cpp、README.md、CHANGELOG.md、PROJECT_SUMMARY.md、PROJECT_SHOWCASE.md
+   - 代码量：3386行（源码2204行 + 测试253行 + 文档929行）
+   - 测试覆盖：10个单元测试，100%通过率
+
+2. **简单计算器** - 第42天完成
+   - 功能：四则运算、连续运算、除零保护、深色主题
+   - 技术：QMainWindow、QPushButton、QLineEdit、QGridLayout、状态机设计
+   - 代码量：约300行
+
+3. **记事本应用** - 第43天完成
+   - 功能：文件新建/打开/保存、文本编辑、关闭确认
+   - 技术：QMainWindow、QAction、QMenuBar、QToolBar、QStatusBar、QFile、closeEvent
+   - 代码量：约400行
+
+4. **联系人管理** - 第45天完成
+   - 功能：联系人增删改查、数据持久化
+   - 技术：QSqlDatabase、QSqlQuery、QSqlTableModel、QTableView、CRUD操作
+   - 代码量：约350行
+
+5. **带分组联系人管理** - 第46天完成
+   - 功能：联系人分组、统计、关联查询
+   - 技术：事务、JOIN、GROUP BY、QSqlRelationalTableModel
+   - 代码量：约450行
+
+6. **天气查询应用** - 第48天完成
+   - 功能：实时天气查询、嵌套JSON解析、卡片UI
+   - 技术：QNetworkAccessManager、wttr.in API、QJsonDocument
+   - 代码量：约400行
+
+7. **多线程文件搜索工具** - 第50天完成
+   - 功能：并发搜索、实时结果、取消机制
+   - 技术：QtConcurrent、QFuture、QFutureWatcher
+   - 代码量：约350行
+
+8. **个人任务管理器（Qt 综合项目）** - 第52-54天完成 ✅
+   - 功能：任务增删改查、分类管理、优先级、截止日期、任务统计、筛选排序、深色主题
+   - 技术：
+     * 数据层：SQLite、QSqlDatabase、QSqlQuery、单例模式、参数化查询
+     * UI层：QMainWindow、QDialog、QTableWidget、QDateEdit、QFormLayout、QGroupBox
+     * 样式：Qt Style Sheets（QSS）、深色主题、伪状态、资源文件
+   - 文件：Task.h/cpp、Category.h/cpp、DatabaseManager.h/cpp、MainWindow.h/cpp、TaskDialog.h/cpp、main.cpp、styles.qss、resources.qrc、TaskManager.pro、README.md
+   - 代码量：约2050行（源码1600行 + 样式表400行 + 文档50行）
+   - 完成度：75%（基础框架 + 核心功能 + UI 美化）
+
+2. **简单计算器（Qt 项目）** - 第42天完成
+   - 功能：四则运算、连续运算、除零保护、状态机设计、深色主题
+   - 技术：QGridLayout、QPushButton、QLineEdit、状态机、Qt 样式表
+   - 代码量：约300行
+
+3. **记事本应用（Qt 项目）** - 第43天完成
+   - 功能：新建/打开/保存文件、QMainWindow、菜单栏、工具栏、状态栏、关闭确认
+   - 技术：QMainWindow、QAction、QMenuBar、QToolBar、QStatusBar、QFile、closeEvent
+   - 代码量：约400行
+
+4. **联系人管理（Qt + SQL 项目）** - 第45天完成
+   - 功能：联系人增删改查、QSqlTableModel、QTableView、参数化查询
+   - 技术：QSqlDatabase、QSqlQuery、QSqlTableModel、QTableView、Model-View 架构
+   - 代码量：约350行
+
+5. **带分组联系人管理（Qt + SQL 进阶）** - 第46天完成
+   - 功能：分组管理、外键关系、JOIN 查询、GROUP BY 聚合、QSqlRelationalTableModel
+   - 技术：事务、INNER/LEFT JOIN、QSqlRelationalTableModel、外键约束
+   - 代码量：约450行
+
+6. **天气查询应用（Qt 网络编程）** - 第48天完成
+   - 功能：城市天气查询、嵌套 JSON 解析、卡片 UI、QScrollArea
+   - 技术：QNetworkAccessManager、wttr.in API、QJsonDocument、QUrl::toPercentEncoding
+   - 代码量：约400行
+
+7. **多线程文件搜索工具（Qt 多线程）** - 第50天完成
+   - 功能：多目录并发搜索、文件名模式匹配、实时结果显示、进度更新、取消搜索
+   - 技术：QtConcurrent::run()、QFutureWatcher、QDirIterator、线程池
+   - 代码量：约450行
 
 ---
 
