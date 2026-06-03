@@ -305,6 +305,43 @@ std::vector<Student> loadStudents(const std::string& filename) {
 }
 
 // ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+
+void showCommonErrors() {
+    std::cout << std::string(60, '=') << std::endl;
+    std::cout << "常见错误和陷阱" << std::endl;
+    std::cout << std::string(60, '=') << std::endl;
+    std::cout << R"(
+❌ 错误1：打开文件后不检查是否成功就读写（段错误/无输出）
+   ofstream f("out.txt");
+   f << "data";   // ❌ 磁盘满/无权限时 f 无效，写入静默失败
+   ✅ 检查：if (!f.is_open()) { cerr << "打开失败"; return; }
+
+❌ 错误2：文本模式读取二进制文件（数据损坏）
+   ifstream f("image.png");   // ❌ 默认文本模式
+   ✅ 二进制文件用 ios::binary：
+   ifstream f("image.png", ios::binary);
+
+❌ 错误3：逐字符读取而非 getline（遇空格截断）
+   string line; f >> line;   // ❌ 只读到空格前
+   ✅ getline(f, line);       // 读取整行
+
+❌ 错误4：忘记关闭文件（数据未刷新到磁盘）
+   ofstream f("out.txt");
+   f << "hello";
+   // ❌ 程序崩溃前数据可能还在缓冲区未写入
+   ✅ 用 RAII：ofstream 析构时自动 close() 并 flush()
+   // 或显式：f.close();
+
+❌ 错误5：读取整数后直接 getline（读到换行符）
+   int n; cin >> n;
+   string line; getline(cin, line);  // ❌ 读到 n 后的换行符，line 为空
+   ✅ cin >> n; cin.ignore(); getline(cin, line);
+)" << std::endl;
+}
+
+// ============================================
 // 主函数：演示所有案例
 // ============================================
 

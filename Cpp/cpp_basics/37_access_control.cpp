@@ -30,7 +30,7 @@
 #include <string>
 using namespace std;
 
-int main() {
+void exercise_part1() {
     cout << string(60, '=') << endl;
     cout << "第一部分：核心概念详解 ⭐⭐⭐⭐⭐" << endl;
     cout << string(60, '=') << endl;
@@ -237,7 +237,7 @@ public:   // 公有成员：可以在任何地方访问
     }
 };
 
-int main() {
+void exercise_part2() {
     cout << string(60, '=') << endl;
     cout << "第二部分：基础操作实践" << endl;
     cout << string(60, '=') << endl;
@@ -395,7 +395,7 @@ public:
     }
 };
 
-int main() {
+void exercise_part3() {
     cout << string(60, '=') << endl;
     cout << "第三部分：getter和setter最佳实践" << endl;
     cout << string(60, '=') << endl;
@@ -527,7 +527,7 @@ acc.deposit(-1000);  // 验证失败，余额不会变成负数
 #include <string>
 using namespace std;
 
-int main() {
+void exercise_part4() {
     cout << string(60, '=') << endl;
     cout << "常见错误和陷阱 ⭐⭐⭐⭐⭐" << endl;
     cout << string(60, '=') << endl;
@@ -741,7 +741,7 @@ void Student::display() {  // 类名::函数名
 #include <iostream>
 using namespace std;
 
-int main() {
+void exercise_part5() {
     cout << "函数卡片速查" << endl;
 
     cout << R"(
@@ -798,7 +798,7 @@ void setAge(int a) {
 #include <iostream>
 using namespace std;
 
-int main() {
+void exercise_last() {
     cout << "练习题" << endl;
 
     cout << R"(
@@ -858,3 +858,29 @@ g++ -o 37_access_control 37_access_control.cpp
 C++版本要求：
 C++11或更高版本
 */
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+void showCommonErrors() {
+    cout << string(60, '=') << endl;
+    cout << "常见错误和陷阱（访问控制）" << endl;
+    cout << string(60, '=') << endl;
+    cout << R"(
+[ERROR1] 类成员变量放 public -> 破坏封装，应放 private
+[ERROR2] getter/setter 忘加 const -> const 对象无法调用只读方法
+[ERROR3] 类外定义成员函数忘写 ClassName:: -> 变成全局函数
+[ERROR4] 对象赋值是浅拷贝 -> 含指针成员时需实现深拷贝或五法则
+[ERROR5] using namespace std 在头文件中 -> 污染所有包含该头文件的文件
+)" << endl;
+}
+
+int main() {
+    exercise_part1();
+    exercise_part2();
+    exercise_part3();
+    exercise_part4();
+    exercise_part5();
+    exercise_last();
+    showCommonErrors();
+    return 0;
+}

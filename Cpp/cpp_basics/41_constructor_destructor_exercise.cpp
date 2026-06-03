@@ -105,7 +105,7 @@ public:
     }
 };
 
-int main() {
+void exercise_last() {
     cout << string(60, '=') << endl;
     cout << "第一部分：动态字符串类" << endl;
     cout << string(60, '=') << endl;
@@ -153,17 +153,12 @@ int main() {
     }
     cout << "\n字符串对象已销毁" << endl;
 
-    return 0;
 }
 
-// ============================================
 // 第二部分：智能数组类
 // ============================================
 
-#include <iostream>
-using namespace std;
-
-// 定义一个智能数组类
+// 智能数组类
 // 功能：自动管理动态数组内存，提供边界检查
 class SmartArray {
 private:
@@ -248,3 +243,26 @@ public:
     }
 };
 
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+void showCommonErrors() {
+    cout << string(60, "=") << endl;
+    cout << "常见错误和陷阱" << endl;
+    cout << string(60, "=") << endl;
+    cout << R"(
+[ERROR1] 构造函数写了返回类型（void/int）-> 编译错误
+[ERROR2] const 成员在函数体赋值 -> 必须用初始化列表
+[ERROR3] 有继承但基类析构不是 virtual -> 子类资源泄漏
+[ERROR4] delete 后继续使用指针（悬空指针）-> 置 nullptr
+[ERROR5] delete/delete[] 混用 -> 未定义行为
+[ERROR6] 析构函数抛出异常 -> 可能导致 terminate()
+)" << endl;
+}
+
+int main() {
+    exercise_part1();
+    exercise_last();
+    showCommonErrors();
+    return 0;
+}

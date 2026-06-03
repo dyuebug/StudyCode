@@ -204,7 +204,7 @@ using Company::name;  // 只引入Company::name
 // 主函数：演示所有示例
 // ============================================
 
-int main() {
+void exercise_part1() {
     std::cout << std::string(60, '=') << std::endl;
     std::cout << "命名空间基础 - 实践演示" << std::endl;
     std::cout << std::string(60, '=') << std::endl;
@@ -364,7 +364,7 @@ namespace Math {
     int add(int a, int b) { return a + b; }
 }
 
-int main() {
+void exercise_part2() {
     int result = add(1, 2);  // 编译错误！找不到add函数
     return 0;
 }
@@ -378,7 +378,7 @@ namespace Math {
     int add(int a, int b) { return a + b; }
 }
 
-int main() {
+void exercise_part3() {
     int result = Math::add(1, 2);  // 使用完全限定名
     return 0;
 }
@@ -436,7 +436,7 @@ namespace MySpace {
     void func() {}
 }
 
-int main() {
+void exercise_part4() {
     MySpce::func();  // 拼写错误：MySpce → MySpace
     return 0;
 }
@@ -450,7 +450,7 @@ namespace MySpace {
     void func() {}
 }
 
-int main() {
+void exercise_part5() {
     MySpace::func();  // 正确拼写
     return 0;
 }
@@ -473,7 +473,7 @@ namespace A {
     }
 }
 
-int main() {
+void exercise_part6() {
     A::func();  // 错误！func在A::B中，不在A中
     return 0;
 }
@@ -489,7 +489,7 @@ namespace A {
     }
 }
 
-int main() {
+void exercise_last() {
     A::B::func();  // 使用完整路径
     return 0;
 }
@@ -671,3 +671,30 @@ g++ -std=c++17 33_namespace_basics.cpp -o 33_namespace_basics
 - 演示匿名命名空间
 - 演示using声明
 */
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+void showCommonErrors() {
+    cout << string(60, '=') << endl;
+    cout << "常见错误和陷阱（命名空间）" << endl;
+    cout << string(60, '=') << endl;
+    cout << R"(
+[ERROR1] 类成员变量放 public -> 破坏封装，应放 private
+[ERROR2] getter/setter 忘加 const -> const 对象无法调用只读方法
+[ERROR3] 类外定义成员函数忘写 ClassName:: -> 变成全局函数
+[ERROR4] 对象赋值是浅拷贝 -> 含指针成员时需实现深拷贝或五法则
+[ERROR5] using namespace std 在头文件中 -> 污染所有包含该头文件的文件
+)" << endl;
+}
+
+int main() {
+    exercise_part1();
+    exercise_part2();
+    exercise_part3();
+    exercise_part4();
+    exercise_part5();
+    exercise_part6();
+    exercise_last();
+    showCommonErrors();
+    return 0;
+}

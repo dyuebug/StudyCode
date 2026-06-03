@@ -141,7 +141,7 @@ public:
     }
 };
 
-int main() {
+void exercise_part1() {
     cout << string(60, '=') << endl;
     cout << "第一部分：学生管理系统" << endl;
     cout << string(60, '=') << endl;
@@ -321,7 +321,7 @@ public:
     }
 };
 
-int main() {
+void exercise_part2() {
     cout << string(60, '=') << endl;
     cout << "第二部分：图书管理系统" << endl;
     cout << string(60, '=') << endl;
@@ -457,7 +457,7 @@ public:
     }
 };
 
-int main() {
+void exercise_part3() {
     cout << string(60, '=') << endl;
     cout << "第三部分：综合练习" << endl;
     cout << string(60, '=') << endl;
@@ -509,7 +509,7 @@ int main() {
 #include <string>
 using namespace std;
 
-int main() {
+void show_extras() {
     cout << string(60, '=') << endl;
     cout << "练习题" << endl;
     cout << string(60, '=') << endl;
@@ -590,5 +590,39 @@ int main() {
    - 修改密码需要验证旧密码
 )" << endl;
 
+    return 0;
+}
+
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+void showCommonErrors() {
+    cout << string(60, "=") << endl;
+    cout << "常见错误和陷阱" << endl;
+    cout << string(60, "=") << endl;
+    cout << R"(
+[ERROR1] public/private 混淆：成员变量放在 public -> 破坏封装
+  正确：成员变量放 private，提供 public getter/setter
+
+[ERROR2] getter 忘加 const -> const 对象无法调用
+  int getName() { return name; }     // 错误
+  int getName() const { return name; } // 正确
+
+[ERROR3] this 指针只在成员函数中有效，静态函数无 this
+
+[ERROR4] 类外定义成员函数忘写 ClassName::
+  void display() { ... }           // 错误：这是全局函数
+  void Student::display() { ... }  // 正确
+
+[ERROR5] 对象赋值是值复制（浅拷贝），含指针成员时需实现深拷贝
+)" << endl;
+}
+
+int main() {
+    exercise_part1();
+    exercise_part2();
+    exercise_part3();
+    show_extras();
+    showCommonErrors();
     return 0;
 }
