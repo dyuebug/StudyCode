@@ -1,0 +1,401 @@
+/* ============================================
+   个人任务管理器 - 深色主题样式表
+   ============================================ */
+
+/* ============================================
+   全局样式
+   ============================================ */
+
+* {
+    font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    font-size: 13px;
+}
+
+QMainWindow, QDialog {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+}
+
+/* ============================================
+   按钮样式
+   ============================================ */
+
+QPushButton {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #1abc9c;
+    border-radius: 4px;
+    padding: 6px 16px;
+    min-width: 80px;
+    min-height: 28px;
+}
+
+QPushButton:hover {
+    background-color: #3d566e;
+    border-color: #16a085;
+}
+
+QPushButton:pressed {
+    background-color: #2c3e50;
+    border-color: #1abc9c;
+}
+
+QPushButton:disabled {
+    background-color: #34495e;
+    color: #7f8c8d;
+    border-color: #7f8c8d;
+}
+
+/* ============================================
+   输入框样式
+   ============================================ */
+
+QLineEdit {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    padding: 5px 10px;
+    selection-background-color: #3498db;
+}
+
+QLineEdit:focus {
+    border-color: #3498db;
+}
+
+QLineEdit:disabled {
+    background-color: #2c3e50;
+    color: #7f8c8d;
+}
+
+/* ============================================
+   多行文本框样式
+   ============================================ */
+
+QTextEdit {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    padding: 5px;
+    selection-background-color: #3498db;
+}
+
+QTextEdit:focus {
+    border-color: #3498db;
+}
+
+/* ============================================
+   下拉框样式
+   ============================================ */
+
+QComboBox {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    padding: 5px 10px;
+    min-height: 25px;
+}
+
+QComboBox:hover {
+    border-color: #3498db;
+}
+
+QComboBox:focus {
+    border-color: #3498db;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #ecf0f1;
+    margin-right: 5px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #3498db;
+    selection-background-color: #3498db;
+    selection-color: #ecf0f1;
+}
+
+/* ============================================
+   日期选择器样式
+   ============================================ */
+
+QDateEdit {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    padding: 5px 10px;
+    min-height: 25px;
+}
+
+QDateEdit:hover {
+    border-color: #3498db;
+}
+
+QDateEdit:focus {
+    border-color: #3498db;
+}
+
+QDateEdit::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QDateEdit::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #ecf0f1;
+    margin-right: 5px;
+}
+
+/* 日历弹出窗口 */
+QCalendarWidget {
+    background-color: #34495e;
+    color: #ecf0f1;
+}
+
+QCalendarWidget QToolButton {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: none;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+QCalendarWidget QToolButton:hover {
+    background-color: #3d566e;
+}
+
+QCalendarWidget QMenu {
+    background-color: #34495e;
+    color: #ecf0f1;
+}
+
+QCalendarWidget QSpinBox {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+}
+
+QCalendarWidget QAbstractItemView {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    selection-background-color: #3498db;
+    selection-color: #ecf0f1;
+}
+
+/* ============================================
+   表格样式
+   ============================================ */
+
+QTableWidget {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    gridline-color: #7f8c8d;
+    selection-background-color: #3498db;
+    selection-color: #ecf0f1;
+    alternate-background-color: #2c3e50;
+}
+
+QTableWidget::item {
+    padding: 5px;
+}
+
+QTableWidget::item:selected {
+    background-color: #3498db;
+    color: #ecf0f1;
+}
+
+QTableWidget::item:hover {
+    background-color: #3d566e;
+}
+
+/* 表头样式 */
+QHeaderView::section {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+    padding: 5px;
+    font-weight: bold;
+}
+
+QHeaderView::section:hover {
+    background-color: #34495e;
+}
+
+/* ============================================
+   分组框样式
+   ============================================ */
+
+QGroupBox {
+    background-color: #34495e;
+    border: 2px solid #7f8c8d;
+    border-radius: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 5px;
+    color: #3498db;
+    background-color: #34495e;
+}
+
+/* ============================================
+   标签样式
+   ============================================ */
+
+QLabel {
+    color: #ecf0f1;
+    background-color: transparent;
+}
+
+/* ============================================
+   菜单栏样式
+   ============================================ */
+
+QMenuBar {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    border-bottom: 1px solid #7f8c8d;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 5px 10px;
+}
+
+QMenuBar::item:selected {
+    background-color: #34495e;
+}
+
+QMenuBar::item:pressed {
+    background-color: #3498db;
+}
+
+/* 菜单样式 */
+QMenu {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: 1px solid #7f8c8d;
+}
+
+QMenu::item {
+    padding: 5px 30px 5px 20px;
+}
+
+QMenu::item:selected {
+    background-color: #3498db;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #7f8c8d;
+    margin: 5px 0;
+}
+
+/* ============================================
+   工具栏样式
+   ============================================ */
+
+QToolBar {
+    background-color: #2c3e50;
+    border-bottom: 1px solid #7f8c8d;
+    spacing: 5px;
+    padding: 5px;
+}
+
+QToolBar::separator {
+    background-color: #7f8c8d;
+    width: 1px;
+    margin: 5px;
+}
+
+/* ============================================
+   状态栏样式
+   ============================================ */
+
+QStatusBar {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    border-top: 1px solid #7f8c8d;
+}
+
+/* ============================================
+   滚动条样式
+   ============================================ */
+
+QScrollBar:vertical {
+    background-color: #2c3e50;
+    width: 12px;
+    border: none;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #7f8c8d;
+    border-radius: 6px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #95a5a6;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    background-color: #2c3e50;
+    height: 12px;
+    border: none;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #7f8c8d;
+    border-radius: 6px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #95a5a6;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* ============================================
+   消息框样式
+   ============================================ */
+
+QMessageBox {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+}
+
+QMessageBox QLabel {
+    color: #ecf0f1;
+}
+
+QMessageBox QPushButton {
+    min-width: 80px;
+}
