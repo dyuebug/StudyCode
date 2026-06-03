@@ -647,3 +647,339 @@ int main()
  * - 实践信号与槽机制
  * - 学习 Qt 基础控件
  */
+
+// ============================================================================
+// 第四部分：常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================================================
+
+/*
+【错误1】忘记添加 Q_OBJECT 宏
+
+❌ 错误代码：
+class MyObject : public QObject
+{
+    // 忘记写 Q_OBJECT！
+public slots:
+    void onClicked() {}
+signals:
+    void mySignal();
+};
+
+结果：信号槽连接编译通过，但运行时完全不工作，connect() 静默失败。
+
+原因：Q_OBJECT 宏由 MOC 处理，没有它就没有元对象代码，信号槽机制无法运行。
+
+✅ 正确代码：
+class MyObject : public QObject
+{
+    Q_OBJECT  // 必须在类定义的第一行！
+public slots:
+    void onClicked() {}
+signals:
+    void mySignal();
+};
+
+预防措施：继承 QObject 的类，写完类名立即加 Q_OBJECT。
+
+────────────────────────────────────────────────────────────
+
+【错误2】在槽函数中实现信号
+
+❌ 错误代码：
+signals:
+    void valueChanged(int v)  // 错误：给信号写了函数体
+    {
+        cout << v << endl;
+    }
+
+结果：编译错误，MOC 生成的代码与用户实现冲突。
+
+原因：信号由 MOC 自动实现，用户只需声明，不能提供函数体。
+
+✅ 正确代码：
+signals:
+    void valueChanged(int v);  // 只声明，不实现，无函数体
+
+预防措施：signals: 区域只写声明，以分号结尾。
+
+────────────────────────────────────────────────────────────
+
+【错误3】手动 delete 已有父对象的子控件
+
+❌ 错误代码：
+QPushButton *btn = new QPushButton("OK", parentWidget);
+// ... 某处
+delete btn;  // 危险！parentWidget 析构时会再次 delete btn，导致双重释放
+
+结果：程序崩溃（double free / heap corruption）。
+
+原因：Qt 对象树中，父对象析构时会自动 delete 所有子对象。
+
+✅ 正确代码：
+QPushButton *btn = new QPushButton("OK", parentWidget);
+// 不需要手动 delete，parentWidget 销毁时 btn 自动销毁
+// 如果确实需要提前销毁，先断开父子关系：
+btn->setParent(nullptr);
+delete btn;
+
+预防措施：有父对象的控件，不要手动 delete。
+
+────────────────────────────────────────────────────────────
+
+【错误4】connect() 返回值未检查导致连接失败无感知
+
+❌ 错误代码：
+QObject::connect(sender, &Sender::signal, receiver, &Receiver::slot);
+// 不检查返回值，连接失败了也不知道
+
+结果：信号发出后槽不执行，难以排查。
+
+原因：connect() 连接失败时返回无效的 QMetaObject::Connection，但不抛异常。
+
+✅ 正确代码（调试阶段）：
+bool ok = QObject::connect(sender, &Sender::signal, receiver, &Receiver::slot);
+Q_ASSERT(ok);  // 调试模式下，连接失败立即断言
+
+// 或者用 Qt 5 新语法，编译期就能检查类型匹配：
+QObject::connect(sender, &Sender::signal, receiver, &Receiver::slot);
+// 新语法在信号/槽签名不匹配时，编译直接报错
+
+预防措施：优先使用 Qt 5 函数指针语法，而非 Qt 4 的字符串宏语法。
+
+────────────────────────────────────────────────────────────
+
+【错误5】在没有 QApplication 的情况下使用 Qt 控件
+
+❌ 错误代码：
+int main()
+{
+    QPushButton btn("Hello");  // 错误：QApplication 还没创建
+    btn.show();
+    return 0;
+}
+
+结果：程序崩溃或行为未定义。
+
+原因：Qt 的事件循环和控件系统依赖 QApplication 初始化。
+
+✅ 正确代码：
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);  // 必须第一个创建
+    QPushButton btn("Hello");
+    btn.show();
+    return app.exec();  // 启动事件循环
+}
+
+预防措施：main 函数第一行永远是创建 QApplication（或 QCoreApplication）。
+
+────────────────────────────────────────────────────────────
+
+【错误6】Lambda 捕获悬空指针
+
+❌ 错误代码：
+void setupConnection()
+{
+    QLabel *label = new QLabel("test", parent);
+    QPushButton *btn = new QPushButton("click", parent);
+
+    connect(btn, &QPushButton::clicked, [label]() {
+        label->setText("clicked!");  // 如果 label 已被销毁，崩溃！
+    });
+
+    delete label;  // label 被提前销毁
+    // 之后点击 btn，Lambda 访问已释放的 label
+}
+
+结果：访问已释放内存，程序崩溃。
+
+✅ 正确代码：
+// 方式1：使用第四个参数指定 context 对象，对象销毁时自动断开连接
+connect(btn, &QPushButton::clicked, label, [label]() {
+    label->setText("clicked!");
+});
+// label 销毁后，这个连接自动断开，Lambda 不会再被调用
+
+预防措施：Lambda 槽函数总是提供 context 参数（第三个参数），与捕获的对象生命周期绑定。
+
+────────────────────────────────────────────────────────────
+
+【错误7】在子线程中直接操作 UI 控件
+
+❌ 错误代码：
+// 在工作线程中
+void WorkerThread::run()
+{
+    // 计算完成后直接更新 UI
+    m_label->setText("完成！");  // 崩溃或行为未定义！
+}
+
+结果：程序崩溃，或 UI 显示异常。
+
+原因：Qt 的 UI 控件只能在主线程（GUI 线程）中操作。
+
+✅ 正确代码：
+// 工作线程发出信号
+signals:
+    void resultReady(const QString &text);
+
+void WorkerThread::run()
+{
+    // 通过信号通知主线程更新 UI
+    emit resultReady("完成！");
+}
+
+// 主线程的槽函数更新 UI
+void MainWindow::onResultReady(const QString &text)
+{
+    m_label->setText(text);  // 在主线程中安全操作 UI
+}
+
+预防措施：子线程永远不直接操作 UI，只通过信号槽通知主线程。
+*/
+
+// ============================================================================
+// 第五部分：函数卡片速查
+// ============================================================================
+
+/*
+【函数卡片1：QObject::connect()】
+
+语法：
+QMetaObject::Connection QObject::connect(
+    const QObject *sender,          // 信号发送者
+    PointerToMemberFunction signal, // 信号（函数指针）
+    const QObject *receiver,        // 信号接收者
+    PointerToMemberFunction slot,   // 槽函数（函数指针）
+    Qt::ConnectionType type = Qt::AutoConnection  // 连接类型（可选）
+)
+
+参数：
+  - sender   (QObject*)：发送信号的对象
+  - signal   (函数指针)：信号函数，格式 &ClassName::signalName
+  - receiver (QObject*)：接收信号的对象（Lambda 版本可省略）
+  - slot     (函数指针)：槽函数，格式 &ClassName::slotName 或 Lambda
+  - type     (Qt::ConnectionType)：连接类型，默认 AutoConnection
+
+返回值：QMetaObject::Connection，可用于 disconnect()；连接失败时返回无效对象
+
+常用连接类型：
+  - Qt::AutoConnection    默认，跨线程自动用队列连接
+  - Qt::DirectConnection  直接调用，同步
+  - Qt::QueuedConnection  队列连接，用于跨线程
+
+示例：
+// 普通槽函数
+connect(btn, &QPushButton::clicked, this, &MainWindow::onClicked);
+
+// Lambda 槽（带 context，防悬空）
+connect(btn, &QPushButton::clicked, label, [label]() {
+    label->setText("clicked");
+});
+
+────────────────────────────────────────────────────────────
+
+【函数卡片2：QObject::disconnect()】
+
+语法：
+bool QObject::disconnect(const QMetaObject::Connection &connection)
+bool QObject::disconnect(const QObject *sender, signal, const QObject *receiver, slot)
+
+参数：
+  - connection：connect() 返回的连接对象（推荐方式）
+
+返回值：bool，断开成功返回 true
+
+示例：
+auto conn = connect(btn, &QPushButton::clicked, this, &MyClass::onClicked);
+// 之后断开
+disconnect(conn);
+
+────────────────────────────────────────────────────────────
+
+【函数卡片3：emit 关键字】
+
+语法：
+emit signalName(参数...);
+
+作用：发出一个信号，触发所有已连接的槽函数
+
+注意：emit 只是一个空宏（#define emit），主要起文档标注作用，不加也能编译
+
+示例：
+void Counter::increment()
+{
+    m_count++;
+    emit countChanged(m_count);  // 发出信号，传递新值
+}
+
+────────────────────────────────────────────────────────────
+
+【函数卡片4：Q_OBJECT 宏】
+
+用途：在继承 QObject 的类中启用元对象系统
+位置：必须放在类定义中第一个非注释行（私有区域）
+
+class MyClass : public QObject
+{
+    Q_OBJECT  // ← 这里
+
+public:
+    explicit MyClass(QObject *parent = nullptr);
+};
+
+注意：
+  - 使用 Q_OBJECT 的类必须有对应的 .cpp 文件
+  - 修改后需要重新运行 qmake（Qt Creator 通常自动处理）
+*/
+
+// ============================================================================
+// 第六部分：练习题
+// ============================================================================
+
+/*
+1. 基础理解
+   创建一个 Temperature 类（继承 QObject），包含：
+   - 私有成员：double m_celsius（摄氏度）
+   - 槽函数：setCelsius(double)，设置温度并发出信号
+   - 信号：temperatureChanged(double celsius, double fahrenheit)
+   要求：在 setCelsius 中，将摄氏度转换为华氏度（F = C * 9/5 + 32），一起通过信号发出
+   提示：华氏度转换公式，emit 发出两个参数的信号
+
+2. 连接练习
+   在 Qt 项目中实现以下连接（只写 connect 代码）：
+   - 点击 QPushButton，清空 QLineEdit 的文本
+   - QLineEdit 文本变化时（textChanged 信号），更新 QLabel 显示当前字数
+   - 两个 QSpinBox，让它们的值始终保持同步（A 变 B 也变，B 变 A 也变）
+   提示：注意双向同步可能引起无限循环，思考如何避免
+
+3. 对象树实践
+   分析以下代码，指出哪些 delete 是必要的，哪些会导致问题：
+   QWidget *win = new QWidget();
+   QPushButton *btn1 = new QPushButton("A", win);
+   QPushButton *btn2 = new QPushButton("B");
+   btn2->setParent(win);
+   QLabel *lbl = new QLabel("hello");
+
+   a. delete win;    // 效果是什么？
+   b. delete btn1;   // 安全吗？
+   c. delete lbl;    // 需要吗？
+
+4. Lambda 陷阱分析
+   下面代码有什么潜在问题？如何修复？
+   void MyClass::setup()
+   {
+       QPushButton *btn = new QPushButton("Go", this);
+       QString *data = new QString("important");
+       connect(btn, &QPushButton::clicked, [data]() {
+           qDebug() << *data;
+       });
+   }
+
+5. 综合设计
+   设计一个简单的"温度转换器"信号槽系统（不需要实际运行，画出或写出类图）：
+   - CelsiusInput 类：用户输入摄氏度，发出 celsiusChanged(double) 信号
+   - FahrenheitDisplay 类：槽函数接收并显示对应华氏度
+   - KelvinDisplay 类：槽函数接收并显示对应开尔文温度（K = C + 273.15）
+   要求：画出三个类之间的信号槽连接关系
+*/

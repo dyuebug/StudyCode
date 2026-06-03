@@ -367,6 +367,188 @@ int main(int argc, char *argv[]) {
 
 #include "36_file_search.moc"
 
+// ============================================
+// 函数卡片速查
+// ============================================
+/*
+【函数卡片：QtConcurrent::run()】
+
+语法：QFuture<T> QtConcurrent::run(Function fn, Args... args)
+作用：在线程池中异步执行函数，返回 QFuture 用于追踪结果
+需要：QT += concurrent
+
+示例：
+QFuture<QStringList> future = QtConcurrent::run([=]() {
+    QStringList results;
+    // 耗时搜索...
+    return results;
+});
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QFutureWatcher】
+
+作用：监听 QFuture 的状态变化，在主线程中发出信号
+
+常用信号：
+- finished()           → 任务完成
+- resultReadyAt(int)   → 某个结果就绪（mapped 时用）
+- progressValueChanged(int) → 进度变化
+
+示例：
+auto *watcher = new QFutureWatcher<QStringList>(this);
+connect(watcher, &QFutureWatcher<QStringList>::finished, this, [=]() {
+    auto results = watcher->result();
+    // 更新 UI...
+    watcher->deleteLater();
+});
+watcher->setFuture(future);
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QDirIterator】
+
+作用：递归遍历目录，逐个获取文件路径
+
+语法：
+QDirIterator(const QString &path, const QStringList &nameFilters,
+             QDir::Filters filters, QDirIterator::IteratorFlags flags)
+
+常用标志：
+- QDirIterator::Subdirectories  → 递归子目录
+- QDir::Files                   → 只返回文件（过滤目录）
+
+示例：
+QDirIterator it("/home/user", {"*.cpp", "*.h"},
+                QDir::Files, QDirIterator::Subdirectories);
+while (it.hasNext()) {
+    QString filePath = it.next();
+    // 处理文件...
+}
+*/
+
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+/*
+【错误1】future.cancel() 后未等待线程结束就析构
+
+❌ 错误代码：
+void onCancel() {
+    for (auto &f : m_futures) f.cancel();
+    // 直接返回，Lambda 可能还在运行，访问已销毁的 this
+}
+
+✅ 正确代码：
+void onCancel() {
+    for (auto &f : m_futures) f.cancel();
+    for (auto &f : m_futures) f.waitForFinished();  // 等待真正结束
+}
+// 或者在窗口关闭时：
+void closeEvent(QCloseEvent *e) {
+    for (auto &f : m_futures) { f.cancel(); f.waitForFinished(); }
+    e->accept();
+}
+
+预防措施：cancel() 后调用 waitForFinished()，确保 Lambda 不再访问已释放的资源。
+
+────────────────────────────────────────────────────────────
+
+【错误2】QDirIterator 遍历时权限不足导致死循环或崩溃
+
+❌ 错误代码：
+QDirIterator it("C:/Windows/System32", QDir::Files, QDirIterator::Subdirectories);
+while (it.hasNext()) {
+    it.next();  // 某些系统目录权限不足，it.hasNext() 可能一直返回 true
+}
+
+✅ 正确代码：
+QDirIterator it(dir, nameFilters, QDir::Files | QDir::Readable,
+                QDirIterator::Subdirectories);
+while (it.hasNext() && !m_cancelled) {  // 加取消检查
+    QString path = it.next();
+    if (!QFileInfo(path).isReadable()) continue;  // 跳过不可读文件
+    // 处理...
+}
+
+预防措施：遍历系统目录时过滤 QDir::Readable，并加取消检查防止卡死。
+
+────────────────────────────────────────────────────────────
+
+【错误3】从工作线程直接向 QListWidget 添加条目
+
+❌ 错误代码：
+QtConcurrent::run([=]() {
+    QDirIterator it(...);
+    while (it.hasNext()) {
+        m_resultList->addItem(it.next());  // 工作线程操作 UI！崩溃
+    }
+});
+
+✅ 正确代码：
+QtConcurrent::run([=]() {
+    QStringList results;
+    QDirIterator it(...);
+    while (it.hasNext()) results << it.next();
+    // 通过信号跨线程传递结果：
+    emit searchPartialResult(results);
+});
+// 主线程槽：
+connect(this, &FileSearch::searchPartialResult, this, [=](const QStringList &r) {
+    for (auto &path : r) m_resultList->addItem(path);
+});
+
+预防措施：工作线程收集结果，通过信号传给主线程，由主线程更新 UI。
+
+────────────────────────────────────────────────────────────
+
+【错误4】通配符模式未转义特殊字符
+
+❌ 错误代码：
+QString pattern = userInput;  // 用户输入 "report (2026).txt"
+// QDir 的 nameFilter 将括号视为特殊字符，匹配结果不符合预期
+
+✅ 正确代码：
+// QDir nameFilter 使用 shell 通配符（* ?），不是正则
+// 只有 * 和 ? 是特殊字符，括号是普通字符，无需特殊处理
+// 但如果使用 QRegularExpression 进行匹配，需要 escape：
+QString escaped = QRegularExpression::escape(pattern);
+QRegularExpression re(escaped.replace("\\*", ".*").replace("\\?", "."));
+
+预防措施：明确区分"通配符模式"（QDir）和"正则表达式"（QRegularExpression），按需选择。
+
+────────────────────────────────────────────────────────────
+
+【错误5】多个 QFutureWatcher 共用一个 watcher 对象
+
+❌ 错误代码：
+QFutureWatcher<QStringList> m_watcher;  // 只有一个 watcher
+
+// 搜索多个目录时：
+for (auto &dir : dirs) {
+    auto future = QtConcurrent::run([=]() { return searchDir(dir); });
+    m_watcher.setFuture(future);  // 每次 setFuture 会取消前一个！
+}
+
+结果：只有最后一个目录被搜索，其余被取消。
+
+✅ 正确代码：
+// 每个 future 对应一个 watcher：
+for (auto &dir : dirs) {
+    auto future = QtConcurrent::run([=]() { return searchDir(dir); });
+    auto *watcher = new QFutureWatcher<QStringList>(this);
+    connect(watcher, &QFutureWatcher<QStringList>::finished, this, [=]() {
+        auto results = watcher->result();
+        showResults(results);
+        watcher->deleteLater();
+    });
+    watcher->setFuture(future);
+    m_futures << future;  // 保存用于取消
+}
+
+预防措施：N 个并发任务需要 N 个独立的 QFutureWatcher 实例。
+*/
+
 /*
 ==============================================
 🎯 项目总结
@@ -428,4 +610,33 @@ make
 4. 使用数据库存储索引
 
 ==============================================
+*/
+
+// ============================================
+// 练习题
+// ============================================
+/*
+1. 文件内容搜索
+   在当前只搜索文件名的基础上，添加"内容搜索"选项：
+   - 勾选"搜索内容"复选框时，打开每个匹配的文件，检查是否包含关键词
+   - 结果列表额外显示匹配行号和行内容
+   提示：QFile + QTextStream 逐行读取，用 contains() 匹配
+
+2. 文件大小过滤
+   添加最小/最大文件大小过滤（单位 KB）：
+   - 两个 QSpinBox 分别设置最小和最大大小
+   - 用 QFileInfo::size() 获取文件大小（字节），与过滤条件比较
+   提示：1 KB = 1024 字节
+
+3. 搜索结果导出
+   添加"导出结果"按钮：
+   - 将当前搜索结果列表写入 CSV 文件
+   - 格式：文件名,路径,大小(KB),修改时间
+   提示：QFileInfo 提供 size() / lastModified() 等属性
+
+4. 搜索历史记录
+   在搜索框旁添加下拉历史（QComboBox）：
+   - 每次搜索成功后，将搜索词添加到下拉列表
+   - 最多保留 10 条历史
+   - 用 QSettings 持久化保存
 */

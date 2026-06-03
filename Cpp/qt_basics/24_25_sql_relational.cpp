@@ -497,6 +497,125 @@ private:
     QLineEdit                 *m_searchEdit;
 };
 
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+/*
+【错误1】QSqlRelationalTableModel 外键列直接 setData 写 ID，不写名称
+
+❌ 错误代码：
+// 外键列应该显示关联表的名称，但直接 setData 写了 ID 数字
+model->setData(model->index(row, 2), 3);  // 写入 group_id=3
+// 界面上该列还是显示数字，不是分组名
+
+✅ 正确代码：
+// 外键列必须通过 QSqlRelationalDelegate 来编辑，UI 自动显示关联名称
+tableView->setItemDelegate(new QSqlRelationalDelegate(tableView));
+// 设置关联：
+model->setRelation(2, QSqlRelation("groups", "id", "name"));
+
+预防措施：使用 QSqlRelationalTableModel 时，必须搭配 QSqlRelationalDelegate。
+
+────────────────────────────────────────────────────────────
+
+【错误2】关联表数据改变后，relational model 未刷新
+
+❌ 错误代码：
+// 添加新分组后，联系人的分组下拉框没有更新
+groupModel->insertRow(...);
+groupModel->submitAll();
+// contactModel 的关联数据不会自动更新
+
+✅ 正确代码：
+groupModel->submitAll();
+contactModel->select();  // 重新查询，关联数据自动刷新
+
+预防措施：修改关联表后，主表 model 需要重新 select()。
+
+────────────────────────────────────────────────────────────
+
+【错误3】DELETE 时违反外键约束导致失败
+
+❌ 错误代码：
+// 删除分组时，分组下还有联系人
+q.exec("DELETE FROM groups WHERE id = 1");
+// 如果启用了外键约束，会失败；否则联系人的 group_id 变成悬空值
+
+✅ 正确代码：
+// 方式1：先检查是否有关联联系人
+QSqlQuery check;
+check.prepare("SELECT COUNT(*) FROM contacts WHERE group_id = :id");
+check.bindValue(":id", groupId);
+check.exec();
+if (check.next() && check.value(0).toInt() > 0) {
+    QMessageBox::warning(this, "无法删除", "该分组下还有联系人，请先移除");
+    return;
+}
+
+// 方式2：级联删除（在建表时指定 ON DELETE CASCADE）
+
+预防措施：删除父表记录前，先检查子表是否有关联数据。
+
+────────────────────────────────────────────────────────────
+
+【错误4】JOIN 查询结果列名冲突
+
+❌ 错误代码：
+q.exec("SELECT contacts.id, groups.id FROM contacts JOIN groups ON ...");
+// 两个 id 列名相同，q.value("id") 取到哪个？未定义
+
+✅ 正确代码：
+q.exec("SELECT contacts.id AS contact_id, groups.id AS group_id, "
+       "contacts.name, groups.name AS group_name FROM contacts JOIN groups ON ...");
+// 用 AS 为冲突列取别名
+
+预防措施：JOIN 查询中有同名列时，必须用 AS 取别名。
+
+────────────────────────────────────────────────────────────
+
+【错误5】QSortFilterProxyModel 过滤后行号偏移，删除错误行
+
+❌ 错误代码：
+// 同 22_sql_practice 的错误2：proxy 行号 ≠ source 行号
+int row = tableView->currentIndex().row();
+m_model->removeRow(row);  // 删除了错误的行！
+
+✅ 正确代码：
+auto sourceIdx = m_proxy->mapToSource(tableView->currentIndex());
+m_model->removeRow(sourceIdx.row());
+m_model->select();
+
+预防措施：有 proxy model 时，所有对 source model 的行操作都需要 mapToSource()。
+*/
+
+// ============================================
+// 练习题
+// ============================================
+/*
+1. 分组重命名
+   - 双击分组列表中的某项，允许用户修改分组名
+   - 修改后同步更新 groups 表和联系人显示
+   - 提示：QListWidget::itemDoubleClicked 信号 + QInputDialog::getText()
+
+2. 联系人移动分组
+   - 选中一个联系人，右键菜单"移动到分组"
+   - 弹出分组列表，选择后更新该联系人的 group_id
+   - 提示：QMenu + QAction，更新后 m_model->select()
+
+3. 分组统计视图
+   - 在分组列表旁显示每个分组的联系人数量（如"朋友 (5)"）
+   - 提示：GROUP BY 查询统计各分组人数，刷新 QListWidget
+
+4. 数据导出增强
+   - 导出时按分组组织 CSV 文件：每个分组一个 Section
+   - 格式：
+     # 朋友
+     张三,13800138000
+     李四,13900139000
+     # 同事
+     王五,13700137000
+*/
+
 #include "24_25_sql_relational.moc"
 
 int main(int argc, char *argv[])

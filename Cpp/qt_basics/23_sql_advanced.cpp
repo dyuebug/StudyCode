@@ -496,6 +496,49 @@ private:
    - 两个操作必须同时成功或同时失败
 */
 
+// ============================================
+// 函数卡片速查
+// ============================================
+/*
+【函数卡片：QSqlDatabase::transaction()】
+
+语法：bool QSqlDatabase::transaction()
+作用：开始一个数据库事务
+返回：成功返回 true；驱动不支持事务返回 false
+
+配套函数：
+- db.commit()    → 提交事务（所有操作生效）
+- db.rollback()  → 回滚事务（所有操作撤销）
+
+标准用法：
+QSqlDatabase db = QSqlDatabase::database();
+db.transaction();
+QSqlQuery q;
+if (q.exec("UPDATE ...") && q.exec("INSERT ...")) {
+    db.commit();
+} else {
+    db.rollback();
+}
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QSqlQueryModel】
+
+作用：只读的 SQL 查询结果模型，用于在 QTableView 中显示查询结果
+
+常用方法：
+- setQuery(sql)：执行 SQL 并显示结果
+- setHeaderData(col, Qt::Horizontal, "列名")：设置列头名称
+- rowCount() / columnCount()：行列数
+
+示例：
+auto *model = new QSqlQueryModel(this);
+model->setQuery("SELECT e.name, d.name FROM employees e JOIN departments d ON e.dept_id = d.id");
+model->setHeaderData(0, Qt::Horizontal, "员工");
+model->setHeaderData(1, Qt::Horizontal, "部门");
+tableView->setModel(model);
+*/
+
 #include "23_sql_advanced.moc"
 
 int main(int argc, char *argv[])

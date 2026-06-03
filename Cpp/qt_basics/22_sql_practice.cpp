@@ -374,6 +374,152 @@ private:
     QLineEdit             *m_searchEdit;
 };
 
+// ============================================
+// 函数卡片速查
+// ============================================
+/*
+【函数卡片：QSqlTableModel::setFilter()】
+
+语法：void setFilter(const QString &filter)
+参数：SQL WHERE 子句（不含 WHERE 关键字）
+作用：过滤显示的数据行
+
+示例：
+m_model->setFilter("name LIKE '%张%'");   // 名字含"张"
+m_model->setFilter("");                   // 清空过滤，显示全部
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QSortFilterProxyModel】
+
+作用：在 Model 和 View 之间插入排序/过滤层，不修改原始数据
+
+常用方法：
+- setSourceModel(model)：设置原始 model
+- setFilterKeyColumn(col)：按哪列过滤，-1 表示所有列
+- setFilterCaseSensitivity(Qt::CaseInsensitive)：不区分大小写
+- setFilterFixedString(str) / setFilterRegularExpression(re)：设置过滤词
+
+示例：
+auto *proxy = new QSortFilterProxyModel(this);
+proxy->setSourceModel(m_model);
+proxy->setFilterKeyColumn(-1);
+proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
+tableView->setModel(proxy);
+
+// 搜索时：
+connect(searchEdit, &QLineEdit::textChanged, proxy,
+        &QSortFilterProxyModel::setFilterFixedString);
+*/
+
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+/*
+【错误1】QSqlTableModel 修改后忘记 submitAll()
+
+❌ 错误代码：
+m_model->setData(index, "新值");
+// 忘记 submitAll()，数据只在内存中，关闭程序后丢失
+
+✅ 正确代码：
+m_model->setData(index, "新值");
+m_model->submitAll();  // 立即写入数据库
+
+// 或设置自动提交模式：
+m_model->setEditStrategy(QSqlTableModel::OnFieldChange);  // 每次字段变化立即提交
+
+预防措施：明确选择提交策略，OnManualSubmit 需要手动调用 submitAll()。
+
+────────────────────────────────────────────────────────────
+
+【错误2】通过 proxy model 获取原始行索引时未转换
+
+❌ 错误代码：
+int row = tableView->currentIndex().row();
+m_model->removeRow(row);  // 使用的是 proxy 的行号，不是 model 的行号！
+
+✅ 正确代码：
+QModelIndex proxyIndex = tableView->currentIndex();
+QModelIndex sourceIndex = m_proxy->mapToSource(proxyIndex);
+m_model->removeRow(sourceIndex.row());
+
+预防措施：使用 proxy model 时，操作原始 model 前必须调用 mapToSource()。
+
+────────────────────────────────────────────────────────────
+
+【错误3】删除行后未刷新 model
+
+❌ 错误代码：
+m_model->removeRow(row);
+// 界面没有立即更新，需要触发 select()
+
+✅ 正确代码：
+m_model->removeRow(row);
+m_model->select();  // 重新从数据库查询，刷新界面
+
+预防措施：增删改后调用 select() 或 submitAll() + select()。
+
+────────────────────────────────────────────────────────────
+
+【错误4】SQL 注入风险：直接拼接用户输入到 SQL 字符串
+
+❌ 错误代码：
+QString name = searchEdit->text();
+q.exec("SELECT * FROM contacts WHERE name = '" + name + "'");
+// 用户输入 "' OR '1'='1" 可绕过查询
+
+✅ 正确代码：
+QSqlQuery q;
+q.prepare("SELECT * FROM contacts WHERE name LIKE :name");
+q.bindValue(":name", "%" + searchEdit->text() + "%");
+q.exec();
+
+预防措施：用户输入必须用参数化查询，不直接拼接 SQL。
+
+────────────────────────────────────────────────────────────
+
+【错误5】QTableView 列宽未设置，默认列宽过窄
+
+❌ 错误代码：
+// 不设置列宽，默认所有列等宽，内容被截断
+
+✅ 正确代码：
+// 方式1：自动调整到内容宽度
+tableView->resizeColumnsToContents();
+
+// 方式2：指定列的伸缩模式
+tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);        // 固定宽度
+tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);      // 自动填充剩余空间
+tableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents); // 按内容
+
+预防措施：setupUI 时总是设置合理的列宽策略。
+*/
+
+// ============================================
+// 练习题
+// ============================================
+/*
+1. 添加排序功能
+   - 点击列头时，按该列升序/降序排序
+   - 提示：tableView->setSortingEnabled(true) + proxy->sort()
+
+2. 导出为 CSV
+   - 点击"导出"按钮，将当前显示的所有联系人导出为 CSV 文件
+   - 用 QFileDialog::getSaveFileName() 让用户选择保存路径
+   - 提示：遍历 m_model->rowCount()，用 QFile + QTextStream 写入
+
+3. 批量导入
+   - 选择一个 CSV 文件，解析每行并插入数据库
+   - 跳过格式不正确的行，统计成功导入的数量
+   - 提示：QTextStream::readLine() 逐行读取
+
+4. 联系人详情对话框
+   - 双击某行时，弹出自定义 QDialog 显示该联系人的完整信息
+   - 对话框中可以编辑，点"保存"后更新数据库
+   - 提示：连接 tableView->doubleClicked 信号
+*/
+
 #include "22_sql_practice.moc"
 
 int main(int argc, char *argv[])

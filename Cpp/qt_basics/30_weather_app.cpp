@@ -413,6 +413,135 @@ private:
    - 用 QScrollArea 水平滚动显示
 */
 
+// ============================================
+// 函数卡片速查
+// ============================================
+/*
+【函数卡片：QJsonArray::at()】
+
+语法：QJsonValue QJsonArray::at(int i) const
+作用：获取 JSON 数组中第 i 个元素
+
+示例：
+QJsonArray hourly = obj.value("hourly").toArray();
+for (int i = 0; i < hourly.size(); i++) {
+    QJsonObject h = hourly.at(i).toObject();
+    QString time = h.value("time").toString();
+}
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QUrl::toPercentEncoding()】
+
+语法：static QByteArray QUrl::toPercentEncoding(const QString &input)
+作用：将字符串中的特殊字符（空格、中文等）转为 URL 编码（%XX）
+
+示例：
+QString city = "北京";
+QByteArray encoded = QUrl::toPercentEncoding(city);  // "%E5%8C%97%E4%BA%AC"
+QUrl url("https://wttr.in/" + encoded + "?format=j1");
+*/
+
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+/*
+【错误1】城市名含中文/空格未 URL 编码导致请求失败
+
+❌ 错误代码：
+QString city = "New York";
+QUrl url("https://wttr.in/" + city + "?format=j1");
+// URL 中有空格，请求失败或返回错误
+
+✅ 正确代码：
+QUrl url("https://wttr.in/" +
+         QString(QUrl::toPercentEncoding(city)) + "?format=j1");
+
+预防措施：用户输入的城市名拼入 URL 前，必须调用 toPercentEncoding()。
+
+────────────────────────────────────────────────────────────
+
+【错误2】JSON 路径层级假设错误导致数据为空
+
+❌ 错误代码：
+// 假设天气数据在 root["temp"]，实际在 root["current_condition"][0]["temp_C"]
+QString temp = doc.object().value("temp").toString();  // 始终为空
+
+✅ 正确代码：
+// 先打印完整 JSON 确认结构
+qDebug() << doc.toJson(QJsonDocument::Indented);
+
+// 按实际路径访问：
+auto current = doc.object().value("current_condition").toArray();
+if (!current.isEmpty()) {
+    QString temp = current.at(0).toObject().value("temp_C").toString();
+}
+
+预防措施：接入新 API 时，先 qDebug() 打印完整响应，再写解析代码。
+
+────────────────────────────────────────────────────────────
+
+【错误3】网络不可用时未显示友好提示
+
+❌ 错误代码：
+connect(reply, &QNetworkReply::finished, [=]() {
+    QByteArray data = reply->readAll();
+    reply->deleteLater();
+    parseWeather(data);  // 网络错误时 data 为空，解析失败，界面无任何反馈
+});
+
+✅ 正确代码：
+connect(reply, &QNetworkReply::finished, [=]() {
+    if (reply->error() != QNetworkReply::NoError) {
+        m_statusLabel->setText("网络错误：" + reply->errorString());
+        reply->deleteLater();
+        return;
+    }
+    QByteArray data = reply->readAll();
+    reply->deleteLater();
+    parseWeather(data);
+});
+
+预防措施：所有网络请求都要处理错误，向用户显示可读的错误信息。
+
+────────────────────────────────────────────────────────────
+
+【错误4】快速连续点击查询按钮，发起多个并发请求
+
+❌ 错误代码：
+// 用户快速点击"查询"3次，发出3个请求
+// 响应顺序不确定，最终显示的可能不是最后一次查询的结果
+
+✅ 正确代码：
+void onSearch() {
+    if (m_pendingReply) {
+        m_pendingReply->abort();   // 取消之前未完成的请求
+        m_pendingReply = nullptr;
+    }
+    m_pendingReply = m_manager->get(request);
+    connect(m_pendingReply, &QNetworkReply::finished, this, [=]() {
+        m_pendingReply = nullptr;
+        // 处理响应...
+    });
+}
+
+预防措施：发起新请求前，取消并清理上一个未完成的请求。
+
+────────────────────────────────────────────────────────────
+
+【错误5】将摄氏度字符串直接比较数字
+
+❌ 错误代码：
+QString temp = "25";
+if (temp > "9") { ... }   // 字符串比较！"25" < "9"（字典序）
+
+✅ 正确代码：
+int tempInt = temp.toInt();
+if (tempInt > 9) { ... }   // 数字比较
+
+预防措施：从 JSON 取出的数字字符串，用 toInt() / toDouble() 转换后再比较。
+*/
+
 #include "30_weather_app.moc"
 
 int main(int argc, char *argv[])

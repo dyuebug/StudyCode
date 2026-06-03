@@ -517,12 +517,186 @@ private:
     QColor       m_currentColor;
 };
 
-#include "14_dialog_practice.moc"
+// ============================================
+// 函数卡片速查
+// ============================================
+/*
+【函数卡片：QFileDialog::getOpenFileName()】
 
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
-    RegistrationForm window;
-    window.show();
-    return app.exec();
+语法：
+QString QFileDialog::getOpenFileName(
+    QWidget *parent,           // 父窗口（对话框居中显示）
+    const QString &caption,    // 对话框标题
+    const QString &dir,        // 初始目录
+    const QString &filter      // 文件过滤器
+)
+
+参数：
+- parent  (QWidget*)：父窗口，传 this
+- caption (QString)：标题栏文字
+- dir     (QString)：初始目录，传 "" 用上次目录，传 QDir::homePath() 用主目录
+- filter  (QString)：格式 "描述 (*.ext1 *.ext2);;描述2 (*.ext3)"
+
+返回值：用户选中的文件路径（QString），取消时返回空字符串
+
+示例：
+QString path = QFileDialog::getOpenFileName(
+    this, "选择图片", QDir::homePath(),
+    "图片文件 (*.png *.jpg *.jpeg *.bmp);;所有文件 (*)"
+);
+if (!path.isEmpty()) { /* 使用 path */ }
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QColorDialog::getColor()】
+
+语法：
+QColor QColorDialog::getColor(
+    const QColor &initial,     // 初始颜色
+    QWidget *parent,           // 父窗口
+    const QString &title       // 对话框标题（可选）
+)
+
+返回值：用户选中的 QColor；取消时返回无效颜色（isValid() == false）
+
+示例：
+QColor color = QColorDialog::getColor(m_currentColor, this, "选择主题色");
+if (color.isValid()) {
+    m_currentColor = color;
+    updateButtonStyle(color);
 }
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QPixmap::scaled()】
+
+语法：
+QPixmap scaled(int width, int height,
+               Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio,
+               Qt::TransformationMode transformMode = Qt::FastTransformation) const
+
+参数：
+- width/height：目标尺寸
+- aspectRatioMode：Qt::KeepAspectRatio 保持比例，Qt::IgnoreAspectRatio 拉伸
+- transformMode：Qt::SmoothTransformation 平滑缩放（质量好）
+
+示例：
+QPixmap pix(avatarPath);
+m_avatarLabel->setPixmap(
+    pix.scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation)
+);
+*/
+
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+/*
+【错误1】未检查 QFileDialog 返回值就使用路径
+
+❌ 错误代码：
+QString path = QFileDialog::getOpenFileName(this, "选择图片", "", "*.png");
+QPixmap pix(path);  // 用户取消时 path 为空，QPixmap 加载失败，显示空白
+
+✅ 正确代码：
+QString path = QFileDialog::getOpenFileName(this, "选择图片", "", "*.png *.jpg");
+if (!path.isEmpty()) {
+    QPixmap pix(path);
+    m_avatarLabel->setPixmap(pix.scaled(80, 80, Qt::KeepAspectRatio));
+}
+
+预防措施：文件对话框返回值必须先判断 isEmpty()。
+
+────────────────────────────────────────────────────────────
+
+【错误2】QColorDialog 取消后使用无效颜色
+
+❌ 错误代码：
+QColor color = QColorDialog::getColor(Qt::white, this);
+widget->setStyleSheet("background: " + color.name());  // 取消时 color.name() 是 "#000000"（黑色）
+
+✅ 正确代码：
+QColor color = QColorDialog::getColor(m_currentColor, this);
+if (color.isValid()) {  // 必须检查
+    m_currentColor = color;
+    applyColor(color);
+}
+
+预防措施：getColor() 后必须调用 isValid()。
+
+────────────────────────────────────────────────────────────
+
+【错误3】文件过滤器多扩展名用逗号分隔（无效）
+
+❌ 错误代码：
+QFileDialog::getOpenFileName(this, "选图", "", "*.png, *.jpg");
+// 逗号被当作文件名的一部分，过滤器不生效
+
+✅ 正确代码：
+QFileDialog::getOpenFileName(this, "选图", "",
+    "图片 (*.png *.jpg *.jpeg);;所有文件 (*)");
+// 同类型扩展名用空格分隔；不同过滤器用 ;; 分隔
+
+预防措施：记住过滤器规则：扩展名空格分隔，过滤器组 ;; 分隔。
+
+────────────────────────────────────────────────────────────
+
+【错误4】对 QDialog exec() 结果未判断就读取数据
+
+❌ 错误代码：
+UserInfoDialog dlg(this);
+dlg.exec();
+QString name = dlg.name();  // 用户点了"取消"，name 可能是空或默认值
+
+✅ 正确代码：
+UserInfoDialog dlg(this);
+if (dlg.exec() == QDialog::Accepted) {
+    QString name = dlg.name();  // 只有用户确认了才读取
+}
+
+预防措施：exec() 返回值必须与 QDialog::Accepted 比较。
+
+────────────────────────────────────────────────────────────
+
+【错误5】大图片未缩放直接赋给小 QLabel
+
+❌ 错误代码：
+QPixmap pix("large_photo.jpg");  // 3000x4000 像素的大图
+m_avatarLabel->setPixmap(pix);   // label 只有 80x80，但图片撑大了 label
+
+✅ 正确代码：
+QPixmap pix("large_photo.jpg");
+m_avatarLabel->setPixmap(
+    pix.scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation)
+);
+// 或者设置 label 不随图片缩放：
+m_avatarLabel->setScaledContents(true);
+m_avatarLabel->setFixedSize(80, 80);
+m_avatarLabel->setPixmap(pix);
+
+预防措施：显示用户选择的图片时，总是先 scaled() 到目标尺寸。
+*/
+
+// ============================================
+// 练习题
+// ============================================
+/*
+1. 头像裁剪功能
+   选择图片后，弹出一个自定义 QDialog，用 QLabel 显示图片
+   用户可以拖拽选择一个正方形区域，点"确定"后只保留该区域作为头像
+   提示：重写 QLabel 的 mousePressEvent/mouseMoveEvent 绘制选择框
+
+2. 多图上传预览
+   将头像选择改为多张图片，用 QScrollArea + QGridLayout 显示缩略图网格
+   每张图片右上角有"删除"按钮（小 QPushButton 悬浮在图片上）
+   提示：每个缩略图用 QFrame 包装，用 QStackedLayout 叠放图片和删除按钮
+
+3. 主题色实时预览
+   选择主题色时，不用等用户点"确定"，颜色对话框实时预览
+   QColorDialog::currentColorChanged 信号在用户拖动取色器时持续发出
+   提示：connect(dialog, &QColorDialog::currentColorChanged, this, &Form::applyPreview)
+
+4. 表单数据序列化
+   点击"提交"后，将所有表单数据保存为 JSON 文件（用 QJsonDocument）
+   格式：{"name":"张三","gender":"男","age":25,"city":"北京","hobbies":["读书","运动"]}
+   提示：构建 QJsonObject，用 QJsonDocument::toJson() 写入文件
+*/

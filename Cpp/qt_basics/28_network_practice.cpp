@@ -296,6 +296,210 @@ private:
     QTextEdit *m_log;
 };
 
+// ============================================
+// 函数卡片速查
+// ============================================
+/*
+【函数卡片：QJsonObject::value()】
+
+语法：QJsonValue QJsonObject::value(const QString &key) const
+作用：从 JSON 对象中取指定键的值
+返回：QJsonValue（若键不存在，返回 QJsonValue::Undefined）
+
+类型转换：
+- .toString()    → QString
+- .toInt()       → int
+- .toDouble()    → double
+- .toBool()      → bool
+- .toArray()     → QJsonArray
+- .toObject()    → QJsonObject
+
+示例：
+QJsonObject obj = doc.object();
+QString ip   = obj.value("ip").toString();
+int     code = obj.value("code").toInt();
+// 安全写法（提供默认值）：
+QString city = obj.value("city").toString("未知");
+
+────────────────────────────────────────────────────────────
+
+【函数卡片：QNetworkReply::error()】
+
+语法：QNetworkReply::NetworkError error() const
+作用：获取网络请求的错误类型
+返回：枚举值，NoError=0 表示成功
+
+示例：
+connect(reply, &QNetworkReply::finished, this, [=]() {
+    if (reply->error() != QNetworkReply::NoError) {
+        qDebug() << "请求失败：" << reply->errorString();
+        reply->deleteLater();
+        return;
+    }
+    QByteArray data = reply->readAll();
+    reply->deleteLater();
+    // 处理 data...
+});
+*/
+
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+/*
+【错误1】reply 未调用 deleteLater() 导致内存泄漏
+
+❌ 错误代码：
+connect(reply, &QNetworkReply::finished, [=]() {
+    QByteArray data = reply->readAll();
+    // 忘记 reply->deleteLater()！每次请求泄漏一个 reply 对象
+});
+
+✅ 正确代码：
+connect(reply, &QNetworkReply::finished, [=]() {
+    QByteArray data = reply->readAll();
+    reply->deleteLater();  // 必须！
+    // 处理 data...
+});
+
+预防措施：finished 槽函数末尾永远调用 reply->deleteLater()。
+
+────────────────────────────────────────────────────────────
+
+【错误2】未检查 reply->error() 就解析响应体
+
+❌ 错误代码：
+connect(reply, &QNetworkReply::finished, [=]() {
+    QByteArray data = reply->readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    // 网络错误时 data 可能是错误页面 HTML，解析 JSON 失败
+
+✅ 正确代码：
+connect(reply, &QNetworkReply::finished, [=]() {
+    if (reply->error() != QNetworkReply::NoError) {
+        showError(reply->errorString());
+        reply->deleteLater();
+        return;
+    }
+    QByteArray data = reply->readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    reply->deleteLater();
+});
+
+预防措施：先检查 error()，再读取 readAll()。
+
+────────────────────────────────────────────────────────────
+
+【错误3】JSON 嵌套层级访问未检查类型
+
+❌ 错误代码：
+QJsonObject root = doc.object();
+// 假设 "data" 是对象，直接转：
+QString name = root["data"]["name"].toString();
+// 如果 "data" 不存在或不是对象，root["data"] 返回 Undefined
+// .toObject() 返回空对象，再访问 "name" 同样 Undefined → toString() 返回 ""
+// 没有崩溃，但得到空字符串，难以排查
+
+✅ 正确代码：
+QJsonValue dataVal = root.value("data");
+if (!dataVal.isObject()) {
+    qDebug() << "data 字段缺失或类型错误";
+    return;
+}
+QString name = dataVal.toObject().value("name").toString();
+
+预防措施：访问嵌套 JSON 时，逐层用 isObject()/isArray() 检查类型。
+
+────────────────────────────────────────────────────────────
+
+【错误4】在 UI 线程直接做耗时 JSON 解析阻塞界面
+
+❌ 错误代码：
+connect(reply, &QNetworkReply::finished, [=]() {
+    QByteArray data = reply->readAll();
+    // 解析一个 10MB 的 JSON 文件，UI 卡顿几秒
+    auto doc = QJsonDocument::fromJson(data);
+    updateUI(doc);
+});
+
+✅ 正确代码（数据量大时）：
+// 用 QtConcurrent 或 QThread 在后台解析
+connect(reply, &QNetworkReply::finished, [=]() {
+    QByteArray data = reply->readAll();
+    reply->deleteLater();
+    QtConcurrent::run([=]() {
+        auto doc = QJsonDocument::fromJson(data);
+        QMetaObject::invokeMethod(this, [=]() { updateUI(doc); });
+    });
+});
+
+预防措施：响应体超过 1MB 时，JSON 解析放到后台线程。
+
+────────────────────────────────────────────────────────────
+
+【错误5】并发多个请求时 Lambda 捕获 reply 变量被覆盖
+
+❌ 错误代码：
+for (const auto &url : urls) {
+    QNetworkReply *reply = m_manager->get(QNetworkRequest(url));
+    connect(reply, &QNetworkReply::finished, [=]() {
+        qDebug() << reply->url();  // 每次循环 reply 被重新赋值
+        // Lambda 捕获的是 reply 的当前值（值捕获），实际上没问题
+        // 但如果是引用捕获 [&] 就有问题！
+    });
+}
+
+// 危险写法（[&] 捕获）：
+QNetworkReply *reply;
+for (const auto &url : urls) {
+    reply = m_manager->get(...);
+    connect(reply, &QNetworkReply::finished, [&]() {  // 引用捕获！
+        // 所有 Lambda 都引用同一个 reply 变量，最终值是最后一个 reply
+        reply->readAll();  // 错误！
+    });
+}
+
+✅ 正确代码：
+// 总是用值捕获 [=] 或明确捕获特定变量
+for (const auto &url : urls) {
+    auto *reply = m_manager->get(QNetworkRequest(url));
+    connect(reply, &QNetworkReply::finished, reply, [reply]() {  // 明确捕获
+        qDebug() << reply->url();
+        reply->deleteLater();
+    });
+}
+
+预防措施：网络请求回调 Lambda 永远用值捕获，不用引用捕获。
+*/
+
+// ============================================
+// 练习题
+// ============================================
+/*
+1. 添加请求超时机制
+   - 发起请求后，启动一个 3 秒 QTimer
+   - 3 秒内收到响应，停止 Timer
+   - 3 秒超时，调用 reply->abort() 并显示"请求超时"
+   提示：QTimer::singleShot(3000, reply, [reply]() { reply->abort(); })
+
+2. 请求重试机制
+   - 请求失败时（非用户取消），最多重试 3 次
+   - 每次重试前等待 1 秒
+   - 3 次均失败后显示错误
+   提示：用计数变量 + QTimer::singleShot() 实现延迟重试
+
+3. 缓存上次成功的响应
+   - 请求成功后，将响应数据存入 QMap<QUrl, QByteArray>
+   - 再次请求同一 URL 时，先显示缓存数据，再发起新请求更新
+   - 提示：在 finished 回调中先更新缓存，再更新 UI
+
+4. 思考题
+   以下场景各应该用 GET 还是 POST？为什么？
+   a. 查询天气（传入城市名）
+   b. 用户登录（传入用户名+密码）
+   c. 获取随机 UUID
+   d. 搜索图片（传入关键词）
+*/
+
 #include "28_network_practice.moc"
 
 int main(int argc, char *argv[])

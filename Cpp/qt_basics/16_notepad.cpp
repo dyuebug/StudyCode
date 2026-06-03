@@ -683,6 +683,116 @@ private:
    提示：QSettings("MyApp", "Notepad") 读写注册表/配置文件
 */
 
+// ============================================
+// 常见错误和陷阱 ⭐⭐⭐⭐⭐
+// ============================================
+/*
+【错误1】关闭时未提示保存，用户丢失内容
+
+❌ 错误代码：
+// 没有重写 closeEvent，直接关闭
+// 用户写了大量文字，意外按了关闭，全部丢失
+
+✅ 正确代码：
+void closeEvent(QCloseEvent *event) override
+{
+    if (m_textEdit->document()->isModified()) {
+        auto btn = QMessageBox::question(this, "保存", "内容已修改，是否保存？",
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        if (btn == QMessageBox::Save)      { saveFile(); event->accept(); }
+        else if (btn == QMessageBox::Discard) { event->accept(); }
+        else                              { event->ignore(); }  // 取消，不关闭
+    } else {
+        event->accept();
+    }
+}
+
+预防措施：有编辑功能的窗口必须重写 closeEvent 处理未保存内容。
+
+────────────────────────────────────────────────────────────
+
+【错误2】读取文件时未指定编码导致中文乱码
+
+❌ 错误代码：
+QFile file(path);
+file.open(QIODevice::ReadOnly);
+QTextStream in(&file);
+m_textEdit->setPlainText(in.readAll());  // 默认编码，中文文件可能乱码
+
+✅ 正确代码：
+QFile file(path);
+file.open(QIODevice::ReadOnly);
+QTextStream in(&file);
+in.setEncoding(QStringConverter::Utf8);  // Qt6
+// Qt5: in.setCodec("UTF-8");
+m_textEdit->setPlainText(in.readAll());
+
+预防措施：文件读写时明确指定 UTF-8 编码。
+
+────────────────────────────────────────────────────────────
+
+【错误3】窗口标题未反映文件修改状态
+
+❌ 错误代码：
+// 文件被修改后，标题仍然显示原文件名，用户不知道有未保存的更改
+
+✅ 正确代码：
+connect(m_textEdit->document(), &QTextDocument::modificationChanged,
+        this, [=](bool modified) {
+    QString title = m_currentFile.isEmpty() ? "无标题" : QFileInfo(m_currentFile).fileName();
+    setWindowTitle((modified ? "* " : "") + title + " - 记事本");
+});
+
+预防措施：连接 document()->modificationChanged 信号，在标题加 * 标记未保存状态。
+
+────────────────────────────────────────────────────────────
+
+【错误4】"另存为"后未更新当前文件路径
+
+❌ 错误代码：
+void saveAs() {
+    QString path = QFileDialog::getSaveFileName(...);
+    if (!path.isEmpty()) {
+        writeFile(path);
+        // 忘记更新 m_currentFile！
+        // 之后按 Ctrl+S，还是保存到旧路径
+    }
+}
+
+✅ 正确代码：
+void saveAs() {
+    QString path = QFileDialog::getSaveFileName(...);
+    if (!path.isEmpty()) {
+        m_currentFile = path;  // 更新当前文件路径
+        writeFile(path);
+        setWindowTitle(QFileInfo(path).fileName() + " - 记事本");
+    }
+}
+
+预防措施："另存为"完成后，更新所有与当前文件路径相关的状态。
+
+────────────────────────────────────────────────────────────
+
+【错误5】QFile 打开失败未检查，导致读写空内容
+
+❌ 错误代码：
+QFile file(path);
+file.open(QIODevice::ReadOnly);  // 文件不存在，open 失败，返回 false
+QTextStream in(&file);
+m_textEdit->setPlainText(in.readAll());  // 读到空字符串，清空了编辑器内容！
+
+✅ 正确代码：
+QFile file(path);
+if (!file.open(QIODevice::ReadOnly)) {
+    QMessageBox::critical(this, "错误", "无法打开文件：" + file.errorString());
+    return;
+}
+QTextStream in(&file);
+m_textEdit->setPlainText(in.readAll());
+
+预防措施：QFile::open() 返回 bool，必须检查，失败时向用户报告原因。
+*/
+
 #include "16_notepad.moc"
 
 int main(int argc, char *argv[])
