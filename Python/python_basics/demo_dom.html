@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>DOM 交互演示</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif;
+               max-width: 500px; margin: 40px auto; padding: 20px; }
+        h1 { color: #1677ff; }
+        button { padding: 8px 20px; margin: 5px;
+                 background: #1677ff; color: white;
+                 border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #0958d9; }
+        .box { padding: 20px; margin: 15px 0;
+               border: 1px solid #ddd; border-radius: 8px; }
+        .highlight { color: red; font-weight: bold; }
+        input { padding: 8px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1 id="title">DOM 操作演示</h1>
+
+    <!-- 案例1：点赞计数器 -->
+    <div class="box">
+        <p>案例1：点赞计数器</p>
+        <button id="likeBtn">👍 点赞</button>
+        <span>点赞数：<b id="count">0</b></span>
+    </div>
+
+    <!-- 案例2：样式切换 -->
+    <div class="box">
+        <p>案例2：点击切换颜色</p>
+        <p id="colorText">这段文字会变色</p>
+        <button id="colorBtn">切换颜色</button>
+    </div>
+
+    <!-- 案例3：读取输入 -->
+    <div class="box">
+        <p>案例3：显示你的输入</p>
+        <input id="nameInput" placeholder="输入你的名字">
+        <button id="greetBtn">打招呼</button>
+        <p id="greeting"></p>
+    </div>
+
+    <script>
+        // 案例1：点赞计数器
+        let count = 0;
+        document.getElementById("likeBtn").addEventListener("click", () => {
+            count++;
+            document.getElementById("count").textContent = count;
+        });
+
+        // 案例2：样式切换
+        document.getElementById("colorBtn").addEventListener("click", () => {
+            document.getElementById("colorText").classList.toggle("highlight");
+        });
+
+        // 案例3：读取输入并显示
+        document.getElementById("greetBtn").addEventListener("click", () => {
+            const name = document.getElementById("nameInput").value;
+            document.getElementById("greeting").textContent = `你好，${name}！欢迎学习 DOM 操作 🎉`;
+        });
+    </script>
+</body>
+</html>

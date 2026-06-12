@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的第一个网页</title>
+    <style>
+        /* 整个页面用 Flexbox 居中 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+            background-color: #f0f2f5;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        /* 卡片样式（盒模型实战）*/
+        .card {
+            width: 320px;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { color: #1677ff; font-size: 28px; }
+        p { color: #666; line-height: 1.6; }
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #1677ff;
+            color: white;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>学习第30天</h1>
+        <p>我已经掌握了 HTML 骨架、CSS 选择器、盒模型和 Flexbox 布局！</p>
+        <span class="tag">前端入门成功</span>
+    </div>
+</body>
+</html>
