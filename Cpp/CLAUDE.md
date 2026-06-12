@@ -71,7 +71,7 @@
 - ✅ 阶段5：项目实战（学生管理系统完整版）
 - ✅ 阶段6：C++ 高级特性（移动语义、完美转发、可变参数模板、SFINAE、C++20 四大特性）
 
-**当前状态**：🎯 **阶段12学习中** - 第65天已完成（Linux信号：sigaction/kill/alarm/async-signal-safe；共享内存：mmap匿名/文件映射/shm_open/进程间互斥锁；POSIX消息队列：mq_open/send/receive/优先级/mq_notify）
+**当前状态**：🎯 **阶段12学习中** - 第67天已完成（网络编程：TCP五步socket/bind/listen/accept/connect、字节序htons/ntohs、字节流粘包；UDP无连接sendto/recvfrom、TCP vs UDP对比；select多路复用fd_set/FD_ISSET、单线程处理多连接）
 
 **已完成阶段10**（Qt 多线程编程）：
 - ✅ QThread 基础（工作线程、moveToThread、线程间信号槽）
@@ -1001,15 +1001,15 @@ X小时
 
 **学习进度**：
 - 开始日期：2026-02-25
-- 当前日期：2026-06-07
-- 累计天数：65天
-- 实际学习：65天
-- 当前阶段：🎉 **C++ 学习之旅阶段性完成**
+- 当前日期：2026-06-10
+- 累计天数：67天
+- 实际学习：67天
+- 当前阶段：🎯 **阶段12 - Linux 系统编程**
 
 **学习统计**：
-- 总学习时长：60.0小时
-- 平均每天：0.83小时
-- 完成文件数：186个
+- 总学习时长：64.0小时
+- 平均每天：0.96小时
+- 完成文件数：192个
 - 完成项目：8个（全部完成）✅
 - 掌握技能：395个
 
@@ -1075,6 +1075,8 @@ X小时
 - 2026-06-03（第59天）：嵌入式驱动开发（GPIO推挽/开漏/上拉/外部中断/按键防抖；UART帧格式/环形缓冲区/命令解析器/DMA；SPI协议/CPOL/CPHA/W25Q128；I2C协议/ACK/readReg惯用法/DHT20），学习时长 1.5小时
 - 2026-06-03（第60天）：嵌入式外设综合（ADC采样/12位分辨率/均值中值滤波/多通道扫描；PWM占空比/LED呼吸灯/舵机控制/软件PWM；软件定时器/周期任务调度/绝对时间推进防累积误差），学习时长 1.5小时
 - 2026-06-06（第61天）：嵌入式高级话题（Bootloader原理/内存映射/向量表重映射/跳转App/升级状态机；OTA双Bank策略/CRC32固件校验/Flash擦写/回滚机制；HardFault分析/断言宏/看门狗/Stack Canary），学习时长 2.0小时
+- 2026-06-09（第66天）：Linux pthread 多线程（线程create/join/detach/void*参数/返回值/互斥锁数据竞争实验；条件变量cond_wait/signal/broadcast/生产者消费者/虚假唤醒while；线程池任务队列+工作线程组/手写ThreadPool类/优雅关闭），学习时长 2.0小时
+- 2026-06-10（第67天）：Linux 网络编程 Socket（TCP五步socket/bind/listen/accept/connect、客户端三步、字节序htons/ntohs、accept返回新fd、字节流粘包；UDP无连接sendto/recvfrom、TCP vs UDP对比、echo回显；select多路复用fd_set/FD_ZERO/FD_SET/FD_ISSET、单线程多客户端服务器、三种并发模型对比），学习时长 2.0小时
 
 **已掌握技能**：169个
 
