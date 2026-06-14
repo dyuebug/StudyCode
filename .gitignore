@@ -1,1 +1,11 @@
 MAA/MaaAssistantArknights/
+
+# Rust
+**/target/
+**/*.pdb
+**/*.exe
+
+# C++
+*.o
+*.obj
+*.out
