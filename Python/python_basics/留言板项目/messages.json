@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "Alice",
+    "content": "First persistent message",
+    "time": "2026-06-14 01:45:50"
+  },
+  {
+    "id": 3,
+    "name": "Charlie",
+    "content": "Third message after restart",
+    "time": "2026-06-14 01:55:18"
+  },
+  {
+    "id": 4,
+    "name": "Alice",
+    "content": "Message 1",
+    "time": "2026-06-14 02:53:56"
+  },
+  {
+    "id": 5,
+    "name": "Bob",
+    "content": "Message 2",
+    "time": "2026-06-14 02:53:56"
+  },
+  {
+    "id": 6,
+    "name": "Charlie",
+    "content": "Message 3",
+    "time": "2026-06-14 02:53:56"
+  }
+]

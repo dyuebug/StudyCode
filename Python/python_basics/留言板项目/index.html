@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板 - 前后端联动项目</title>
+    <style>
+        /* ===== 基础样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* ===== 标题区 ===== */
+        .header {
+            background: #4a5568;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* ===== 表单区 ===== */
+        .form-area {
+            padding: 24px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-area input,
+        .form-area textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-area input:focus,
+        .form-area textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-area textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #5568d3;
+        }
+
+        .submit-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        /* ===== 留言列表区 ===== */
+        .message-area {
+            padding: 24px;
+        }
+
+        .message-area h2 {
+            font-size: 18px;
+            color: #4a5568;
+            margin-bottom: 16px;
+        }
+
+        .message-item {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .message-item .name {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .message-item .content {
+            color: #2d3748;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .message-item .time {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        /* ===== 状态提示 ===== */
+        .status {
+            text-align: center;
+            padding: 20px;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题区 -->
+        <div class="header">
+            <h1>📝 留言板</h1>
+            <p>前后端联动项目 - 第33天</p>
+        </div>
+
+        <!-- 表单区：提交留言 -->
+        <div class="form-area">
+            <!-- 姓名输入框 -->
+            <input type="text" id="nameInput" placeholder="你的名字（可选）">
+            <!-- 留言内容输入框 -->
+            <textarea id="contentInput" placeholder="写下你的留言..."></textarea>
+            <!-- 提交按钮 -->
+            <button class="submit-btn" id="submitBtn">发表留言</button>
+        </div>
+
+        <!-- 留言列表区 -->
+        <div class="message-area">
+            <h2>💬 全部留言</h2>
+            <!-- 留言列表将动态渲染到这里 -->
+            <div id="messageList">
+                <div class="status">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 留言板前端逻辑
+        // ============================================
+
+        // 后端 API 地址
+        const API_URL = 'http://localhost:5000/api/messages'
+
+        // 获取页面元素
+        const nameInput = document.getElementById('nameInput')
+        const contentInput = document.getElementById('contentInput')
+        const submitBtn = document.getElementById('submitBtn')
+        const messageList = document.getElementById('messageList')
+
+        // --------------------------------------------
+        // 功能1：加载所有留言（GET 请求）
+        // --------------------------------------------
+        async function loadMessages() {
+            try {
+                // 显示加载状态
+                messageList.innerHTML = '<div class="status">加载中...</div>'
+
+                // fetch GET 请求获取留言
+                const response = await fetch(API_URL)
+
+                // 检查响应状态
+                if (!response.ok) {
+                    throw new Error('获取留言失败：' + response.status)
+                }
+
+                // 解析 JSON 数据（留言数组）
+                const messages = await response.json()
+
+                // 渲染留言列表
+                renderMessages(messages)
+
+            } catch (error) {
+                // 错误处理：显示错误信息
+                messageList.innerHTML = `
+                    <div class="status">
+                        ❌ 加载失败：${error.message}<br>
+                        请确认后端服务已启动（python app.py）
+                    </div>
+                `
+            }
+        }
+
+        // --------------------------------------------
+        // 功能2：渲染留言列表（更新 DOM）
+        // --------------------------------------------
+        function renderMessages(messages) {
+            // 如果没有留言
+            if (messages.length === 0) {
+                messageList.innerHTML = '<div class="status">还没有留言，快来抢沙发！</div>'
+                return
+            }
+
+            // 倒序显示（最新的在上面）
+            // slice() 复制数组，reverse() 反转
+            const sortedMessages = messages.slice().reverse()
+
+            // 拼接 HTML 字符串
+            // map 遍历每条留言，生成 HTML
+            const html = sortedMessages.map(msg => `
+                <div class="message-item">
+                    <div class="name">${msg.name}</div>
+                    <div class="content">${msg.content}</div>
+                    <div class="time">${msg.time}</div>
+                </div>
+            `).join('')
+
+            // 更新到页面
+            messageList.innerHTML = html
+        }
+
+        // --------------------------------------------
+        // 功能3：提交新留言（POST 请求）
+        // --------------------------------------------
+        async function submitMessage() {
+            // 获取输入值
+            const name = nameInput.value.trim() || '匿名'
+            const content = contentInput.value.trim()
+
+            // 前端验证：内容不能为空
+            if (!content) {
+                alert('留言内容不能为空！')
+                return
+            }
+
+            try {
+                // 禁用按钮，防止重复提交
+                submitBtn.disabled = true
+                submitBtn.textContent = '提交中...'
+
+                // fetch POST 请求提交留言
+                const response = await fetch(API_URL, {
+                    method: 'POST',  // POST 方法
+                    headers: {
+                        'Content-Type': 'application/json'  // 告诉后端是 JSON
+                    },
+                    // 数据转成 JSON 字符串
+                    body: JSON.stringify({
+                        name: name,
+                        content: content
+                    })
+                })
+
+                // 解析响应
+                const result = await response.json()
+
+                if (result.status === 'success') {
+                    // 提交成功：清空输入框
+                    contentInput.value = ''
+                    // 重新加载留言列表（显示新留言）
+                    await loadMessages()
+                } else {
+                    alert('提交失败：' + result.message)
+                }
+
+            } catch (error) {
+                alert('提交出错：' + error.message)
+            } finally {
+                // 无论成功失败，恢复按钮
+                submitBtn.disabled = false
+                submitBtn.textContent = '发表留言'
+            }
+        }
+
+        // --------------------------------------------
+        // 绑定事件
+        // --------------------------------------------
+
+        // 点击提交按钮
+        submitBtn.addEventListener('click', submitMessage)
+
+        // 页面加载完成后，自动获取留言
+        loadMessages()
+    </script>
+</body>
+</html>
