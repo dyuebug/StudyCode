@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust HTTP 服务器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 3em;
+            margin: 0 0 20px 0;
+        }
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 10px 5px;
+        }
+        a {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 欢迎来到 Rust HTTP 服务器！</h1>
+        <p>恭喜！你的 Rust HTTP 服务器正在运行！</p>
+
+        <p>
+            <span class="badge">✅ TCP 连接</span>
+            <span class="badge">✅ HTTP 协议</span>
+            <span class="badge">✅ 路由处理</span>
+            <span class="badge">✅ HTML 响应</span>
+        </p>
+
+        <p>
+            这是一个从零开始用 Rust 构建的 HTTP 服务器。<br>
+            没有使用任何 Web 框架，完全手写实现！
+        </p>
+
+        <p>
+            <strong>导航：</strong><br>
+            <a href="/">首页</a> |
+            <a href="/about">关于</a> |
+            <a href="/test">测试404</a>
+        </p>
+
+        <p style="margin-top: 30px; font-size: 0.9em; opacity: 0.8;">
+            💡 提示：查看服务器终端，可以看到请求日志
+        </p>
+    </div>
+</body>
+</html>
