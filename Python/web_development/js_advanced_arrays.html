@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 数组高级方法 - 超详细教程</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #3498db; margin-top: 30px; }
+        h3 { color: #e74c3c; }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .output {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .tip {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 JavaScript 数组高级方法 - 超详细教程</h1>
+    <p><strong>日期</strong>：2026-06-25（第44天）</p>
+    <p><strong>难度</strong>：⭐⭐⭐ 中级</p>
+
+    <!-- 核心概念 -->
+    <div class="section">
+        <h2>📚 核心概念</h2>
+
+        <h3>什么是数组高级方法？</h3>
+        <p>数组高级方法是JavaScript内置的一组强大的数组操作函数，用于处理和转换数组数据。</p>
+
+        <h3>为什么需要数组高级方法？</h3>
+        <ul>
+            <li><strong>简化代码</strong>：用一行代码替代多行循环</li>
+            <li><strong>提高可读性</strong>：方法名清晰表达意图（map=映射、filter=过滤）</li>
+            <li><strong>函数式编程</strong>：不改变原数组，返回新数据</li>
+            <li><strong>链式调用</strong>：多个方法连续调用，代码优雅</li>
+            <li><strong>面试必考</strong>：JavaScript开发者必备技能</li>
+        </ul>
+
+        <h3>核心特点</h3>
+        <div class="tip">
+            <strong>✅ 函数式编程风格</strong>
+            <ul>
+                <li>不修改原数组（immutable）</li>
+                <li>返回新数组或新值</li>
+                <li>可以链式调用</li>
+                <li>代码更简洁、更易测试</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 方法1: map() -->
+    <div class="section">
+        <h2>1️⃣ map() - 映射转换 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【函数卡片】</h3>
+        <div class="tip">
+            <p><strong>函数名</strong>：array.map()</p>
+            <p><strong>作用</strong>：对数组每个元素执行函数，返回新数组</p>
+            <p><strong>类型</strong>：数组实例方法</p>
+
+            <p><strong>完整语法</strong>：</p>
+            <code>array.map((element, index, array) => { return newValue })</code>
+
+            <p><strong>参数详解</strong>：</p>
+            <ul>
+                <li><strong>element</strong>（必需）：当前遍历的元素</li>
+                <li><strong>index</strong>（可选）：当前元素的索引</li>
+                <li><strong>array</strong>（可选）：原数组本身</li>
+            </ul>
+
+            <p><strong>返回值</strong>：新数组（长度与原数组相同）</p>
+
+            <p><strong>特点</strong>：</p>
+            <ul>
+                <li>不改变原数组</li>
+                <li>新数组长度 = 原数组长度</li>
+                <li>每个元素都会被转换</li>
+            </ul>
+        </div>
+
+        <h3>示例1：基本用法 - 数字翻倍</h3>
+        <button onclick="mapExample1()">运行示例1</button>
+        <div id="map-output-1" class="output"></div>
+
+        <h3>示例2：对象数组提取属性</h3>
+        <button onclick="mapExample2()">运行示例2</button>
+        <div id="map-output-2" class="output"></div>
+
+        <h3>示例3：格式化数据</h3>
+        <button onclick="mapExample3()">运行示例3</button>
+        <div id="map-output-3" class="output"></div>
+    </div>
+
+    <!-- 方法2: filter() -->
+    <div class="section">
+        <h2>2️⃣ filter() - 筛选过滤 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【函数卡片】</h3>
+        <div class="tip">
+            <p><strong>函数名</strong>：array.filter()</p>
+            <p><strong>作用</strong>：筛选出符合条件的元素，返回新数组</p>
+
+            <p><strong>完整语法</strong>：</p>
+            <code>array.filter((element, index, array) => { return 布尔值 })</code>
+
+            <p><strong>返回值</strong>：新数组（只包含符合条件的元素）</p>
+
+            <p><strong>特点</strong>：</p>
+            <ul>
+                <li>回调函数返回true，元素保留</li>
+                <li>回调函数返回false，元素过滤掉</li>
+                <li>新数组长度 ≤ 原数组长度</li>
+            </ul>
+        </div>
+
+        <h3>示例1：筛选偶数</h3>
+        <button onclick="filterExample1()">运行示例1</button>
+        <div id="filter-output-1" class="output"></div>
+
+        <h3>示例2：筛选成年人</h3>
+        <button onclick="filterExample2()">运行示例2</button>
+        <div id="filter-output-2" class="output"></div>
+    </div>
+
+
+    <!-- 方法3: reduce() -->
+    <div class="section">
+        <h2>3️⃣ reduce() - 累积计算 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【函数卡片】</h3>
+        <div class="tip">
+            <p><strong>函数名</strong>：array.reduce()</p>
+            <p><strong>作用</strong>：将数组累积计算为单个值</p>
+
+            <p><strong>完整语法</strong>：</p>
+            <code>array.reduce((accumulator, current, index, array) => { return newAccumulator }, initialValue)</code>
+
+            <p><strong>参数详解</strong>：</p>
+            <ul>
+                <li><strong>accumulator</strong>（累加器）：上一次回调的返回值</li>
+                <li><strong>current</strong>（当前值）：当前遍历的元素</li>
+                <li><strong>index</strong>（可选）：当前索引</li>
+                <li><strong>array</strong>（可选）：原数组</li>
+                <li><strong>initialValue</strong>（初始值）：第一次调用时的accumulator值</li>
+            </ul>
+
+            <p><strong>返回值</strong>：单个值（数字、字符串、对象等）</p>
+
+            <p><strong>工作原理</strong>：</p>
+            <ol>
+                <li>第1次：accumulator = initialValue，current = 数组第1个元素</li>
+                <li>第2次：accumulator = 第1次返回值，current = 数组第2个元素</li>
+                <li>第3次：accumulator = 第2次返回值，current = 数组第3个元素</li>
+                <li>...依此类推</li>
+                <li>最后返回最终的accumulator</li>
+            </ol>
+        </div>
+
+        <h3>示例1：数组求和</h3>
+        <button onclick="reduceExample1()">运行示例1</button>
+        <div id="reduce-output-1" class="output"></div>
+
+        <h3>示例2：统计出现次数</h3>
+        <button onclick="reduceExample2()">运行示例2</button>
+        <div id="reduce-output-2" class="output"></div>
+
+        <h3>示例3：数组扁平化</h3>
+        <button onclick="reduceExample3()">运行示例3</button>
+        <div id="reduce-output-3" class="output"></div>
+    </div>
+
+    <!-- 其他方法 -->
+    <div class="section">
+        <h2>4️⃣ 其他常用方法</h2>
+
+        <h3>forEach() - 遍历数组</h3>
+        <button onclick="forEachExample()">运行示例</button>
+        <div id="foreach-output" class="output"></div>
+
+        <h3>find() / findIndex() - 查找元素</h3>
+        <button onclick="findExample()">运行示例</button>
+        <div id="find-output" class="output"></div>
+
+        <h3>some() / every() - 条件判断</h3>
+        <button onclick="someEveryExample()">运行示例</button>
+        <div id="some-every-output" class="output"></div>
+    </div>
+
+
+    <!-- 链式调用 -->
+    <div class="section">
+        <h2>5️⃣ 链式调用 ⭐⭐⭐⭐⭐</h2>
+
+        <div class="tip">
+            <p><strong>什么是链式调用？</strong></p>
+            <p>将多个数组方法连续调用，每个方法的返回值作为下一个方法的输入。</p>
+
+            <p><strong>为什么使用链式调用？</strong></p>
+            <ul>
+                <li>代码更简洁优雅</li>
+                <li>逻辑更清晰（数据流式处理）</li>
+                <li>避免中间变量</li>
+                <li>函数式编程风格</li>
+            </ul>
+        </div>
+
+        <h3>示例：综合应用</h3>
+        <button onclick="chainExample()">运行示例</button>
+        <div id="chain-output" class="output"></div>
+    </div>
+
+    <!-- 常见错误 -->
+    <div class="section">
+        <h2>⚠️ 常见错误和陷阱</h2>
+
+        <h3>错误1：忘记return</h3>
+        <div class="warning">
+            <p><strong>❌ 错误代码：</strong></p>
+            <pre>const doubled = [1, 2, 3].map(n => { n * 2 });  // [undefined, undefined, undefined]</pre>
+            <p><strong>原因：</strong>使用了花括号{}，但没有return语句</p>
+            <p><strong>✅ 正确代码：</strong></p>
+            <pre>const doubled = [1, 2, 3].map(n => n * 2);  // 简写形式，自动return
+// 或
+const doubled = [1, 2, 3].map(n => { return n * 2; });  // 完整形式</pre>
+        </div>
+
+        <h3>错误2：混淆map和forEach</h3>
+        <div class="warning">
+            <p><strong>❌ 错误思维：</strong>forEach会返回新数组</p>
+            <p><strong>真相：</strong></p>
+            <ul>
+                <li>forEach：无返回值（undefined），用于执行副作用（打印、修改外部变量）</li>
+                <li>map：返回新数组，用于数据转换</li>
+            </ul>
+        </div>
+
+        <h3>错误3：reduce忘记初始值</h3>
+        <div class="warning">
+            <p><strong>⚠️ 危险代码：</strong></p>
+            <pre>[].reduce((a, b) => a + b);  // 报错！空数组没有初始值</pre>
+            <p><strong>✅ 安全写法：</strong></p>
+            <pre>[].reduce((a, b) => a + b, 0);  // 返回0，不报错</pre>
+        </div>
+
+        <h3>错误4：filter条件写错</h3>
+        <div class="warning">
+            <p><strong>❌ 错误代码：</strong></p>
+            <pre>const adults = users.filter(user => user.age);  // 过滤掉age为0的人</pre>
+            <p><strong>✅ 正确代码：</strong></p>
+            <pre>const adults = users.filter(user => user.age >= 18);  // 明确条件</pre>
+        </div>
+    </div>
+
+
+    <!-- 实战练习 -->
+    <div class="section">
+        <h2>💪 实战练习</h2>
+
+        <h3>练习1：处理学生成绩</h3>
+        <p>有一个学生成绩数组，请完成以下任务：</p>
+        <ol>
+            <li>筛选出及格的学生（分数≥60）</li>
+            <li>计算及格学生的平均分</li>
+            <li>找出最高分学生</li>
+        </ol>
+        <button onclick="practice1()">运行练习1</button>
+        <div id="practice1-output" class="output"></div>
+
+        <h3>练习2：处理商品数据</h3>
+        <p>电商网站的商品列表，完成筛选和计算：</p>
+        <ol>
+            <li>筛选价格在100-500之间的商品</li>
+            <li>按价格排序</li>
+            <li>计算总价</li>
+        </ol>
+        <button onclick="practice2()">运行练习2</button>
+        <div id="practice2-output" class="output"></div>
+    </div>
+
+    <script>
+        // ========== map() 示例 ==========
+        function mapExample1() {
+            // 示例1：数字翻倍
+            const numbers = [1, 2, 3, 4, 5];
+
+            // 传统for循环写法
+            const doubledOld = [];
+            for (let i = 0; i < numbers.length; i++) {
+                doubledOld.push(numbers[i] * 2);
+            }
+
+            // map()方法写法（推荐）
+            const doubled = numbers.map(n => n * 2);
+
+            document.getElementById('map-output-1').innerHTML = `
+                <p><strong>原数组：</strong>${JSON.stringify(numbers)}</p>
+                <p><strong>翻倍后：</strong>${JSON.stringify(doubled)}</p>
+                <p><strong>原数组未改变：</strong>${JSON.stringify(numbers)}</p>
+                <p class="tip">💡 map()不改变原数组，返回新数组</p>
+            `;
+        }
+
+        function mapExample2() {
+            // 示例2：提取对象属性
+            const users = [
+                { id: 1, name: '张三', age: 25 },
+                { id: 2, name: '李四', age: 30 },
+                { id: 3, name: '王五', age: 28 }
+            ];
+
+            // 提取所有姓名
+            const names = users.map(user => user.name);
+
+            // 提取ID和姓名
+            const info = users.map(user => `${user.id}: ${user.name}`);
+
+            document.getElementById('map-output-2').innerHTML = `
+                <p><strong>用户数据：</strong><pre>${JSON.stringify(users, null, 2)}</pre></p>
+                <p><strong>姓名列表：</strong>${JSON.stringify(names)}</p>
+                <p><strong>ID和姓名：</strong>${JSON.stringify(info)}</p>
+            `;
+        }
+
+        function mapExample3() {
+            // 示例3：格式化价格
+            const prices = [19.99, 29.5, 99.99, 5];
+
+            const formatted = prices.map(price => `¥${price.toFixed(2)}`);
+
+            document.getElementById('map-output-3').innerHTML = `
+                <p><strong>原价格：</strong>${JSON.stringify(prices)}</p>
+                <p><strong>格式化后：</strong>${JSON.stringify(formatted)}</p>
+            `;
+        }
+
+
+        // ========== filter() 示例 ==========
+        function filterExample1() {
+            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+            // 筛选偶数
+            const evens = numbers.filter(n => n % 2 === 0);
+
+            // 筛选大于5的数
+            const greaterThan5 = numbers.filter(n => n > 5);
+
+            document.getElementById('filter-output-1').innerHTML = `
+                <p><strong>原数组：</strong>${JSON.stringify(numbers)}</p>
+                <p><strong>偶数：</strong>${JSON.stringify(evens)}</p>
+                <p><strong>大于5：</strong>${JSON.stringify(greaterThan5)}</p>
+            `;
+        }
+
+        function filterExample2() {
+            const users = [
+                { name: '小明', age: 16 },
+                { name: '小红', age: 20 },
+                { name: '小刚', age: 17 },
+                { name: '小丽', age: 25 }
+            ];
+
+            // 筛选成年人（年龄≥18）
+            const adults = users.filter(user => user.age >= 18);
+
+            document.getElementById('filter-output-2').innerHTML = `
+                <p><strong>所有用户：</strong><pre>${JSON.stringify(users, null, 2)}</pre></p>
+                <p><strong>成年人：</strong><pre>${JSON.stringify(adults, null, 2)}</pre></p>
+            `;
+        }
+
+        // ========== reduce() 示例 ==========
+        function reduceExample1() {
+            const numbers = [1, 2, 3, 4, 5];
+
+            // 数组求和
+            const sum = numbers.reduce((accumulator, current) => {
+                console.log(`累加器: ${accumulator}, 当前值: ${current}`);
+                return accumulator + current;
+            }, 0);  // 初始值为0
+
+            // 求平均值
+            const average = numbers.reduce((acc, cur) => acc + cur, 0) / numbers.length;
+
+            document.getElementById('reduce-output-1').innerHTML = `
+                <p><strong>数组：</strong>${JSON.stringify(numbers)}</p>
+                <p><strong>总和：</strong>${sum}</p>
+                <p><strong>平均值：</strong>${average}</p>
+                <p class="tip">💡 打开控制台查看reduce的执行过程</p>
+            `;
+        }
+
+        function reduceExample2() {
+            const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];
+
+            // 统计每个水果出现的次数
+            const count = fruits.reduce((acc, fruit) => {
+                acc[fruit] = (acc[fruit] || 0) + 1;
+                return acc;
+            }, {});  // 初始值为空对象
+
+            document.getElementById('reduce-output-2').innerHTML = `
+                <p><strong>水果数组：</strong>${JSON.stringify(fruits)}</p>
+                <p><strong>统计结果：</strong><pre>${JSON.stringify(count, null, 2)}</pre></p>
+            `;
+        }
+
+        function reduceExample3() {
+            const nested = [[1, 2], [3, 4], [5, 6]];
+
+            // 数组扁平化
+            const flat = nested.reduce((acc, cur) => acc.concat(cur), []);
+
+            document.getElementById('reduce-output-3').innerHTML = `
+                <p><strong>嵌套数组：</strong>${JSON.stringify(nested)}</p>
+                <p><strong>扁平化后：</strong>${JSON.stringify(flat)}</p>
+            `;
+        }
+
+
+        // ========== 其他方法示例 ==========
+        function forEachExample() {
+            const numbers = [1, 2, 3, 4, 5];
+            let output = '';
+
+            // forEach遍历（无返回值）
+            numbers.forEach((num, index) => {
+                output += `索引${index}: ${num}<br>`;
+            });
+
+            document.getElementById('foreach-output').innerHTML = `
+                <p><strong>forEach遍历结果：</strong></p>
+                ${output}
+                <p class="warning">⚠️ forEach没有返回值，用于执行副作用（如打印、修改外部变量）</p>
+            `;
+        }
+
+        function findExample() {
+            const users = [
+                { id: 1, name: '张三', age: 25 },
+                { id: 2, name: '李四', age: 30 },
+                { id: 3, name: '王五', age: 28 }
+            ];
+
+            // find：找到第一个满足条件的元素
+            const user = users.find(u => u.age > 26);
+
+            // findIndex：找到第一个满足条件的索引
+            const index = users.findIndex(u => u.age > 26);
+
+            document.getElementById('find-output').innerHTML = `
+                <p><strong>找到的用户：</strong><pre>${JSON.stringify(user, null, 2)}</pre></p>
+                <p><strong>索引位置：</strong>${index}</p>
+            `;
+        }
+
+        function someEveryExample() {
+            const numbers = [2, 4, 6, 8, 10];
+
+            // some：至少有一个满足条件
+            const hasOdd = numbers.some(n => n % 2 !== 0);
+
+            // every：所有元素都满足条件
+            const allEven = numbers.every(n => n % 2 === 0);
+
+            document.getElementById('some-every-output').innerHTML = `
+                <p><strong>数组：</strong>${JSON.stringify(numbers)}</p>
+                <p><strong>some（有奇数吗）：</strong>${hasOdd}</p>
+                <p><strong>every（都是偶数吗）：</strong>${allEven}</p>
+            `;
+        }
+
+        // ========== 链式调用示例 ==========
+        function chainExample() {
+            const users = [
+                { name: '张三', age: 16, score: 85 },
+                { name: '李四', age: 20, score: 92 },
+                { name: '王五', age: 17, score: 78 },
+                { name: '赵六', age: 22, score: 88 },
+                { name: '孙七', age: 19, score: 95 }
+            ];
+
+            // 链式调用：筛选成年人 -> 提取分数 -> 计算平均分
+            const averageScore = users
+                .filter(user => user.age >= 18)     // 1. 筛选成年人
+                .map(user => user.score)             // 2. 提取分数
+                .reduce((sum, score) => sum + score, 0) /
+                users.filter(user => user.age >= 18).length;  // 3. 计算平均分
+
+            // 分步查看
+            const adults = users.filter(user => user.age >= 18);
+            const scores = adults.map(user => user.score);
+
+            document.getElementById('chain-output').innerHTML = `
+                <p><strong>所有用户：</strong><pre>${JSON.stringify(users, null, 2)}</pre></p>
+                <p><strong>第1步（filter）成年人：</strong><pre>${JSON.stringify(adults, null, 2)}</pre></p>
+                <p><strong>第2步（map）分数：</strong>${JSON.stringify(scores)}</p>
+                <p><strong>第3步（reduce）平均分：</strong>${averageScore.toFixed(2)}</p>
+                <p class="tip">💡 链式调用让代码更简洁，数据流式处理一气呵成</p>
+            `;
+        }
+
+
+        // ========== 实战练习 ==========
+        function practice1() {
+            const students = [
+                { name: '小明', score: 85 },
+                { name: '小红', score: 92 },
+                { name: '小刚', score: 58 },
+                { name: '小丽', score: 76 },
+                { name: '小华', score: 95 }
+            ];
+
+            // 1. 筛选及格学生（分数≥60）
+            const passed = students.filter(s => s.score >= 60);
+
+            // 2. 计算及格学生平均分
+            const average = passed.reduce((sum, s) => sum + s.score, 0) / passed.length;
+
+            // 3. 找出最高分学生
+            const topStudent = students.reduce((max, s) => s.score > max.score ? s : max);
+
+            document.getElementById('practice1-output').innerHTML = `
+                <p><strong>所有学生：</strong><pre>${JSON.stringify(students, null, 2)}</pre></p>
+                <p><strong>及格学生：</strong><pre>${JSON.stringify(passed, null, 2)}</pre></p>
+                <p><strong>平均分：</strong>${average.toFixed(2)}</p>
+                <p><strong>最高分：</strong>${topStudent.name} - ${topStudent.score}分</p>
+            `;
+        }
+
+        function practice2() {
+            const products = [
+                { name: '鼠标', price: 59 },
+                { name: '键盘', price: 299 },
+                { name: '显示器', price: 1299 },
+                { name: '耳机', price: 199 },
+                { name: 'U盘', price: 49 },
+                { name: '硬盘', price: 459 }
+            ];
+
+            // 1. 筛选价格100-500之间
+            const filtered = products.filter(p => p.price >= 100 && p.price <= 500);
+
+            // 2. 按价格排序
+            const sorted = filtered.sort((a, b) => a.price - b.price);
+
+            // 3. 计算总价
+            const total = sorted.reduce((sum, p) => sum + p.price, 0);
+
+            document.getElementById('practice2-output').innerHTML = `
+                <p><strong>所有商品：</strong><pre>${JSON.stringify(products, null, 2)}</pre></p>
+                <p><strong>筛选后（100-500）：</strong><pre>${JSON.stringify(filtered, null, 2)}</pre></p>
+                <p><strong>排序后：</strong><pre>${JSON.stringify(sorted, null, 2)}</pre></p>
+                <p><strong>总价：</strong>¥${total}</p>
+            `;
+        }
+    </script>
+</body>
+</html>

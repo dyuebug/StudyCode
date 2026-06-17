@@ -1,0 +1,25 @@
+{
+  "history": [
+    {
+      "source_text": "hello",
+      "translated_text": "你好",
+      "from_lang": "en",
+      "to_lang": "zh",
+      "timestamp": "2026-06-15 22:16:47"
+    },
+    {
+      "source_text": "你好，世界",
+      "translated_text": "Hello world",
+      "from_lang": "zh",
+      "to_lang": "en",
+      "timestamp": "2026-06-14 21:06:04"
+    },
+    {
+      "source_text": "Hello World",
+      "translated_text": "你好世界",
+      "from_lang": "en",
+      "to_lang": "zh",
+      "timestamp": "2026-06-14 21:05:50"
+    }
+  ]
+}

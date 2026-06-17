@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Promise详解 - 超详细教程</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #27ae60; padding-bottom: 10px; }
+        h2 { color: #27ae60; margin-top: 30px; }
+        h3 { color: #3498db; }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .output {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .tip {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #229954; }
+        .diagram {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 JavaScript Promise详解 - 超详细教程</h1>
+    <p><strong>日期</strong>：2026-06-26（第45天）</p>
+    <p><strong>难度</strong>：⭐⭐⭐⭐ 中高级</p>
+
+    <!-- 核心概念 -->
+    <div class="section">
+        <h2>📚 核心概念</h2>
+
+        <h3>什么是Promise？</h3>
+        <p>Promise是JavaScript中处理异步操作的对象，代表一个异步操作的最终完成（或失败）及其结果值。</p>
+
+        <h3>为什么需要Promise？</h3>
+        <div class="tip">
+            <p><strong>Promise解决的问题</strong>：</p>
+            <ul>
+                <li><strong>回调地狱</strong>：Promise用链式调用代替嵌套回调</li>
+                <li><strong>错误处理</strong>：统一的catch()捕获错误</li>
+                <li><strong>代码可读性</strong>：扁平化结构，更易理解</li>
+                <li><strong>并行控制</strong>：Promise.all()等方法简化并行操作</li>
+            </ul>
+        </div>
+
+        <h3>Promise的三种状态</h3>
+        <div class="diagram">
+            <pre>
+pending（进行中）
+    ↓
+    ├─→ fulfilled（已成功）resolve(value)
+    │
+    └─→ rejected（已失败）reject(error)
+
+✅ 状态只能改变一次
+✅ 状态改变后不可逆
+            </pre>
+        </div>
+    </div>
+
+
+    <!-- Promise基础 -->
+    <div class="section">
+        <h2>1️⃣ 创建Promise ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【语法卡片】</h3>
+        <div class="tip">
+            <p><strong>基本语法</strong>：</p>
+            <pre>const promise = new Promise((resolve, reject) => {
+    // 异步操作
+    if (成功) {
+        resolve(结果值);  // 状态变为fulfilled
+    } else {
+        reject(错误信息);  // 状态变为rejected
+    }
+});</pre>
+
+            <p><strong>参数说明</strong>：</p>
+            <ul>
+                <li><strong>resolve</strong>：成功时调用，传递结果值</li>
+                <li><strong>reject</strong>：失败时调用，传递错误信息</li>
+            </ul>
+        </div>
+
+        <h3>示例：创建Promise</h3>
+        <button onclick="createPromiseExample()">运行示例</button>
+        <div id="create-promise-output" class="output"></div>
+    </div>
+
+    <!-- then/catch/finally -->
+    <div class="section">
+        <h2>2️⃣ then / catch / finally ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【方法卡片】</h3>
+        <div class="tip">
+            <p><strong>then(onFulfilled, onRejected)</strong>：</p>
+            <ul>
+                <li>第一个参数：成功时的回调</li>
+                <li>第二个参数（可选）：失败时的回调</li>
+                <li>返回新的Promise，支持链式调用</li>
+            </ul>
+
+            <p><strong>catch(onRejected)</strong>：</p>
+            <ul>
+                <li>捕获Promise链中的错误</li>
+                <li>等同于 then(null, onRejected)</li>
+                <li>推荐用catch而不是then的第二个参数</li>
+            </ul>
+
+            <p><strong>finally(onFinally)</strong>：</p>
+            <ul>
+                <li>无论成功或失败都会执行</li>
+                <li>不接收参数</li>
+                <li>用于清理操作（如关闭加载动画）</li>
+            </ul>
+        </div>
+
+        <h3>示例：then/catch/finally</h3>
+        <button onclick="thenCatchExample()">运行示例</button>
+        <div id="then-catch-output" class="output"></div>
+    </div>
+
+    <!-- Promise链式调用 -->
+    <div class="section">
+        <h2>3️⃣ Promise链式调用 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【核心概念】</h3>
+        <div class="tip">
+            <p><strong>链式调用原理</strong>：</p>
+            <ul>
+                <li>then()返回新的Promise</li>
+                <li>可以连续调用多个then()</li>
+                <li>上一个then的返回值传给下一个then</li>
+                <li>扁平化代码，避免回调地狱</li>
+            </ul>
+        </div>
+
+        <h3>示例：用Promise改写回调地狱</h3>
+        <button onclick="promiseChainExample()">运行示例</button>
+        <div id="promise-chain-output" class="output"></div>
+    </div>
+
+    <!-- Promise静态方法 -->
+    <div class="section">
+        <h2>4️⃣ Promise静态方法 ⭐⭐⭐⭐</h2>
+
+        <h3>【方法列表】</h3>
+        <div class="tip">
+            <p><strong>Promise.all([p1, p2, p3])</strong>：</p>
+            <ul>
+                <li>并行执行多个Promise</li>
+                <li>全部成功才成功，返回结果数组</li>
+                <li>任意一个失败就失败</li>
+            </ul>
+
+            <p><strong>Promise.race([p1, p2, p3])</strong>：</p>
+            <ul>
+                <li>竞速，返回最快完成的结果</li>
+                <li>无论成功或失败</li>
+            </ul>
+
+            <p><strong>Promise.allSettled([p1, p2, p3])</strong>：</p>
+            <ul>
+                <li>等待所有Promise完成（无论成功或失败）</li>
+                <li>返回状态数组</li>
+            </ul>
+
+            <p><strong>Promise.resolve(value)</strong>：</p>
+            <ul>
+                <li>返回成功的Promise</li>
+            </ul>
+
+            <p><strong>Promise.reject(error)</strong>：</p>
+            <ul>
+                <li>返回失败的Promise</li>
+            </ul>
+        </div>
+
+        <h3>示例：Promise.all()</h3>
+        <button onclick="promiseAllExample()">运行示例</button>
+        <div id="promise-all-output" class="output"></div>
+
+        <h3>示例：Promise.race()</h3>
+        <button onclick="promiseRaceExample()">运行示例</button>
+        <div id="promise-race-output" class="output"></div>
+    </div>
+
+    <script>
+        // ========== 1. 创建Promise示例 ==========
+        function createPromiseExample() {
+            const output = document.getElementById('create-promise-output');
+            let log = '';
+
+            // 创建成功的Promise
+            const successPromise = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve('操作成功！');
+                }, 1000);
+            });
+
+            // 创建失败的Promise
+            const failPromise = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject('操作失败！');
+                }, 1000);
+            });
+
+            log += '创建了两个Promise...<br>';
+            output.innerHTML = log;
+
+            successPromise.then(result => {
+                log += `✅ 成功Promise结果: ${result}<br>`;
+                output.innerHTML = log;
+            });
+
+            failPromise.catch(error => {
+                log += `❌ 失败Promise结果: ${error}<br>`;
+                output.innerHTML = log;
+            });
+        }
+
+        // ========== 2. then/catch/finally示例 ==========
+        function thenCatchExample() {
+            const output = document.getElementById('then-catch-output');
+            let log = '';
+
+            function asyncOperation(shouldSucceed) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (shouldSucceed) {
+                            resolve('操作成功');
+                        } else {
+                            reject('操作失败');
+                        }
+                    }, 1000);
+                });
+            }
+
+            log += '开始异步操作...<br>';
+            output.innerHTML = log;
+
+            asyncOperation(true)
+                .then(result => {
+                    log += `✅ then: ${result}<br>`;
+                    output.innerHTML = log;
+                })
+                .catch(error => {
+                    log += `❌ catch: ${error}<br>`;
+                    output.innerHTML = log;
+                })
+                .finally(() => {
+                    log += '🏁 finally: 操作完成（无论成功或失败）<br>';
+                    output.innerHTML = log;
+                });
+        }
+
+        // ========== 3. Promise链式调用示例 ==========
+        function promiseChainExample() {
+            const output = document.getElementById('promise-chain-output');
+            let log = '';
+
+            function step1() {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        log += '步骤1完成<br>';
+                        output.innerHTML = log;
+                        resolve('数据1');
+                    }, 500);
+                });
+            }
+
+            function step2(data) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        log += `步骤2完成（使用${data}）<br>`;
+                        output.innerHTML = log;
+                        resolve('数据2');
+                    }, 500);
+                });
+            }
+
+            function step3(data) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        log += `步骤3完成（使用${data}）<br>`;
+                        output.innerHTML = log;
+                        resolve('最终结果');
+                    }, 500);
+                });
+            }
+
+            log += '开始Promise链式调用...<br>';
+            output.innerHTML = log;
+
+            // Promise链式调用（扁平化）
+            step1()
+                .then(data1 => step2(data1))
+                .then(data2 => step3(data2))
+                .then(result => {
+                    log += `<br><strong>最终结果：${result}</strong><br>`;
+                    log += '<br><div class="tip">✅ Promise链式调用优势：<br>';
+                    log += '- 扁平化结构，易读<br>';
+                    log += '- 统一错误处理<br>';
+                    log += '- 避免回调地狱<br>';
+                    log += '</div>';
+                    output.innerHTML = log;
+                })
+                .catch(error => {
+                    log += `❌ 错误: ${error}<br>`;
+                    output.innerHTML = log;
+                });
+        }
+
+        // ========== 4. Promise.all示例 ==========
+        function promiseAllExample() {
+            const output = document.getElementById('promise-all-output');
+            let log = '';
+
+            const promise1 = new Promise(resolve => setTimeout(() => resolve('任务1完成'), 1000));
+            const promise2 = new Promise(resolve => setTimeout(() => resolve('任务2完成'), 1500));
+            const promise3 = new Promise(resolve => setTimeout(() => resolve('任务3完成'), 500));
+
+            log += '并行执行3个Promise...<br>';
+            output.innerHTML = log;
+
+            const startTime = Date.now();
+
+            Promise.all([promise1, promise2, promise3])
+                .then(results => {
+                    const elapsed = Date.now() - startTime;
+                    log += `<br>✅ 所有任务完成（耗时${elapsed}ms）：<br>`;
+                    results.forEach((result, index) => {
+                        log += `- ${result}<br>`;
+                    });
+                    log += '<br><div class="tip">💡 Promise.all并行执行，总耗时=最慢的任务</div>';
+                    output.innerHTML = log;
+                })
+                .catch(error => {
+                    log += `❌ 有任务失败: ${error}<br>`;
+                    output.innerHTML = log;
+                });
+        }
+
+        // ========== 5. Promise.race示例 ==========
+        function promiseRaceExample() {
+            const output = document.getElementById('promise-race-output');
+            let log = '';
+
+            const promise1 = new Promise(resolve => setTimeout(() => resolve('任务1完成（慢）'), 2000));
+            const promise2 = new Promise(resolve => setTimeout(() => resolve('任务2完成（快）'), 500));
+            const promise3 = new Promise(resolve => setTimeout(() => resolve('任务3完成（中）'), 1000));
+
+            log += '竞速执行3个Promise...<br>';
+            output.innerHTML = log;
+
+            Promise.race([promise1, promise2, promise3])
+                .then(result => {
+                    log += `<br>🏆 最快完成的任务: ${result}<br>`;
+                    log += '<div class="tip">💡 Promise.race返回最快完成的结果</div>';
+                    output.innerHTML = log;
+                });
+        }
+    </script>
+</body>
+</html>
+

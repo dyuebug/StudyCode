@@ -1,0 +1,18 @@
+{
+  "history": [
+    {
+      "source_text": "hello",
+      "translated_text": "你好",
+      "from_lang": "en",
+      "to_lang": "zh",
+      "timestamp": "2026-06-15 22:16:57"
+    },
+    {
+      "source_text": "Hello, Rust async!",
+      "translated_text": "您好， Rust async ！",
+      "from_lang": "en",
+      "to_lang": "zh",
+      "timestamp": "2026-06-15 22:15:53"
+    }
+  ]
+}

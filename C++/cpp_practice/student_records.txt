@@ -1,0 +1,7 @@
+姓名         年龄    成绩    
+-----------------------------------
+Alice Wang     20        95.5      
+Bob Li         21        88.0      
+Charlie Zhang  19        92.5      
+Diana Liu      20        87.5      
+Eric Chen      22        90.0      

@@ -1,0 +1,16 @@
+{
+  "history": [
+    {
+      "city": "Shanghai",
+      "temperature": "24°C",
+      "description": "Partly cloudy",
+      "timestamp": "2026-06-14 20:00:42"
+    },
+    {
+      "city": "Beijing",
+      "temperature": "27°C",
+      "description": "Sunny",
+      "timestamp": "2026-06-14 20:00:30"
+    }
+  ]
+}

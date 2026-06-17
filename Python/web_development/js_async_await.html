@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript async/await - 超详细教程</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #e67e22; padding-bottom: 10px; }
+        h2 { color: #e67e22; margin-top: 30px; }
+        h3 { color: #3498db; }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .output {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .tip {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #d35400; }
+    </style>
+</head>
+<body>
+    <h1>✨ JavaScript async/await - 超详细教程</h1>
+    <p><strong>日期</strong>：2026-06-26（第45天）</p>
+    <p><strong>难度</strong>：⭐⭐⭐⭐ 中高级</p>
+
+    <div class="section">
+        <h2>📚 核心概念</h2>
+        <h3>什么是async/await？</h3>
+        <p>async/await是ES2017引入的语法糖，让异步代码看起来像同步代码，更易读易写。</p>
+
+        <div class="tip">
+            <p><strong>核心要点</strong>：</p>
+            <ul>
+                <li>async函数总是返回Promise</li>
+                <li>await只能在async函数内使用</li>
+                <li>await会暂停函数执行，等待Promise完成</li>
+                <li>是Promise的语法糖，本质还是Promise</li>
+            </ul>
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>1️⃣ async函数基础 ⭐⭐⭐⭐⭐</h2>
+        <div class="tip">
+            <p><strong>语法</strong>：</p>
+            <pre>async function 函数名() {
+    return 值;  // 自动包装成Promise
+}</pre>
+            <p><strong>特点</strong>：</p>
+            <ul>
+                <li>async函数总是返回Promise</li>
+                <li>return值会被Promise.resolve()包装</li>
+                <li>抛出错误会被Promise.reject()包装</li>
+            </ul>
+        </div>
+
+        <h3>示例：async函数</h3>
+        <button onclick="asyncFunctionExample()">运行示例</button>
+        <div id="async-function-output" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>2️⃣ await关键字 ⭐⭐⭐⭐⭐</h2>
+        <div class="tip">
+            <p><strong>语法</strong>：</p>
+            <pre>const result = await promise;</pre>
+            <p><strong>作用</strong>：</p>
+            <ul>
+                <li>等待Promise完成</li>
+                <li>返回Promise的结果值</li>
+                <li>只能在async函数内使用</li>
+            </ul>
+        </div>
+
+        <h3>示例：await用法</h3>
+        <button onclick="awaitExample()">运行示例</button>
+        <div id="await-output" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>3️⃣ 错误处理 ⭐⭐⭐⭐⭐</h2>
+        <div class="tip">
+            <p><strong>try/catch</strong>：</p>
+            <pre>async function fn() {
+    try {
+        const result = await promise;
+    } catch (error) {
+        // 处理错误
+    }
+}</pre>
+        </div>
+
+        <h3>示例：错误处理</h3>
+        <button onclick="errorHandlingExample()">运行示例</button>
+        <div id="error-handling-output" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>4️⃣ async/await vs Promise ⭐⭐⭐⭐</h2>
+
+        <h3>示例：对比两种写法</h3>
+        <button onclick="comparisonExample()">运行示例</button>
+        <div id="comparison-output" class="output"></div>
+    </div>
+
+    <script>
+        function asyncFunctionExample() {
+            const output = document.getElementById('async-function-output');
+
+            async function getData() {
+                return 'Hello, async!';
+            }
+
+            const result = getData();
+            output.innerHTML = `
+                <p><strong>async函数返回值</strong>：${result}</p>
+                <p><strong>类型</strong>：${result.constructor.name}</p>
+                <p class="tip">💡 async函数总是返回Promise</p>
+            `;
+
+            result.then(value => {
+                output.innerHTML += `<p><strong>Promise结果</strong>：${value}</p>`;
+            });
+        }
+
+        async function awaitExample() {
+            const output = document.getElementById('await-output');
+            let log = '';
+
+            function delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            log += '开始执行...<br>';
+            output.innerHTML = log;
+
+            await delay(500);
+            log += '等待500ms后...<br>';
+            output.innerHTML = log;
+
+            await delay(500);
+            log += '再等待500ms后...<br>';
+            output.innerHTML = log;
+
+            log += '<br><div class="tip">✅ await让异步代码看起来像同步代码</div>';
+            output.innerHTML = log;
+        }
+
+        async function errorHandlingExample() {
+            const output = document.getElementById('error-handling-output');
+            let log = '';
+
+            function failingPromise() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => reject('操作失败'), 500);
+                });
+            }
+
+            log += '尝试执行可能失败的操作...<br>';
+            output.innerHTML = log;
+
+            try {
+                await failingPromise();
+                log += '成功<br>';
+            } catch (error) {
+                log += `❌ 捕获错误: ${error}<br>`;
+            }
+
+            log += '<br><div class="tip">💡 用try/catch捕获async/await的错误</div>';
+            output.innerHTML = log;
+        }
+
+        async function comparisonExample() {
+            const output = document.getElementById('comparison-output');
+
+            function fetchData(id) {
+                return new Promise(resolve => {
+                    setTimeout(() => resolve(`数据${id}`), 500);
+                });
+            }
+
+            // Promise写法
+            const promiseCode = `fetchData(1)
+    .then(data1 => fetchData(2))
+    .then(data2 => fetchData(3))
+    .then(data3 => '完成');`;
+
+            // async/await写法
+            const asyncCode = `const data1 = await fetchData(1);
+const data2 = await fetchData(2);
+const data3 = await fetchData(3);
+return '完成';`;
+
+            const data1 = await fetchData(1);
+            const data2 = await fetchData(2);
+            const data3 = await fetchData(3);
+
+            output.innerHTML = `
+                <p><strong>Promise写法</strong>：</p>
+                <pre>${promiseCode}</pre>
+                <p><strong>async/await写法（推荐）</strong>：</p>
+                <pre>${asyncCode}</pre>
+                <p><strong>结果</strong>：${data1}, ${data2}, ${data3}</p>
+                <div class="tip">✅ async/await更简洁易读</div>
+            `;
+        }
+    </script>
+</body>
+</html>
+

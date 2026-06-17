@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES6+ 新特性 - 超详细教程</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px; }
+        h2 { color: #e74c3c; margin-top: 30px; }
+        h3 { color: #3498db; }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .output {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .tip {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 ES6+ 新特性 - 超详细教程</h1>
+    <p><strong>日期</strong>：2026-06-25（第44天）</p>
+    <p><strong>难度</strong>：⭐⭐⭐ 中级</p>
+
+    <!-- 核心概念 -->
+    <div class="section">
+        <h2>📚 核心概念</h2>
+
+        <h3>什么是ES6+？</h3>
+        <p>ES6（ECMAScript 2015）是JavaScript的重大更新，引入了大量新特性。ES6+指ES6及之后版本的统称。</p>
+
+        <h3>为什么学习ES6+？</h3>
+        <ul>
+            <li><strong>现代标准</strong>：现代前端开发的必备技能</li>
+            <li><strong>代码简洁</strong>：用更少的代码完成同样的功能</li>
+            <li><strong>可读性强</strong>：代码意图更清晰</li>
+            <li><strong>框架必备</strong>：React、Vue都大量使用ES6+</li>
+            <li><strong>面试必考</strong>：高频考点</li>
+        </ul>
+
+        <h3>核心特性列表</h3>
+        <ol>
+            <li>let/const 块级作用域</li>
+            <li>箭头函数</li>
+            <li>解构赋值</li>
+            <li>展开运算符（...）</li>
+            <li>模板字符串</li>
+            <li>默认参数和剩余参数</li>
+            <li>对象简写</li>
+        </ol>
+    </div>
+
+    <!-- 1. let/const -->
+    <div class="section">
+        <h2>1️⃣ let/const - 块级作用域 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>var的问题</strong>：</p>
+            <ul>
+                <li>函数作用域（不是块级作用域）</li>
+                <li>变量提升（hoisting）</li>
+                <li>可以重复声明</li>
+            </ul>
+
+            <p><strong>let/const的优势</strong>：</p>
+            <ul>
+                <li>块级作用域（{}内有效）</li>
+                <li>无变量提升（必须先声明后使用）</li>
+                <li>不能重复声明</li>
+                <li>const声明的是常量（不能重新赋值）</li>
+            </ul>
+        </div>
+
+        <h3>示例：作用域对比</h3>
+        <button onclick="letConstExample()">运行示例</button>
+        <div id="letconst-output" class="output"></div>
+
+        <div class="warning">
+            <p><strong>⚠️ 重要区别</strong>：</p>
+            <ul>
+                <li><code>let</code>：可以重新赋值</li>
+                <li><code>const</code>：不能重新赋值（但对象/数组的内容可以修改）</li>
+            </ul>
+        </div>
+    </div>
+
+
+    <!-- 2. 箭头函数 -->
+    <div class="section">
+        <h2>2️⃣ 箭头函数 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【函数卡片】</h3>
+        <div class="tip">
+            <p><strong>语法</strong>：</p>
+            <pre>// 传统函数
+function add(a, b) {
+    return a + b;
+}
+
+// 箭头函数
+const add = (a, b) => a + b;</pre>
+
+            <p><strong>简写规则</strong>：</p>
+            <ul>
+                <li>单个参数：括号可省略 <code>x => x * 2</code></li>
+                <li>单行返回：花括号和return可省略 <code>(a, b) => a + b</code></li>
+                <li>返回对象：用括号包裹 <code>() => ({ name: 'Tom' })</code></li>
+            </ul>
+
+            <p><strong>this绑定</strong>：</p>
+            <ul>
+                <li>传统函数：this取决于调用方式</li>
+                <li>箭头函数：this继承外层作用域（词法作用域）</li>
+            </ul>
+        </div>
+
+        <h3>示例：箭头函数用法</h3>
+        <button onclick="arrowFunctionExample()">运行示例</button>
+        <div id="arrow-output" class="output"></div>
+
+        <h3>示例：this绑定</h3>
+        <button onclick="thisBindingExample()">运行示例</button>
+        <div id="this-output" class="output"></div>
+    </div>
+
+    <!-- 3. 解构赋值 -->
+    <div class="section">
+        <h2>3️⃣ 解构赋值 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>什么是解构赋值？</strong></p>
+            <p>从数组或对象中提取值，赋给变量的简洁语法。</p>
+
+            <p><strong>数组解构</strong>：</p>
+            <pre>const [a, b, c] = [1, 2, 3];  // a=1, b=2, c=3</pre>
+
+            <p><strong>对象解构</strong>：</p>
+            <pre>const { name, age } = { name: 'Tom', age: 25 };  // name='Tom', age=25</pre>
+        </div>
+
+        <h3>示例：数组解构</h3>
+        <button onclick="arrayDestructExample()">运行示例</button>
+        <div id="array-destruct-output" class="output"></div>
+
+        <h3>示例：对象解构</h3>
+        <button onclick="objectDestructExample()">运行示例</button>
+        <div id="object-destruct-output" class="output"></div>
+    </div>
+
+    <!-- 4. 展开运算符 -->
+    <div class="section">
+        <h2>4️⃣ 展开运算符（...） ⭐⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>作用</strong>：将数组或对象"展开"成独立的元素</p>
+
+            <p><strong>数组展开</strong>：</p>
+            <pre>const arr1 = [1, 2, 3];
+const arr2 = [...arr1, 4, 5];  // [1, 2, 3, 4, 5]</pre>
+
+            <p><strong>对象展开</strong>：</p>
+            <pre>const obj1 = { a: 1, b: 2 };
+const obj2 = { ...obj1, c: 3 };  // { a: 1, b: 2, c: 3 }</pre>
+
+            <p><strong>常见用途</strong>：</p>
+            <ul>
+                <li>复制数组/对象（浅拷贝）</li>
+                <li>合并数组/对象</li>
+                <li>函数参数传递</li>
+            </ul>
+        </div>
+
+        <h3>示例：展开运算符</h3>
+        <button onclick="spreadExample()">运行示例</button>
+        <div id="spread-output" class="output"></div>
+    </div>
+
+
+    <!-- 5. 模板字符串 -->
+    <div class="section">
+        <h2>5️⃣ 模板字符串 ⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>语法</strong>：使用反引号（`）代替引号</p>
+            <pre>const name = 'Tom';
+const greeting = `Hello, ${name}!`;  // Hello, Tom!</pre>
+
+            <p><strong>特点</strong>：</p>
+            <ul>
+                <li>支持变量插值：<code>${变量}</code></li>
+                <li>支持表达式：<code>${1 + 1}</code></li>
+                <li>支持多行字符串</li>
+                <li>可以嵌套模板</li>
+            </ul>
+        </div>
+
+        <h3>示例：模板字符串</h3>
+        <button onclick="templateStringExample()">运行示例</button>
+        <div id="template-output" class="output"></div>
+    </div>
+
+    <!-- 6. 默认参数和剩余参数 -->
+    <div class="section">
+        <h2>6️⃣ 默认参数和剩余参数 ⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>默认参数</strong>：函数参数可以设置默认值</p>
+            <pre>function greet(name = 'Guest') {
+    return `Hello, ${name}!`;
+}</pre>
+
+            <p><strong>剩余参数（...args）</strong>：收集多余参数为数组</p>
+            <pre>function sum(...numbers) {
+    return numbers.reduce((a, b) => a + b, 0);
+}</pre>
+        </div>
+
+        <h3>示例：默认参数和剩余参数</h3>
+        <button onclick="paramsExample()">运行示例</button>
+        <div id="params-output" class="output"></div>
+    </div>
+
+    <!-- 7. 对象简写 -->
+    <div class="section">
+        <h2>7️⃣ 对象简写 ⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>属性简写</strong>：变量名和属性名相同时可简写</p>
+            <pre>const name = 'Tom';
+const age = 25;
+
+// 传统写法
+const user = { name: name, age: age };
+
+// 简写
+const user = { name, age };</pre>
+
+            <p><strong>方法简写</strong>：对象方法可以省略<code>: function</code></p>
+            <pre>const obj = {
+    // 传统写法
+    sayHi: function() { return 'Hi'; },
+    // 简写
+    sayHello() { return 'Hello'; }
+};</pre>
+        </div>
+
+        <h3>示例：对象简写</h3>
+        <button onclick="objectShorthandExample()">运行示例</button>
+        <div id="shorthand-output" class="output"></div>
+    </div>
+
+
+    <!-- 常见错误 -->
+    <div class="section">
+        <h2>⚠️ 常见错误和陷阱</h2>
+
+        <h3>错误1：const不是真正的常量</h3>
+        <div class="warning">
+            <p><strong>❌ 误解：</strong>const声明的变量完全不可变</p>
+            <p><strong>✅ 真相：</strong>const保证变量指向的地址不变，但对象/数组的内容可以修改</p>
+            <pre>const arr = [1, 2, 3];
+arr.push(4);  // ✅ 可以修改内容
+arr = [5, 6];  // ❌ 报错！不能重新赋值</pre>
+        </div>
+
+        <h3>错误2：箭头函数没有this</h3>
+        <div class="warning">
+            <p><strong>❌ 错误使用：</strong>在需要动态this的场景用箭头函数</p>
+            <pre>const btn = document.querySelector('button');
+btn.addEventListener('click', () => {
+    console.log(this);  // ❌ this不是btn，而是外层作用域的this
+});</pre>
+            <p><strong>✅ 正确：</strong>需要动态this时用传统函数</p>
+        </div>
+
+        <h3>错误3：解构时变量名必须匹配</h3>
+        <div class="warning">
+            <p><strong>❌ 错误代码：</strong></p>
+            <pre>const { userName } = { name: 'Tom' };  // userName是undefined</pre>
+            <p><strong>✅ 正确写法：</strong></p>
+            <pre>const { name: userName } = { name: 'Tom' };  // userName='Tom'</pre>
+        </div>
+
+        <h3>错误4：展开运算符是浅拷贝</h3>
+        <div class="warning">
+            <p><strong>⚠️ 陷阱：</strong>嵌套对象不会深拷贝</p>
+            <pre>const obj1 = { a: 1, b: { c: 2 } };
+const obj2 = { ...obj1 };
+obj2.b.c = 999;  // obj1.b.c也变成999！</pre>
+        </div>
+    </div>
+
+    <!-- 实战练习 -->
+    <div class="section">
+        <h2>💪 实战练习</h2>
+
+        <h3>练习1：用ES6+重构代码</h3>
+        <p>将传统代码改写为ES6+风格</p>
+        <button onclick="practice1()">运行练习1</button>
+        <div id="practice1-output" class="output"></div>
+
+        <h3>练习2：综合应用</h3>
+        <p>用ES6+特性处理用户数据</p>
+        <button onclick="practice2()">运行练习2</button>
+        <div id="practice2-output" class="output"></div>
+    </div>
+
+    <script>
+        // ========== 1. let/const 示例 ==========
+        function letConstExample() {
+            let output = '';
+
+            // var的问题
+            for (var i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    output += `var: ${i}<br>`;  // 全是3
+                }, 100);
+            }
+
+            // let的优势
+            for (let j = 0; j < 3; j++) {
+                setTimeout(() => {
+                    output += `let: ${j}<br>`;  // 0, 1, 2
+                }, 100);
+            }
+
+            // const
+            const PI = 3.14159;
+            output += `<br><strong>常量PI：</strong>${PI}<br>`;
+
+            // const对象可以修改内容
+            const user = { name: 'Tom' };
+            user.age = 25;  // ✅ 可以
+            output += `<strong>const对象：</strong>${JSON.stringify(user)}<br>`;
+
+            setTimeout(() => {
+                document.getElementById('letconst-output').innerHTML = output;
+            }, 200);
+        }
+
+
+        // ========== 2. 箭头函数示例 ==========
+        function arrowFunctionExample() {
+            // 传统函数
+            function add1(a, b) {
+                return a + b;
+            }
+
+            // 箭头函数 - 完整写法
+            const add2 = (a, b) => {
+                return a + b;
+            };
+
+            // 箭头函数 - 简写（推荐）
+            const add3 = (a, b) => a + b;
+
+            // 单参数省略括号
+            const double = x => x * 2;
+
+            // 返回对象（需要括号）
+            const createUser = (name, age) => ({ name, age });
+
+            document.getElementById('arrow-output').innerHTML = `
+                <p><strong>传统函数：</strong>add1(2, 3) = ${add1(2, 3)}</p>
+                <p><strong>箭头函数（完整）：</strong>add2(2, 3) = ${add2(2, 3)}</p>
+                <p><strong>箭头函数（简写）：</strong>add3(2, 3) = ${add3(2, 3)}</p>
+                <p><strong>单参数：</strong>double(5) = ${double(5)}</p>
+                <p><strong>返回对象：</strong>${JSON.stringify(createUser('Tom', 25))}</p>
+            `;
+        }
+
+        function thisBindingExample() {
+            // 传统函数的this
+            const obj1 = {
+                name: 'Object1',
+                sayName: function() {
+                    return `传统函数：${this.name}`;
+                }
+            };
+
+            // 箭头函数的this（继承外层）
+            const obj2 = {
+                name: 'Object2',
+                sayName: () => {
+                    return `箭头函数：${this.name || 'undefined（this不是obj2）'}`;
+                }
+            };
+
+            document.getElementById('this-output').innerHTML = `
+                <p>${obj1.sayName()}</p>
+                <p>${obj2.sayName()}</p>
+                <p class="tip">💡 箭头函数的this继承外层作用域，不是调用它的对象</p>
+            `;
+        }
+
+        // ========== 3. 解构赋值示例 ==========
+        function arrayDestructExample() {
+            // 数组解构
+            const arr = [1, 2, 3, 4, 5];
+            const [a, b, ...rest] = arr;  // a=1, b=2, rest=[3,4,5]
+
+            // 交换变量
+            let x = 1, y = 2;
+            [x, y] = [y, x];  // x=2, y=1
+
+            // 跳过元素
+            const [first, , third] = [10, 20, 30];
+
+            document.getElementById('array-destruct-output').innerHTML = `
+                <p><strong>原数组：</strong>${JSON.stringify(arr)}</p>
+                <p><strong>a, b, ...rest：</strong>a=${a}, b=${b}, rest=${JSON.stringify(rest)}</p>
+                <p><strong>交换后：</strong>x=${x}, y=${y}</p>
+                <p><strong>跳过元素：</strong>first=${first}, third=${third}</p>
+            `;
+        }
+
+        function objectDestructExample() {
+            const user = {
+                name: '张三',
+                age: 25,
+                city: '北京',
+                country: '中国'
+            };
+
+            // 基本解构
+            const { name, age } = user;
+
+            // 重命名
+            const { name: userName, age: userAge } = user;
+
+            // 默认值
+            const { hobby = '读书' } = user;
+
+            // 剩余属性
+            const { name: n, ...others } = user;
+
+            document.getElementById('object-destruct-output').innerHTML = `
+                <p><strong>原对象：</strong><pre>${JSON.stringify(user, null, 2)}</pre></p>
+                <p><strong>基本解构：</strong>name=${name}, age=${age}</p>
+                <p><strong>重命名：</strong>userName=${userName}, userAge=${userAge}</p>
+                <p><strong>默认值：</strong>hobby=${hobby}</p>
+                <p><strong>剩余属性：</strong><pre>${JSON.stringify(others, null, 2)}</pre></p>
+            `;
+        }
+
+
+        // ========== 4. 展开运算符示例 ==========
+        function spreadExample() {
+            // 数组展开
+            const arr1 = [1, 2, 3];
+            const arr2 = [4, 5, 6];
+            const merged = [...arr1, ...arr2];  // 合并数组
+
+            // 数组复制（浅拷贝）
+            const arr3 = [...arr1];
+            arr3.push(999);
+
+            // 对象展开
+            const obj1 = { a: 1, b: 2 };
+            const obj2 = { c: 3, d: 4 };
+            const mergedObj = { ...obj1, ...obj2 };
+
+            // 对象复制和覆盖
+            const user = { name: 'Tom', age: 25 };
+            const updatedUser = { ...user, age: 26 };  // 覆盖age
+
+            document.getElementById('spread-output').innerHTML = `
+                <p><strong>合并数组：</strong>${JSON.stringify(merged)}</p>
+                <p><strong>原数组arr1：</strong>${JSON.stringify(arr1)}（未改变）</p>
+                <p><strong>复制arr3：</strong>${JSON.stringify(arr3)}</p>
+                <p><strong>合并对象：</strong>${JSON.stringify(mergedObj)}</p>
+                <p><strong>更新用户：</strong>${JSON.stringify(updatedUser)}</p>
+                <p class="tip">💡 展开运算符常用于复制和合并，避免直接修改原数据</p>
+            `;
+        }
+
+        // ========== 5. 模板字符串示例 ==========
+        function templateStringExample() {
+            const name = '张三';
+            const age = 25;
+            const price = 19.99;
+
+            // 变量插值
+            const greeting = `Hello, ${name}!`;
+
+            // 表达式
+            const info = `${name}今年${age}岁，明年${age + 1}岁`;
+
+            // 多行字符串
+            const html = `
+                <div>
+                    <h2>${name}</h2>
+                    <p>年龄：${age}</p>
+                    <p>价格：¥${price.toFixed(2)}</p>
+                </div>
+            `;
+
+            document.getElementById('template-output').innerHTML = `
+                <p><strong>基本插值：</strong>${greeting}</p>
+                <p><strong>表达式：</strong>${info}</p>
+                <p><strong>多行HTML：</strong></p>
+                <pre>${html}</pre>
+            `;
+        }
+
+        // ========== 6. 默认参数和剩余参数示例 ==========
+        function paramsExample() {
+            // 默认参数
+            function greet(name = 'Guest', greeting = 'Hello') {
+                return `${greeting}, ${name}!`;
+            }
+
+            // 剩余参数
+            function sum(...numbers) {
+                return numbers.reduce((a, b) => a + b, 0);
+            }
+
+            // 结合使用
+            function createUser(name, age = 18, ...hobbies) {
+                return { name, age, hobbies };
+            }
+
+            document.getElementById('params-output').innerHTML = `
+                <p><strong>默认参数：</strong></p>
+                <p>greet() = ${greet()}</p>
+                <p>greet('Tom') = ${greet('Tom')}</p>
+                <p>greet('Tom', 'Hi') = ${greet('Tom', 'Hi')}</p>
+                <p><strong>剩余参数：</strong></p>
+                <p>sum(1, 2, 3, 4, 5) = ${sum(1, 2, 3, 4, 5)}</p>
+                <p><strong>结合使用：</strong></p>
+                <p><pre>${JSON.stringify(createUser('Tom', 25, '篮球', '游泳', '阅读'), null, 2)}</pre></p>
+            `;
+        }
+
+        // ========== 7. 对象简写示例 ==========
+        function objectShorthandExample() {
+            const name = '张三';
+            const age = 25;
+            const city = '北京';
+
+            // 传统写法
+            const user1 = {
+                name: name,
+                age: age,
+                city: city,
+                sayHi: function() {
+                    return 'Hi!';
+                }
+            };
+
+            // ES6简写
+            const user2 = {
+                name,
+                age,
+                city,
+                sayHi() {
+                    return 'Hi!';
+                }
+            };
+
+            document.getElementById('shorthand-output').innerHTML = `
+                <p><strong>传统写法：</strong><pre>${JSON.stringify(user1, null, 2)}</pre></p>
+                <p><strong>ES6简写：</strong><pre>${JSON.stringify(user2, null, 2)}</pre></p>
+                <p class="tip">💡 两种写法效果相同，但简写更简洁</p>
+            `;
+        }
+
+
+        // ========== 实战练习 ==========
+        function practice1() {
+            // 传统代码
+            var oldCode = `
+// 传统ES5代码
+function getFullName(user) {
+    var firstName = user.firstName;
+    var lastName = user.lastName;
+    var age = user.age;
+    return firstName + ' ' + lastName + ' (' + age + '岁)';
+}
+
+var user = { firstName: '张', lastName: '三', age: 25 };
+var result = getFullName(user);
+            `;
+
+            // ES6+重构
+            const getFullName = ({ firstName, lastName, age }) =>
+                `${firstName} ${lastName} (${age}岁)`;
+
+            const user = { firstName: '张', lastName: '三', age: 25 };
+            const result = getFullName(user);
+
+            document.getElementById('practice1-output').innerHTML = `
+                <p><strong>传统代码：</strong></p>
+                <pre>${oldCode}</pre>
+                <p><strong>ES6+重构：</strong></p>
+                <pre>const getFullName = ({ firstName, lastName, age }) =>
+    \`\${firstName} \${lastName} (\${age}岁)\`;
+
+const user = { firstName: '张', lastName: '三', age: 25 };
+const result = getFullName(user);</pre>
+                <p><strong>结果：</strong>${result}</p>
+                <p class="tip">💡 使用了：箭头函数、解构赋值、模板字符串</p>
+            `;
+        }
+
+        function practice2() {
+            const users = [
+                { id: 1, name: '张三', age: 25, score: 85 },
+                { id: 2, name: '李四', age: 30, score: 92 },
+                { id: 3, name: '王五', age: 28, score: 78 }
+            ];
+
+            // 1. 提取所有姓名（map + 解构）
+            const names = users.map(({ name }) => name);
+
+            // 2. 筛选高分用户并格式化（filter + map + 模板字符串）
+            const highScorers = users
+                .filter(({ score }) => score >= 80)
+                .map(({ name, score }) => `${name}: ${score}分`);
+
+            // 3. 添加新用户（展开运算符）
+            const newUser = { id: 4, name: '赵六', age: 26, score: 88 };
+            const allUsers = [...users, newUser];
+
+            // 4. 计算平均分（reduce + 箭头函数）
+            const avgScore = users.reduce((sum, { score }) => sum + score, 0) / users.length;
+
+            document.getElementById('practice2-output').innerHTML = `
+                <p><strong>原始数据：</strong><pre>${JSON.stringify(users, null, 2)}</pre></p>
+                <p><strong>1. 所有姓名：</strong>${JSON.stringify(names)}</p>
+                <p><strong>2. 高分用户：</strong>${JSON.stringify(highScorers)}</p>
+                <p><strong>3. 添加用户后：</strong>${allUsers.length}人</p>
+                <p><strong>4. 平均分：</strong>${avgScore.toFixed(2)}</p>
+                <p class="tip">💡 综合运用了ES6+的多个特性</p>
+            `;
+        }
+    </script>
+</body>
+</html>

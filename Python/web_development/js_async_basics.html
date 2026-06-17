@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 异步编程基础 - 超详细教程</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #9b59b6; padding-bottom: 10px; }
+        h2 { color: #9b59b6; margin-top: 30px; }
+        h3 { color: #3498db; }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .output {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .tip {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .danger {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #8e44ad; }
+        .diagram {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 JavaScript 异步编程基础 - 超详细教程</h1>
+    <p><strong>日期</strong>：2026-06-26（第45天）</p>
+    <p><strong>难度</strong>：⭐⭐⭐⭐ 中高级</p>
+
+    <!-- 核心概念 -->
+    <div class="section">
+        <h2>📚 核心概念</h2>
+
+        <h3>什么是异步编程？</h3>
+        <p>异步编程是一种编程范式，允许程序在等待耗时操作（如网络请求、文件读取）完成时，继续执行其他代码，而不是阻塞等待。</p>
+
+        <h3>为什么需要异步编程？</h3>
+        <div class="tip">
+            <p><strong>JavaScript的特点</strong>：</p>
+            <ul>
+                <li><strong>单线程</strong>：JavaScript只有一个执行线程</li>
+                <li><strong>非阻塞</strong>：不能让耗时操作阻塞整个程序</li>
+                <li><strong>事件驱动</strong>：通过事件循环处理异步操作</li>
+            </ul>
+
+            <p><strong>实际场景</strong>：</p>
+            <ul>
+                <li>网络请求（fetch、Ajax）</li>
+                <li>文件操作（读写文件）</li>
+                <li>定时器（setTimeout、setInterval）</li>
+                <li>用户交互（点击、输入）</li>
+                <li>数据库操作</li>
+            </ul>
+        </div>
+
+        <h3>同步 vs 异步</h3>
+        <div class="diagram">
+            <p><strong>同步执行（阻塞）</strong></p>
+            <pre>
+任务1 ━━━━━━━━▶ 完成
+                   ↓
+              任务2 ━━━━━━━━▶ 完成
+                               ↓
+                          任务3 ━━━━━━━━▶ 完成
+            </pre>
+            <p>❌ 每个任务必须等待前一个任务完成</p>
+        </div>
+
+        <div class="diagram">
+            <p><strong>异步执行（非阻塞）</strong></p>
+            <pre>
+任务1 ━━━━━━━━▶ 完成
+任务2 ━━━━━━━━━━━━━━━━▶ 完成（耗时长）
+任务3 ━━━━━━━━▶ 完成
+            </pre>
+            <p>✅ 任务2在后台执行，不阻塞任务3</p>
+        </div>
+    </div>
+
+
+    <!-- 同步vs异步示例 -->
+    <div class="section">
+        <h2>1️⃣ 同步 vs 异步对比 ⭐⭐⭐⭐⭐</h2>
+
+        <h3>示例1：同步代码（阻塞）</h3>
+        <button onclick="syncExample()">运行同步示例</button>
+        <div id="sync-output" class="output"></div>
+
+        <h3>示例2：异步代码（非阻塞）</h3>
+        <button onclick="asyncExample()">运行异步示例</button>
+        <div id="async-output" class="output"></div>
+
+        <div class="tip">
+            <p><strong>💡 关键区别</strong>：</p>
+            <ul>
+                <li><strong>同步</strong>：代码按顺序执行，必须等待前一个任务完成</li>
+                <li><strong>异步</strong>：耗时操作放到后台，主线程继续执行</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 事件循环 -->
+    <div class="section">
+        <h2>2️⃣ 事件循环（Event Loop）⭐⭐⭐⭐⭐</h2>
+
+        <h3>【核心机制】</h3>
+        <div class="tip">
+            <p><strong>什么是事件循环？</strong></p>
+            <p>事件循环是JavaScript实现异步的核心机制。它不断检查执行栈是否为空，如果为空就从任务队列中取出任务执行。</p>
+
+            <p><strong>执行流程</strong>：</p>
+            <ol>
+                <li><strong>执行栈（Call Stack）</strong>：同步代码在这里执行</li>
+                <li><strong>Web APIs</strong>：浏览器提供的异步API（setTimeout、fetch等）</li>
+                <li><strong>任务队列（Task Queue）</strong>：异步任务完成后回调函数进入队列</li>
+                <li><strong>事件循环</strong>：栈空时，从队列取任务到栈执行</li>
+            </ol>
+        </div>
+
+        <div class="diagram">
+            <p><strong>事件循环示意图</strong></p>
+            <pre>
+┌─────────────────────────────────────────────┐
+│   执行栈（Call Stack）                       │
+│   ┌─────────────────────────────────┐      │
+│   │ 同步代码在这里执行                │      │
+│   └─────────────────────────────────┘      │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│   Web APIs（浏览器提供）                     │
+│   setTimeout / fetch / DOM events           │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│   任务队列（Task Queue）                     │
+│   [回调1] [回调2] [回调3] ...               │
+└─────────────────────────────────────────────┘
+                    ↑
+              事件循环不断检查
+            </pre>
+        </div>
+
+        <h3>示例：事件循环执行顺序</h3>
+        <button onclick="eventLoopExample()">运行示例</button>
+        <div id="eventloop-output" class="output"></div>
+    </div>
+
+    <!-- 宏任务vs微任务 -->
+    <div class="section">
+        <h2>3️⃣ 宏任务 vs 微任务 ⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>宏任务（MacroTask）</strong>：</p>
+            <ul>
+                <li>setTimeout / setInterval</li>
+                <li>setImmediate（Node.js）</li>
+                <li>I/O操作</li>
+                <li>UI渲染</li>
+            </ul>
+
+            <p><strong>微任务（MicroTask）</strong>：</p>
+            <ul>
+                <li>Promise.then / catch / finally</li>
+                <li>async/await</li>
+                <li>MutationObserver</li>
+                <li>process.nextTick（Node.js）</li>
+            </ul>
+
+            <p><strong>执行顺序</strong>：</p>
+            <ol>
+                <li>执行同步代码</li>
+                <li>执行所有微任务</li>
+                <li>执行一个宏任务</li>
+                <li>回到步骤2（循环）</li>
+            </ol>
+        </div>
+
+        <h3>示例：宏任务vs微任务执行顺序</h3>
+        <button onclick="macroMicroExample()">运行示例</button>
+        <div id="macro-micro-output" class="output"></div>
+    </div>
+
+
+    <!-- 回调函数 -->
+    <div class="section">
+        <h2>4️⃣ 回调函数基础 ⭐⭐⭐⭐</h2>
+
+        <h3>【概念卡片】</h3>
+        <div class="tip">
+            <p><strong>什么是回调函数？</strong></p>
+            <p>回调函数是作为参数传递给另一个函数的函数，在异步操作完成后被调用。</p>
+
+            <p><strong>语法</strong>：</p>
+            <pre>function doSomethingAsync(callback) {
+    setTimeout(() => {
+        const result = '异步操作完成';
+        callback(result);  // 调用回调函数
+    }, 1000);
+}</pre>
+        </div>
+
+        <h3>示例：回调函数基础</h3>
+        <button onclick="callbackExample()">运行示例</button>
+        <div id="callback-output" class="output"></div>
+    </div>
+
+    <!-- 回调地狱 -->
+    <div class="section">
+        <h2>5️⃣ 回调地狱（Callback Hell）⭐⭐⭐⭐⭐</h2>
+
+        <h3>【问题说明】</h3>
+        <div class="danger">
+            <p><strong>⚠️ 回调地狱的问题</strong>：</p>
+            <ul>
+                <li><strong>嵌套层级深</strong>：代码横向增长，难以阅读</li>
+                <li><strong>难以维护</strong>：修改逻辑困难</li>
+                <li><strong>错误处理困难</strong>：每层都要处理错误</li>
+                <li><strong>代码复用困难</strong>：逻辑耦合严重</li>
+            </ul>
+        </div>
+
+        <h3>示例：回调地狱演示</h3>
+        <button onclick="callbackHellExample()">运行示例</button>
+        <div id="callback-hell-output" class="output"></div>
+
+        <div class="tip">
+            <p><strong>💡 解决方案</strong>：</p>
+            <ul>
+                <li><strong>Promise</strong>：链式调用，扁平化代码</li>
+                <li><strong>async/await</strong>：同步写法，异步执行</li>
+            </ul>
+            <p>后续章节会详细学习这两种解决方案！</p>
+        </div>
+    </div>
+
+    <!-- JavaScript代码 -->
+    <script>
+        // ========== 1. 同步vs异步示例 ==========
+        function syncExample() {
+            const output = document.getElementById('sync-output');
+            output.innerHTML = '<p>开始执行...</p>';
+
+            console.log('1. 开始');
+
+            // 模拟耗时操作（同步阻塞）
+            const start = Date.now();
+            while (Date.now() - start < 2000) {
+                // 阻塞2秒
+            }
+            console.log('2. 耗时操作完成（阻塞了2秒）');
+
+            console.log('3. 结束');
+
+            output.innerHTML = `
+                <p><strong>执行顺序</strong>：</p>
+                <p>1. 开始</p>
+                <p>2. 耗时操作完成（阻塞了2秒）⏳</p>
+                <p>3. 结束</p>
+                <p class="warning">⚠️ 注意：步骤2阻塞了2秒，期间页面无响应！</p>
+            `;
+        }
+
+        function asyncExample() {
+            const output = document.getElementById('async-output');
+            output.innerHTML = '<p>开始执行...</p>';
+
+            let log = '';
+
+            log += '1. 开始<br>';
+            console.log('1. 开始');
+
+            // 异步操作（非阻塞）
+            setTimeout(() => {
+                log += '2. 耗时操作完成（异步，不阻塞）<br>';
+                console.log('2. 耗时操作完成');
+                output.innerHTML = `
+                    <p><strong>执行顺序</strong>：</p>
+                    ${log}
+                    <p class="tip">✅ 步骤3立即执行，不等待步骤2完成！</p>
+                `;
+            }, 2000);
+
+            log += '3. 结束（不等待步骤2）<br>';
+            console.log('3. 结束');
+
+            output.innerHTML = `
+                <p><strong>执行顺序</strong>：</p>
+                ${log}
+                <p class="warning">⏳ 等待2秒后步骤2才会显示...</p>
+            `;
+        }
+
+
+        // ========== 2. 事件循环示例 ==========
+        function eventLoopExample() {
+            const output = document.getElementById('eventloop-output');
+            let log = '';
+
+            console.log('=== 事件循环执行顺序 ===');
+
+            log += '1. 同步代码开始<br>';
+            console.log('1. 同步代码开始');
+
+            setTimeout(() => {
+                log += '5. setTimeout回调（宏任务）<br>';
+                console.log('5. setTimeout回调');
+                output.innerHTML = `
+                    <p><strong>执行顺序</strong>：</p>
+                    ${log}
+                    <p class="tip">💡 setTimeout是宏任务，最后执行</p>
+                `;
+            }, 0);  // 即使是0ms，也是异步
+
+            Promise.resolve().then(() => {
+                log += '4. Promise.then（微任务）<br>';
+                console.log('4. Promise.then');
+                output.innerHTML = `
+                    <p><strong>执行顺序</strong>：</p>
+                    ${log}
+                    <p class="warning">⏳ 等待宏任务...</p>
+                `;
+            });
+
+            log += '2. 同步代码中间<br>';
+            console.log('2. 同步代码中间');
+
+            log += '3. 同步代码结束<br>';
+            console.log('3. 同步代码结束');
+
+            output.innerHTML = `
+                <p><strong>执行顺序</strong>：</p>
+                ${log}
+                <p class="warning">⏳ 等待微任务和宏任务...</p>
+            `;
+        }
+
+        // ========== 3. 宏任务vs微任务示例 ==========
+        function macroMicroExample() {
+            const output = document.getElementById('macro-micro-output');
+            let log = '';
+
+            console.log('=== 宏任务vs微任务 ===');
+
+            log += '1. 同步代码<br>';
+            console.log('1. 同步');
+
+            setTimeout(() => {
+                log += '6. setTimeout-1（宏任务）<br>';
+                console.log('6. setTimeout-1');
+                updateOutput();
+            }, 0);
+
+            Promise.resolve().then(() => {
+                log += '3. Promise-1（微任务）<br>';
+                console.log('3. Promise-1');
+                updateOutput();
+            }).then(() => {
+                log += '4. Promise-2（微任务）<br>';
+                console.log('4. Promise-2');
+                updateOutput();
+            });
+
+            setTimeout(() => {
+                log += '7. setTimeout-2（宏任务）<br>';
+                console.log('7. setTimeout-2');
+                updateOutput();
+            }, 0);
+
+            Promise.resolve().then(() => {
+                log += '5. Promise-3（微任务）<br>';
+                console.log('5. Promise-3');
+                updateOutput();
+            });
+
+            log += '2. 同步代码结束<br>';
+            console.log('2. 同步结束');
+
+            function updateOutput() {
+                output.innerHTML = `
+                    <p><strong>执行顺序</strong>：</p>
+                    ${log}
+                    <p class="tip">
+                        <strong>规则</strong>：同步 → 所有微任务 → 一个宏任务 → 所有微任务 → ...
+                    </p>
+                `;
+            }
+
+            updateOutput();
+        }
+
+
+        // ========== 4. 回调函数示例 ==========
+        function callbackExample() {
+            const output = document.getElementById('callback-output');
+            let log = '';
+
+            // 模拟异步获取用户信息
+            function getUser(id, callback) {
+                setTimeout(() => {
+                    const user = { id, name: '张三', age: 25 };
+                    callback(user);
+                }, 1000);
+            }
+
+            log += '开始获取用户信息...<br>';
+            output.innerHTML = log;
+
+            getUser(1, (user) => {
+                log += `用户信息：${JSON.stringify(user)}<br>`;
+                output.innerHTML = log;
+            });
+        }
+
+        // ========== 5. 回调地狱示例 ==========
+        function callbackHellExample() {
+            const output = document.getElementById('callback-hell-output');
+            let log = '';
+
+            // 模拟三个异步操作
+            function step1(callback) {
+                setTimeout(() => {
+                    log += '步骤1完成<br>';
+                    output.innerHTML = log;
+                    callback('数据1');
+                }, 500);
+            }
+
+            function step2(data, callback) {
+                setTimeout(() => {
+                    log += `步骤2完成（使用${data}）<br>`;
+                    output.innerHTML = log;
+                    callback('数据2');
+                }, 500);
+            }
+
+            function step3(data, callback) {
+                setTimeout(() => {
+                    log += `步骤3完成（使用${data}）<br>`;
+                    output.innerHTML = log;
+                    callback('最终结果');
+                }, 500);
+            }
+
+            log += '开始执行...<br>';
+            output.innerHTML = log;
+
+            // 回调地狱：嵌套层级深
+            step1((data1) => {
+                step2(data1, (data2) => {
+                    step3(data2, (result) => {
+                        log += `<br><strong>最终结果：${result}</strong><br>`;
+                        log += '<br><div class="danger">❌ 回调地狱问题：<br>';
+                        log += '- 嵌套3层，难以阅读<br>';
+                        log += '- 横向增长，不易维护<br>';
+                        log += '- 错误处理困难<br>';
+                        log += '</div>';
+                        output.innerHTML = log;
+                    });
+                });
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+

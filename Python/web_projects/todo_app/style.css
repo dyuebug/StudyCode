@@ -1,0 +1,407 @@
+/* ============================================
+   Modern Todo App - 自定义样式
+   日期：2026-06-16（第46天）
+   ============================================ */
+
+/* --------------------------------------------
+   全局样式
+   -------------------------------------------- */
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 700px;
+}
+
+/* --------------------------------------------
+   卡片样式
+   -------------------------------------------- */
+
+.card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.card-header {
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.card-body {
+    background-color: #f8f9fa;
+}
+
+/* --------------------------------------------
+   输入区域
+   -------------------------------------------- */
+
+#taskInput {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px 0 0 10px;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    transition: border-color 0.3s ease;
+}
+
+#taskInput:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+#addTaskBtn {
+    border-radius: 0 10px 10px 0;
+    padding: 12px 30px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+#addTaskBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+#addTaskBtn:active {
+    transform: translateY(0);
+}
+
+.btn-text {
+    display: inline;
+}
+
+.btn-icon {
+    display: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* --------------------------------------------
+   筛选区域
+   -------------------------------------------- */
+
+.filter-section .btn-group {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn {
+    font-weight: 600;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.filter-btn:hover:not(.active) {
+    background-color: #f0f0f0;
+}
+
+/* --------------------------------------------
+   统计区域
+   -------------------------------------------- */
+
+.stats-section {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+/* --------------------------------------------
+   任务列表
+   -------------------------------------------- */
+
+.task-list-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* 自定义滚动条 */
+.task-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.task-list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.task-list-container::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+.task-list-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+#taskList {
+    border: none;
+}
+
+/* 任务项样式 */
+.task-item {
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 15px 20px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: fadeIn 0.5s ease;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 任务状态图标 */
+.task-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #667eea;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    color: white;
+}
+
+.task-checkbox:hover {
+    background-color: #667eea;
+    transform: scale(1.1);
+}
+
+/* 任务文本 */
+.task-text {
+    flex: 1;
+    font-size: 1.05rem;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+/* 删除按钮 */
+.task-delete {
+    background-color: #dc3545;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.task-delete:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
+}
+
+/* 已完成任务样式 */
+.task-item.completed {
+    background-color: #f8f9fa;
+    opacity: 0.7;
+}
+
+.task-item.completed .task-checkbox {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.task-item.completed .task-text {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+
+/* 空状态样式 */
+.empty-state {
+    border: 2px dashed #e0e0e0;
+    border-radius: 10px;
+    background-color: white;
+}
+
+/* --------------------------------------------
+   动画效果
+   -------------------------------------------- */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+/* --------------------------------------------
+   响应式设计
+   -------------------------------------------- */
+
+/* 平板和移动设备 */
+@media (max-width: 768px) {
+    .card-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .card-header p {
+        font-size: 0.9rem;
+    }
+
+    #taskInput {
+        font-size: 1rem;
+    }
+
+    .btn-text {
+        display: none;
+    }
+
+    .btn-icon {
+        display: inline;
+    }
+
+    #addTaskBtn {
+        padding: 12px 20px;
+    }
+
+    .filter-btn {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+    }
+
+    .task-text {
+        font-size: 0.95rem;
+    }
+
+    .task-list-container {
+        max-height: 400px;
+    }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    .card-body {
+        padding: 20px 15px;
+    }
+
+    .task-item {
+        padding: 12px 15px;
+        gap: 10px;
+    }
+
+    .task-checkbox {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+
+    .task-delete {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+    }
+}
+
+/* --------------------------------------------
+   打印样式
+   -------------------------------------------- */
+
+@media print {
+    body {
+        background: white;
+    }
+
+    .card-header,
+    .card-footer,
+    .input-group,
+    .filter-section,
+    .task-delete {
+        display: none;
+    }
+
+    .task-item {
+        page-break-inside: avoid;
+    }
+}
