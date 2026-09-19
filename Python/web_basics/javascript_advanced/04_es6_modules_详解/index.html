@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES6模块化 - 第47天</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 { color: #667eea; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
+        h2 { color: #764ba2; margin-top: 30px; }
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 ES6模块化深入理解</h1>
+
+        <div class="info-box">
+            <strong>📅 日期：</strong>2026-06-22（第47天）<br>
+            <strong>🎯 难度：</strong>⭐⭐⭐⭐ 中高级<br>
+            <strong>⏱️ 预计时长：</strong>45分钟<br>
+            <strong>🎓 核心目标：</strong>掌握import/export语法、理解模块化价值、重构Todo应用
+        </div>
+
+        <h2>📖 核心概念</h2>
+
+        <div class="info-box">
+            <h3>什么是模块化？</h3>
+            <p><strong>模块化（Module）</strong>是将大型程序拆分成独立的、可复用的模块，每个模块负责一个功能。</p>
+
+            <p><strong>为什么需要模块化？</strong></p>
+            <ul>
+                <li><strong>代码组织：</strong>按功能拆分，结构清晰</li>
+                <li><strong>作用域隔离：</strong>避免全局变量污染</li>
+                <li><strong>依赖管理：</strong>明确模块间的依赖关系</li>
+                <li><strong>代码复用：</strong>模块可以在多个项目中使用</li>
+                <li><strong>按需加载：</strong>提升性能</li>
+            </ul>
+
+            <h3>ES6模块 vs CommonJS</h3>
+            <table border="1" cellpadding="10" style="border-collapse: collapse; width: 100%; margin: 15px 0;">
+                <tr style="background: #f0f4ff;">
+                    <th>特性</th>
+                    <th>ES6模块（import/export）</th>
+                    <th>CommonJS（require/module.exports）</th>
+                </tr>
+                <tr>
+                    <td>环境</td>
+                    <td>浏览器 + Node.js</td>
+                    <td>Node.js</td>
+                </tr>
+                <tr>
+                    <td>加载</td>
+                    <td>静态（编译时）</td>
+                    <td>动态（运行时）</td>
+                </tr>
+                <tr>
+                    <td>导出</td>
+                    <td>export / export default</td>
+                    <td>module.exports / exports</td>
+                </tr>
+                <tr>
+                    <td>导入</td>
+                    <td>import</td>
+                    <td>require()</td>
+                </tr>
+                <tr>
+                    <td>this</td>
+                    <td>undefined</td>
+                    <td>module对象</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="warning-box">
+            <strong>⚠️ 重要提示：</strong>
+            <ul>
+                <li>ES6模块必须在服务器环境运行（不能直接用file://协议）</li>
+                <li>HTML中使用 <code>&lt;script type="module"&gt;</code></li>
+                <li>模块代码自动运行在严格模式</li>
+                <li>每个模块有独立的作用域</li>
+            </ul>
+        </div>
+
+        <h2>📂 项目文件结构</h2>
+
+        <pre>
+04_es6_modules_详解/
+├── index.html           # 主页面
+├── main.js              # 主入口文件
+├── modules/
+│   ├── math.js         # 数学工具模块
+│   ├── string.js       # 字符串工具模块
+│   ├── user.js         # 用户模块
+│   └── config.js       # 配置模块
+└── README.md           # 说明文档
+        </pre>
+
+        <h2>🚀 如何运行</h2>
+
+        <div class="info-box">
+            <h3>方法1：使用VS Code Live Server</h3>
+            <ol>
+                <li>安装VS Code扩展：Live Server</li>
+                <li>右键点击index.html → "Open with Live Server"</li>
+                <li>浏览器会自动打开，按F12查看控制台输出</li>
+            </ol>
+
+            <h3>方法2：使用Python启动服务器</h3>
+            <pre>
+# 在当前目录运行
+python -m http.server 8000
+
+# 浏览器访问
+http://localhost:8000/index.html
+            </pre>
+
+            <h3>方法3：使用Node.js http-server</h3>
+            <pre>
+# 安装http-server
+npm install -g http-server
+
+# 启动服务器
+http-server
+
+# 浏览器访问
+http://localhost:8080/index.html
+            </pre>
+        </div>
+
+        <h2>📝 学习内容</h2>
+
+        <div class="info-box">
+            <h3>本文件包含的模块示例：</h3>
+            <ol>
+                <li><strong>math.js</strong> - 命名导出示例</li>
+                <li><strong>string.js</strong> - 默认导出示例</li>
+                <li><strong>user.js</strong> - 混合导出示例</li>
+                <li><strong>config.js</strong> - 配置模块示例</li>
+                <li><strong>main.js</strong> - 主入口文件，导入所有模块</li>
+            </ol>
+
+            <p><strong>打开浏览器控制台（F12）查看输出结果。</strong></p>
+        </div>
+
+        <h2>💡 核心知识点</h2>
+
+        <div class="info-box">
+            <h3>1. 导出方式（Export）</h3>
+            <pre>
+// 命名导出（可以有多个）
+export const name = "value";
+export function func() {}
+export class MyClass {}
+
+// 默认导出（只能有一个）
+export default function() {}
+export default class {}
+export default "value";
+
+// 混合导出
+export const func1 = () => {};
+export default class MyClass {}
+            </pre>
+
+            <h3>2. 导入方式（Import）</h3>
+            <pre>
+// 导入命名导出
+import { name, func } from './module.js';
+
+// 导入默认导出
+import MyClass from './module.js';
+
+// 导入全部
+import * as utils from './module.js';
+
+// 重命名导入
+import { name as myName } from './module.js';
+
+// 只执行模块（不导入）
+import './module.js';
+
+// 动态导入（异步）
+const module = await import('./module.js');
+            </pre>
+        </div>
+
+        <div class="output" id="output">
+            等待模块加载...
+        </div>
+    </div>
+
+    <!-- 必须使用type="module"才能使用import -->
+    <script type="module">
+        const output = document.getElementById('output');
+
+        function log(message) {
+            output.innerHTML += message + '<br>';
+            console.log(message);
+        }
+
+        log('✅ ES6模块系统已加载！');
+        log('📂 请查看modules/目录下的各个模块文件');
+        log('📝 请查看main.js了解如何导入和使用模块');
+        log('');
+        log('🔍 打开浏览器控制台（F12）查看详细输出');
+    </script>
+</body>
+</html>

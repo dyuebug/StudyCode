@@ -1,9 +1,9 @@
 // ============================================
-// Todo API - 请求处理函数
-// 日期：2026-06-21（第25天）
+// Todo API - 请求处理函数（带自动保存）
+// 日期：2026-06-22（第27天更新）
 // ============================================
 
-use crate::models::{ApiResponse, CreateTodo, ErrorResponse, Todo};
+use crate::models::{ApiResponse, CreateTodo, ErrorResponse, Todo, UpdateTodo};
 use crate::state::AppState;
 use actix_web::{web, HttpResponse, Responder};
 
@@ -30,24 +30,18 @@ use actix_web::{web, HttpResponse, Responder};
 /// ```
 pub async fn get_all(state: web::Data<AppState>) -> impl Responder {
     // 1. 获取 Mutex 锁（阻塞，直到获取成功）
-    //    lock() 返回 LockResult<MutexGuard<Vec<Todo>>>
-    //    unwrap() 处理可能的锁中毒（PoisonError）
-    let todos = state.lock().unwrap();
+    //    注意：现在 state 是结构体，需要访问 state.todos
+    let todos = state.todos.lock().unwrap();
 
     // 2. 克隆数据（因为锁守卫不能跨 .await 点）
-    //    Vec<Todo> 实现了 Clone，可以创建副本
-    //    克隆后立即释放锁，减少锁持有时间
     let todos_clone = todos.clone();
 
     // 3. 锁守卫在这里离开作用域，自动释放锁
 
     // 4. 构造成功响应
-    //    ApiResponse::success() 创建统一格式的响应
     let response = ApiResponse::success(todos_clone);
 
     // 5. 返回 JSON 响应
-    //    HttpResponse::Ok() - HTTP 200 状态码
-    //    .json() - 自动序列化为 JSON
     HttpResponse::Ok().json(response)
 }
 
@@ -87,26 +81,32 @@ pub async fn create(
     new_todo: web::Json<CreateTodo>,
 ) -> impl Responder {
     // 1. 获取 Mutex 锁（可变访问）
-    let mut todos = state.lock().unwrap();
+    //    注意：现在使用 state.todos
+    let mut todos = state.todos.lock().unwrap();
 
     // 2. 生成新的 ID
-    //    如果列表为空，ID = 1
-    //    否则，ID = 最大 ID + 1
     let new_id = todos.iter().map(|t| t.id).max().unwrap_or(0) + 1;
 
     // 3. 创建新的 Todo 实例
-    //    new_todo.title.clone() - 克隆字符串（因为 CreateTodo 被 web::Json 包装）
     let todo = Todo::new(new_id, new_todo.title.clone());
 
     // 4. 添加到列表
     todos.push(todo.clone());
 
-    // 5. 锁守卫在这里离开作用域，自动释放锁
+    // 5. 释放锁（显式 drop，为了后续保存）
+    drop(todos);
 
-    // 6. 构造成功响应
+    // 6. 保存到文件（自动保存）⭐⭐⭐ 新增
+    if let Err(e) = state.save_to_file().await {
+        // 保存失败只记录日志，不阻断请求
+        // 数据已经在内存中，下次修改时会再次尝试保存
+        eprintln!("⚠️  保存数据失败: {}", e);
+    }
+
+    // 7. 构造成功响应
     let response = ApiResponse::success(todo);
 
-    // 7. 返回 JSON 响应（HTTP 201 Created）
+    // 8. 返回 JSON 响应（HTTP 201 Created）
     HttpResponse::Created().json(response)
 }
 
@@ -150,24 +150,19 @@ pub async fn get_by_id(
     id: web::Path<u32>,
 ) -> impl Responder {
     // 1. 获取 Mutex 锁
-    let todos = state.lock().unwrap();
+    //    注意：现在使用 state.todos
+    let todos = state.todos.lock().unwrap();
 
     // 2. 提取路径参数
-    //    web::Path<u32> 自动从 URL 中提取 id
-    //    /todos/1 -> id = 1
     let todo_id = id.into_inner();
 
     // 3. 在列表中查找任务
-    //    iter() - 创建迭代器
-    //    find() - 查找满足条件的第一个元素
-    //    |t| t.id == todo_id - 闭包，检查 id 是否匹配
     let todo = todos.iter().find(|t| t.id == todo_id);
 
     // 4. 根据查找结果返回响应
     match todo {
         Some(found_todo) => {
             // 找到了任务
-            // clone() - 克隆任务（因为 found_todo 是引用）
             let response = ApiResponse::success(found_todo.clone());
             HttpResponse::Ok().json(response)
         }
@@ -208,17 +203,16 @@ pub async fn get_by_id(
 pub async fn update(
     state: web::Data<AppState>,
     id: web::Path<u32>,
-    update_data: web::Json<crate::models::UpdateTodo>,
+    update_data: web::Json<UpdateTodo>,
 ) -> impl Responder {
     // 1. 获取 Mutex 锁（需要可变访问）
-    let mut todos = state.lock().unwrap();
+    //    注意：现在使用 state.todos
+    let mut todos = state.todos.lock().unwrap();
 
     // 2. 提取路径参数
     let todo_id = id.into_inner();
 
     // 3. 在列表中查找任务（可变引用）
-    //    iter_mut() - 创建可变迭代器
-    //    find() - 查找并返回可变引用
     let todo = todos.iter_mut().find(|t| t.id == todo_id);
 
     // 4. 根据查找结果进行更新
@@ -227,8 +221,6 @@ pub async fn update(
             // 找到了任务，进行更新
 
             // 5. 更新 title（如果提供了）
-            //    if let Some(new_title) = ... - 如果 Option 是 Some
-            //    clone() - 克隆新的标题字符串
             if let Some(new_title) = &update_data.title {
                 found_todo.title = new_title.clone();
             }
@@ -241,9 +233,15 @@ pub async fn update(
             // 7. 克隆更新后的任务（用于响应）
             let updated_todo = found_todo.clone();
 
-            // 8. 锁守卫在这里离开作用域，自动释放锁
+            // 8. 释放锁（显式 drop，为了后续保存）
+            drop(todos);
 
-            // 9. 返回更新后的任务
+            // 9. 保存到文件（自动保存）⭐⭐⭐ 新增
+            if let Err(e) = state.save_to_file().await {
+                eprintln!("⚠️  保存数据失败: {}", e);
+            }
+
+            // 10. 返回更新后的任务
             let response = ApiResponse::success(updated_todo);
             HttpResponse::Ok().json(response)
         }
@@ -284,15 +282,13 @@ pub async fn delete(
     id: web::Path<u32>,
 ) -> impl Responder {
     // 1. 获取 Mutex 锁（需要可变访问）
-    let mut todos = state.lock().unwrap();
+    //    注意：现在使用 state.todos
+    let mut todos = state.todos.lock().unwrap();
 
     // 2. 提取路径参数
     let todo_id = id.into_inner();
 
     // 3. 在列表中查找任务的位置
-    //    iter() - 创建迭代器
-    //    position() - 返回第一个满足条件的元素的索引
-    //    返回 Option<usize>
     let position = todos.iter().position(|t| t.id == todo_id);
 
     // 4. 根据查找结果进行删除
@@ -301,13 +297,17 @@ pub async fn delete(
             // 找到了任务
 
             // 5. 从列表中移除任务
-            //    remove(index) - 移除指定位置的元素
-            //    返回被移除的元素（获取所有权）
             let removed_todo = todos.remove(index);
 
-            // 6. 锁守卫在这里离开作用域，自动释放锁
+            // 6. 释放锁（显式 drop，为了后续保存）
+            drop(todos);
 
-            // 7. 返回被删除的任务
+            // 7. 保存到文件（自动保存）⭐⭐⭐ 新增
+            if let Err(e) = state.save_to_file().await {
+                eprintln!("⚠️  保存数据失败: {}", e);
+            }
+
+            // 8. 返回被删除的任务
             let response = ApiResponse::success(removed_todo);
             HttpResponse::Ok().json(response)
         }

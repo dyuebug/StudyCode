@@ -7,6 +7,8 @@
 mod models;
 mod handlers;
 mod state;
+mod persistence;  // 新增：持久化模块
+
 
 // 导入依赖
 use actix_web::{web, App, HttpServer};

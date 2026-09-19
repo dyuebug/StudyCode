@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>闭包深入理解 - 第47天</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+        }
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .example {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 闭包深入理解（Closure）</h1>
+
+        <div class="info-box">
+            <strong>📅 日期：</strong>2026-06-22（第47天）<br>
+            <strong>🎯 难度：</strong>⭐⭐⭐⭐ 中高级<br>
+            <strong>⏱️ 预计时长：</strong>45分钟<br>
+            <strong>🎓 核心目标：</strong>理解闭包原理、掌握应用场景、避免常见陷阱
+        </div>
+
+        <h2>📖 核心概念</h2>
+
+        <div class="info-box">
+            <h3>什么是闭包？</h3>
+            <p><strong>闭包（Closure）</strong>是指一个函数可以访问其外部函数作用域中的变量，即使外部函数已经执行完毕。</p>
+
+            <p><strong>简单理解：</strong></p>
+            <ul>
+                <li>函数 + 函数能够访问的自由变量 = 闭包</li>
+                <li>内部函数引用了外部函数的变量</li>
+                <li>外部函数返回了内部函数</li>
+            </ul>
+
+            <p><strong>为什么需要闭包？</strong></p>
+            <ul>
+                <li>数据私有化：创建私有变量</li>
+                <li>状态保持：在回调中保存状态</li>
+                <li>函数工厂：生成定制函数</li>
+                <li>模块化：封装代码</li>
+            </ul>
+        </div>
+
+        <!-- 第一部分内容继续 -->
+    </div>
+
+    <script>
+        // ============================================
+        // 第一部分：闭包基础概念 ⭐⭐⭐⭐⭐
+        // ============================================
+
+        console.log("=".repeat(60));
+        console.log("第一部分：闭包基础概念");
+        console.log("=".repeat(60));
+
+        // --------------------------------------------
+        // 1.1 最简单的闭包示例
+        // --------------------------------------------
+
+        console.log("\n1.1 最简单的闭包示例");
+        console.log("-".repeat(60));
+
+        // 外部函数
+        function outerFunction() {
+            // 外部函数的变量
+            const outerVariable = "我是外部变量";
+
+            // 内部函数（闭包）
+            function innerFunction() {
+                // 内部函数访问外部函数的变量
+                console.log(outerVariable);
+            }
+
+            // 返回内部函数
+            return innerFunction;
+        }
+
+        // 调用外部函数，获取内部函数
+        const closure = outerFunction();
+
+        // 外部函数已经执行完毕，但内部函数仍然可以访问外部变量
+        closure(); // 输出：我是外部变量
+
+        console.log("✅ 关键点：即使outerFunction已执行完毕，innerFunction仍能访问outerVariable");
+
+        // --------------------------------------------
+        // 1.2 闭包的工作原理：作用域链
+        // --------------------------------------------
+
+        console.log("\n1.2 闭包的工作原理：作用域链");
+        console.log("-".repeat(60));
+
+        /*
+        【作用域链】
+
+        当内部函数被创建时，它会保存一个指向外部函数作用域的引用。
+        这个引用就是作用域链（Scope Chain）。
+
+        查找变量的过程：
+        1. 先在当前函数作用域查找
+        2. 如果找不到，去外部函数作用域查找
+        3. 再找不到，继续向上查找
+        4. 直到全局作用域
+
+        示例：
+        */
+
+        function level1() {
+            const var1 = "level1变量";
+
+            function level2() {
+                const var2 = "level2变量";
+
+                function level3() {
+                    const var3 = "level3变量";
+
+                    // level3可以访问：var3（自己）、var2（level2）、var1（level1）、全局变量
+                    console.log(var3); // level3变量
+                    console.log(var2); // level2变量
+                    console.log(var1); // level1变量
+                }
+
+                return level3;
+            }
+
+            return level2;
+        }
+
+        const getLevel3 = level1()();
+        getLevel3();
+
+        console.log("✅ 关键点：作用域链让内部函数可以访问所有外层函数的变量");
+
+        // --------------------------------------------
+        // 1.3 闭包经典示例：计数器
+        // --------------------------------------------
+
+        console.log("\n1.3 闭包经典示例：计数器");
+        console.log("-".repeat(60));
+
+        // 创建计数器函数
+        function createCounter() {
+            // 私有变量（外部无法直接访问）
+            let count = 0;
+
+            // 返回一个对象，包含操作count的方法
+            return {
+                increment: function() {
+                    count++;
+                    return count;
+                },
+                decrement: function() {
+                    count--;
+                    return count;
+                },
+                getCount: function() {
+                    return count;
+                }
+            };
+        }
+
+        // 创建计数器实例
+        const counter1 = createCounter();
+        console.log("初始值:", counter1.getCount()); // 0
+        console.log("增加后:", counter1.increment()); // 1
+        console.log("再增加:", counter1.increment()); // 2
+        console.log("减少后:", counter1.decrement()); // 1
+
+        // 创建另一个计数器（独立的）
+        const counter2 = createCounter();
+        console.log("counter2初始值:", counter2.getCount()); // 0
+        console.log("counter1当前值:", counter1.getCount()); // 1
+
+        console.log("✅ 关键点：每个闭包都有自己独立的变量副本");
+        console.log("✅ 关键点：count变量是私有的，外部无法直接访问");
+
+        // ============================================
+        // 第二部分：闭包的应用场景 ⭐⭐⭐⭐⭐
+        // ============================================
+
+        console.log("\n" + "=".repeat(60));
+        console.log("第二部分：闭包的应用场景");
+        console.log("=".repeat(60));
+
+        // --------------------------------------------
+        // 2.1 应用场景1：数据私有化
+        // --------------------------------------------
+
+        console.log("\n2.1 应用场景1：数据私有化");
+        console.log("-".repeat(60));
+
+        // 创建银行账户（使用闭包保护余额）
+        function createBankAccount(initialBalance) {
+            // 私有变量：余额（外部无法直接访问和修改）
+            let balance = initialBalance;
+
+            return {
+                // 存款
+                deposit: function(amount) {
+                    if (amount > 0) {
+                        balance += amount;
+                        return `存款成功！当前余额：${balance}元`;
+                    }
+                    return "存款金额必须大于0";
+                },
+                // 取款
+                withdraw: function(amount) {
+                    if (amount > 0 && amount <= balance) {
+                        balance -= amount;
+                        return `取款成功！当前余额：${balance}元`;
+                    }
+                    return "余额不足或金额无效";
+                },
+                // 查询余额
+                getBalance: function() {
+                    return balance;
+                }
+            };
+        }
+
+        const myAccount = createBankAccount(1000);
+        console.log(myAccount.deposit(500));    // 存款成功！当前余额：1500元
+        console.log(myAccount.withdraw(300));   // 取款成功！当前余额：1200元
+        console.log("当前余额:", myAccount.getBalance()); // 1200
+
+        // 无法直接访问balance
+        console.log("直接访问balance:", myAccount.balance); // undefined
+        console.log("✅ 优势：balance被保护，只能通过提供的方法操作");
+
+        // --------------------------------------------
+        // 2.2 应用场景2：函数工厂
+        // --------------------------------------------
+
+        console.log("\n2.2 应用场景2：函数工厂");
+        console.log("-".repeat(60));
+
+        // 创建乘法函数工厂
+        function createMultiplier(multiplier) {
+            // 返回一个函数，该函数会将参数乘以multiplier
+            return function(number) {
+                return number * multiplier;
+            };
+        }
+
+        // 创建不同倍数的函数
+        const double = createMultiplier(2);    // 乘以2
+        const triple = createMultiplier(3);    // 乘以3
+        const quadruple = createMultiplier(4); // 乘以4
+
+        console.log("5的2倍:", double(5));      // 10
+        console.log("5的3倍:", triple(5));      // 15
+        console.log("5的4倍:", quadruple(5));   // 20
+
+        console.log("✅ 优势：根据不同参数生成定制函数");
+
+        // --------------------------------------------
+        // 2.3 应用场景3：回调函数中保存状态
+        // --------------------------------------------
+
+        console.log("\n2.3 应用场景3：回调函数中保存状态");
+        console.log("-".repeat(60));
+
+        // 模拟异步操作（延迟执行）
+        function processUsers(users) {
+            users.forEach(function(user, index) {
+                // 闭包：setTimeout的回调函数可以访问user和index
+                setTimeout(function() {
+                    console.log(`处理第${index + 1}个用户: ${user}`);
+                }, (index + 1) * 1000); // 每隔1秒处理一个
+            });
+        }
+
+        console.log("开始处理用户...");
+        processUsers(['张三', '李四', '王五']);
+        console.log("✅ 优势：每个回调函数都保存了自己的user和index");
+
+        // --------------------------------------------
+        // 2.4 应用场景4：模块化模式
+        // --------------------------------------------
+
+        console.log("\n2.4 应用场景4：模块化模式");
+        console.log("-".repeat(60));
+
+        // 创建一个模块（立即执行函数 + 闭包）
+        const TodoModule = (function() {
+            // 私有变量和函数
+            let todos = [];
+            let nextId = 1;
+
+            function generateId() {
+                return nextId++;
+            }
+
+            // 公开的API
+            return {
+                add: function(text) {
+                    const todo = {
+                        id: generateId(),
+                        text: text,
+                        completed: false
+                    };
+                    todos.push(todo);
+                    return todo;
+                },
+                remove: function(id) {
+                    todos = todos.filter(todo => todo.id !== id);
+                },
+                getAll: function() {
+                    return todos;
+                }
+            };
+        })();
+
+        TodoModule.add("学习闭包");
+        TodoModule.add("学习原型链");
+        console.log("所有任务:", TodoModule.getAll());
+        console.log("✅ 优势：封装私有数据，只暴露公共API");
+
+        // ============================================
+        // 第三部分：闭包的陷阱 ⭐⭐⭐⭐⭐
+        // ============================================
+
+        console.log("\n" + "=".repeat(60));
+        console.log("第三部分：闭包的陷阱");
+        console.log("=".repeat(60));
+
+        // --------------------------------------------
+        // 3.1 陷阱1：循环中的闭包问题
+        // --------------------------------------------
+
+        console.log("\n3.1 陷阱1：循环中的闭包问题");
+        console.log("-".repeat(60));
+
+        console.log("❌ 错误示例：");
+        // 错误：所有函数共享同一个i
+        var functions = [];
+        for (var i = 0; i < 3; i++) {
+            functions.push(function() {
+                console.log("错误示例 - i的值:", i);
+            });
+        }
+
+        // 执行时i已经是3了
+        functions[0](); // 3（预期是0）
+        functions[1](); // 3（预期是1）
+        functions[2](); // 3（预期是2）
+
+        console.log("\n✅ 解决方法1：使用IIFE创建独立作用域");
+        functions = [];
+        for (var i = 0; i < 3; i++) {
+            // 立即执行函数创建新的作用域，保存当前的i值
+            (function(index) {
+                functions.push(function() {
+                    console.log("IIFE方案 - index的值:", index);
+                });
+            })(i);
+        }
+
+        functions[0](); // 0
+        functions[1](); // 1
+        functions[2](); // 2
+
+        console.log("\n✅ 解决方法2：使用let（推荐）");
+        functions = [];
+        for (let i = 0; i < 3; i++) {
+            // let是块级作用域，每次循环都创建新的i
+            functions.push(function() {
+                console.log("let方案 - i的值:", i);
+            });
+        }
+
+        functions[0](); // 0
+        functions[1](); // 1
+        functions[2](); // 2
+
+        console.log("✅ 关键点：var是函数作用域，let是块级作用域");
+
+        // --------------------------------------------
+        // 3.2 陷阱2：内存泄漏风险
+        // --------------------------------------------
+
+        console.log("\n3.2 陷阱2：内存泄漏风险");
+        console.log("-".repeat(60));
+
+        console.log("❌ 问题：闭包会保持对外部变量的引用，导致内存无法释放");
+
+        function createHeavyClosure() {
+            // 大数组（占用大量内存）
+            const heavyData = new Array(1000000).fill("数据");
+
+            return function() {
+                // 即使只用了一个值，整个heavyData都会被保留
+                console.log("数据长度:", heavyData.length);
+            };
+        }
+
+        const closure1 = createHeavyClosure();
+        // heavyData无法被垃圾回收，因为closure1还在引用它
+
+        console.log("\n✅ 解决方法：及时释放不需要的数据");
+
+        function createOptimizedClosure() {
+            const heavyData = new Array(1000000).fill("数据");
+            const length = heavyData.length; // 只保存需要的值
+
+            // 不返回heavyData的引用
+            return function() {
+                console.log("数据长度:", length);
+            };
+        }
+
+        const closure2 = createOptimizedClosure();
+        // heavyData可以被垃圾回收
+
+        console.log("✅ 关键点：只保存必要的数据，避免大对象被闭包引用");
+
+        // --------------------------------------------
+        // 3.3 陷阱3：this指向问题
+        // --------------------------------------------
+
+        console.log("\n3.3 陷阱3：this指向问题");
+        console.log("-".repeat(60));
+
+        const obj = {
+            name: "张三",
+            sayHello: function() {
+                console.log("外部this.name:", this.name); // 张三
+
+                // ❌ 问题：setTimeout中的this丢失
+                setTimeout(function() {
+                    console.log("❌ setTimeout中this.name:", this.name); // undefined
+                }, 100);
+
+                // ✅ 解决方法1：保存this
+                const self = this;
+                setTimeout(function() {
+                    console.log("✅ 保存this方案:", self.name); // 张三
+                }, 200);
+
+                // ✅ 解决方法2：使用箭头函数（推荐）
+                setTimeout(() => {
+                    console.log("✅ 箭头函数方案:", this.name); // 张三
+                }, 300);
+            }
+        };
+
+        obj.sayHello();
+        console.log("✅ 关键点：箭头函数的this继承自外层函数");
+
+        // ============================================
+        // 第四部分：实战练习 ⭐⭐⭐⭐⭐
+        // ============================================
+
+        console.log("\n" + "=".repeat(60));
+        console.log("第四部分：实战练习");
+        console.log("=".repeat(60));
+
+        // --------------------------------------------
+        // 4.1 练习1：实现缓存函数
+        // --------------------------------------------
+
+        console.log("\n4.1 练习1：实现缓存函数（已实现）");
+        console.log("-".repeat(60));
+
+        // 使用闭包实现函数结果缓存
+        function memoize(fn) {
+            // 缓存对象
+            const cache = ;
+
+            return function(...args) {
+                // 将参数转为字符串作为key
+                const key = JSON.stringify(args);
+
+                // 如果缓存中有，直接返回
+                if (key in cache) {
+                    console.log("从缓存读取:", key);
+                    return cache[key];
+                }
+
+                // 否则计算结果并缓存
+                console.log("计算并缓存:", key);
+                const result = fn(...args);
+                cache[key] = result;
+                return result;
+            };
+        }
+
+        // 测试：斐波那契数列（耗时操作）
+        const fibonacci = memoize(function(n) {
+            if (n <= 1) return n;
+            return fibonacci(n - 1) + fibonacci(n - 2);
+        });
+
+        console.log("fibonacci(10):", fibonacci(10)); // 计算
+        console.log("fibonacci(10):", fibonacci(10)); // 从缓存读取
+
+        // --------------------------------------------
+        // 4.2 练习2：实现防抖函数（Debounce）
+        // --------------------------------------------
+
+        console.log("\n4.2 练习2：实现防抖函数（已实现）");
+        console.log("-".repeat(60));
+
+        // 防抖：事件触发后n秒才执行，如果n秒内再次触发，重新计时
+        function debounce(fn, delay) {
+            let timer = null;
+
+            return function(...args) {
+                // 清除之前的定时器
+                clearTimeout(timer);
+
+                // 设置新的定时器
+                timer = setTimeout(() => {
+                    fn.apply(this, args);
+                }, delay);
+            };
+        }
+
+        // 测试防抖
+        const debouncedLog = debounce(function(msg) {
+            console.log("防抖执行:", msg, new Date().toLocaleTimeString());
+        }, 1000);
+
+        console.log("触发3次防抖（间隔500ms），只会执行最后一次");
+        debouncedLog("第1次");
+        setTimeout(() => debouncedLog("第2次"), 500);
+        setTimeout(() => debouncedLog("第3次"), 1000);
+
+        // --------------------------------------------
+        // 4.3 练习3：实现节流函数（Throttle）
+        // --------------------------------------------
+
+        console.log("\n4.3 练习3：实现节流函数（已实现）");
+        console.log("-".repeat(60));
+
+        // 节流：n秒内只执行一次
+        function throttle(fn, delay) {
+            let lastTime = 0;
+
+            return function(...args) {
+                const now = Date.now();
+
+                // 如果距离上次执行超过delay，才执行
+                if (now - lastTime >= delay) {
+                    fn.apply(this, args);
+                    lastTime = now;
+                }
+            };
+        }
+
+        // 测试节流
+        const throttledLog = throttle(function(msg) {
+            console.log("节流执行:", msg, new Date().toLocaleTimeString());
+        }, 1000);
+
+        console.log("触发3次节流（间隔500ms），只会执行第1次和第3次");
+        throttledLog("第1次"); // 执行
+        setTimeout(() => throttledLog("第2次"), 500);  // 不执行（距第1次<1000ms）
+        setTimeout(() => throttledLog("第3次"), 1500); // 执行（距第1次>1000ms）
+
+        console.log("\n" + "=".repeat(60));
+        console.log("✅ 闭包学习完成！");
+        console.log("=".repeat(60));
+    </script>
+
