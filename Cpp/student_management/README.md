@@ -2,7 +2,7 @@
 
 ## 项目状态
 
-> 项目完成，工程化中。已有多文件实现和测试源码，但统一构建、测试隔离和完整行为验证仍需补充。
+> 项目完成，工程化中。已有多文件实现、CMake/CTest 构建和 10 个测试；主程序仍有历史源码兼容性问题需要单独修复。
 
 ## 平台与构建
 
@@ -10,8 +10,8 @@
 |---|---|
 | 平台 | Windows MinGW、Linux/macOS 理论支持，需分别验证 |
 | 标准 | C++17 |
-| 构建 | 当前提供单命令构建；CMake/CTest 待补充 |
-| 测试 | `test_student_manager.cpp`；历史记录为 10 个测试，需重新执行确认 |
+| 构建 | CMake；MSVC 2022 Debug 已验证，MinGW/Linux 待验证 |
+| 测试 | `student_management_unit_tests`；10 个测试，MSVC/CTest 已通过 |
 | 数据 | 运行时会生成数据和备份文件，建议使用独立工作目录 |
 
 ## 功能
@@ -40,16 +40,26 @@ student_management/
 
 ## 构建
 
+推荐使用 CMake：
+
+```bash
+cmake -S . -B build
+cmake --build build --config Debug
+ctest --test-dir build -C Debug --output-on-failure
+```
+
+也可以使用单文件命令：
+
 ```bash
 g++ -std=c++17 -Wall -Wextra -o student_system Student.cpp StudentManager.cpp Course.cpp main.cpp
 g++ -std=c++17 -Wall -Wextra -o test_student_manager Student.cpp StudentManager.cpp Course.cpp test_student_manager.cpp
 ```
 
-运行测试前请在临时目录中执行，避免生成的数据文件污染源码目录。
+测试会接收由 CTest 传入的数据文件路径，避免依赖源码目录。运行手工编译的测试时，也建议传入独立临时路径。
 
 ## 后续工作
 
-- 增加 CMake 和 CTest。
-- 将测试文件写入临时目录。
+- 修复主程序在 MSVC 下的历史源码兼容性问题。
+- 在 Linux/MinGW 上重新验证 CMake 构建。
 - 补充自动备份、启动加载、CSV 异常输入测试。
 - 移除头文件中的全局 `using namespace std`。

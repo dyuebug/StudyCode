@@ -12,9 +12,16 @@
 
 ```
 留言板项目/
-├── app.py        # 后端 Flask 服务（提供 API）
-├── index.html    # 前端页面（用 fetch 调用）
-└── README.md     # 本说明文档
+├── app.py                    # v1.0 内存存储版
+├── app_v2_持久化版.py         # v2.0 JSON 持久化版
+├── app_v3_完整版.py           # v3.0 RESTful API 版
+├── app_v4_sqlite.py          # v4.0 SQLite 持久化版
+├── test_app_v4_sqlite.py     # v4.0 API 自动化测试
+├── index.html                # 前端页面
+├── messages.json             # v2/v3 数据文件
+├── README_v2_持久化升级.md    # v2.0 说明
+├── README_v4_sqlite.md       # v4.0 说明
+└── README.md                 # 本说明文档
 ```
 
 ## 🔌 API 接口
@@ -95,8 +102,8 @@ python app.py
 ## 🎯 可以扩展的功能
 
 学有余力可以尝试：
-- [ ] 添加删除留言功能（DELETE 接口）
-- [ ] 留言数据保存到文件（JSON）或数据库（SQLite）
+- [x] 添加删除留言功能（v3.0）
+- [x] 留言数据保存到文件（v2/v3）或数据库（v4.0 SQLite）
 - [ ] 添加点赞功能
 - [ ] 留言分页显示
 - [ ] 输入内容长度限制和敏感词过滤
@@ -109,10 +116,12 @@ A：确认后端 `app.py` 有 `CORS(app)`，并已安装 flask-cors。
 **Q：提示"加载失败"？**
 A：确认后端已启动（运行 `python app.py`），端口是 5000。
 
-**Q：留言重启后消失了？**
-A：正常，数据存在内存列表中。扩展功能可以保存到文件。
+**Q：运行哪个版本才能持久化？**
+A：`app.py` 是内存版；`app_v2_持久化版.py` 和 `app_v3_完整版.py` 使用 JSON；当前推荐 `app_v4_sqlite.py`，使用 SQLite 持久化。
 
 ---
 
-**项目完成日期**：2026-06-14（第33天）
-**技术栈**：Flask + flask-cors + HTML/CSS/JavaScript + fetch
+**项目起始日期**：2026-06-14（第33天）
+**当前版本**：v4.0 SQLite 持久化版
+**技术栈**：Flask + flask-cors + HTML/CSS/JavaScript + fetch + SQLite
+**当前状态**：v1～v4 已完成；v4.0 API 测试已建立

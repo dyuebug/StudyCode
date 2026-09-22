@@ -59,7 +59,7 @@ int main() {
 传参            退化为指针          直接传对象
 获取大小        需要额外变量        .size() 一键获取
 添加元素        不可能              .push_back()
-)"" << endl;
+)" << endl;
 
     // --------------------------------------------
     // 1.2 创建 vector 的几种方式
@@ -210,7 +210,7 @@ void pop_back();
 vector<int> v = {10, 20, 30};
 v.pop_back();  // v = {10, 20}
 v.pop_back();  // v = {10}
-)"" << endl;
+)" << endl;
 
     return 0;
 }
@@ -694,7 +694,7 @@ for (const T& elem : v) {
 for (T& elem : v) {
     elem *= 2;  // 修改原值
 }
-)"" << endl;
+)" << endl;
 
     return 0;
 }

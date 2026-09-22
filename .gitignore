@@ -9,3 +9,10 @@ MAA/MaaAssistantArknights/
 *.o
 *.obj
 *.out
+*.exe
+*.pdb
+*.ilk
+*.log
+*.db
+Cpp/**/build/
+Cpp/**/build-*/

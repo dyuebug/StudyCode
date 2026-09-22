@@ -7,6 +7,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <string>
 using namespace std;
 
 // 测试计数器
@@ -154,6 +155,8 @@ TEST(InvalidGrade) {
 }
 
 // 测试8：保存和加载数据
+string persistenceTestFile = "test_data.txt";
+
 TEST(SaveAndLoad) {
     StudentManager manager;
     Student s1("2021001", "张三", 20, "计算机");
@@ -168,13 +171,13 @@ TEST(SaveAndLoad) {
     manager.addGrade("2021001", c2);
 
     // 保存
-    ASSERT_TRUE(manager.saveToFile("test_data.txt"));
+    ASSERT_TRUE(manager.saveToFile(persistenceTestFile));
 
     // 清空并重新加载
     manager.clear();
     ASSERT_EQUAL(manager.getStudentCount(), 0);
 
-    ASSERT_TRUE(manager.loadFromFile("test_data.txt"));
+    ASSERT_TRUE(manager.loadFromFile(persistenceTestFile));
     ASSERT_EQUAL(manager.getStudentCount(), 2);
 
     // 验证数据完整性
@@ -221,7 +224,11 @@ TEST(EmptyData) {
 // 主函数
 // ============================================
 
-int main() {
+int main(int argumentCount, char* argumentValues[]) {
+    if (argumentCount > 1) {
+        persistenceTestFile = argumentValues[1];
+    }
+
     cout << "=== 学生管理系统单元测试 ===" << endl;
     cout << endl;
 
@@ -247,6 +254,7 @@ int main() {
     cout << string(50, '=') << endl;
 
     // 清理测试文件
+    remove(persistenceTestFile.c_str());
     remove("test_data.txt");
 
     return (testsFailed == 0) ? 0 : 1;
