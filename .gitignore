@@ -18,9 +18,13 @@ Cpp/**/build/
 Cpp/**/build-*/
 
 # Embedded course materials (vendor SDK / RTOS sources, too large to track)
-Linux/Linux_WEIDS/DShanMCU-F103/5_程序源码/
+# 保留自撰内容：02_嵌入式Linux驱动入门直播/StudyPlan/、Docs/、CLAUDE.md、daily_*/
+Linux/Linux_WEIDS/DShanMCU-F103/
 Linux/Linux_WEIDS/rtos_doc_source/
 Linux/Linux_WEIDS/EmbedStudy/
+Linux/Linux_WEIDS/01_全系列新Linux系列教程之快速入门视频/
+Linux/Linux_WEIDS/02_嵌入式Linux驱动入门直播/重要的参考资料/
+Linux/Linux_WEIDS/02_嵌入式Linux驱动入门直播/[0-9][0-9]_*/
 
 # Keil MDK / IAR build artifacts
 **/Objects/
@@ -33,3 +37,6 @@ Linux/Linux_WEIDS/EmbedStudy/
 **/*.lst
 **/*.crf
 **/*.dep
+
+# 办公软件临时锁文件
+~$*
