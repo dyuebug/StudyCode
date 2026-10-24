@@ -40,3 +40,11 @@ Linux/Linux_WEIDS/02_嵌入式Linux驱动入门直播/[0-9][0-9]_*/
 
 # 办公软件临时锁文件
 ~$*
+
+# 内核模块构建产物
+*.ko
+*.mod
+*.mod.c
+*.symvers
+*.order
+.tmp_versions/
