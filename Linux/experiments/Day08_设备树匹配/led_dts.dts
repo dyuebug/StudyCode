@@ -1,0 +1,17 @@
+/*
+ * Day8 设备树片段：最简节点定义。
+ *
+ * 用法二选一：
+ *   1. 合入目标板主 dts 的根节点下
+ *   2. 作为 overlay 片段使用（需要内核支持）
+ */
+
+/dts-v1/;
+
+/ {
+	myled: myled_for_test {
+		compatible = "100ask,led";
+		pin = <3>;
+		status = "okay";
+	};
+};

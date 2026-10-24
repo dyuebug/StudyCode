@@ -1,0 +1,26 @@
+/*
+ * Day9 设备树片段：pinctrl 组 + GPIO 消费者节点
+ *
+ * 注意：
+ *   - MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03 来自目标内核的引脚宏
+ *   - 0x10B0 是电气配置（上拉/驱动强度等），以板卡手册为准
+ *   - led-gpios 的第一个单元格是 gpio 控制器，第二个是引脚号
+ */
+
+&iomuxc {
+	pinctrl_led: ledgrp {
+		fsl,pins = <
+			MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03 0x10B0
+		>;
+	};
+};
+
+/ {
+	myled_gpio {
+		compatible = "100ask,led-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_led>;
+		led-gpios = <&gpio5 3 GPIO_ACTIVE_LOW>;
+		status = "okay";
+	};
+};
