@@ -96,6 +96,10 @@
 阶段8  调试、性能分析、测试和工程化
   ↓
 阶段9  嵌入式Linux、驱动或高性能服务器深入方向
+
+嵌入式 Linux 分支（按依赖顺序）：
+Linux 应用与系统编程 → STM32F103 外设现实感 → FreeRTOS 并发 → Linux 字符设备
+→ platform/Device Tree → I2C/SPI/Input → BSP/镜像/启动链 → STM32MP157 A7/M4
 ```
 
 ### 阶段0：Linux 环境与工具
@@ -234,7 +238,55 @@
 
 ### 阶段7：嵌入式 Linux 或目标方向深化
 
-可选方向：
+根据目标岗位选择主线，不要求所有方向同时深入。对于当前从航空飞管 C 软件转向嵌入式的学习目标，优先采用下面的嵌入式主线：
+
+```text
+Linux 用户态与系统编程
+-> STM32F103 外设与硬件调试
+-> FreeRTOS 任务、同步、资源和诊断
+-> Linux 字符设备与 APP/驱动闭环
+-> platform / Device Tree / GPIO
+-> I2C / SPI / Input / Framebuffer 专题
+-> QEMU/开发板、交叉编译、镜像与启动链
+-> STM32MP157 A7/M4、RemoteProc、OpenAMP/RPMsg
+```
+
+对应资料库位于 `Linux/Linux_WEIDS/`，Obsidian 导航入口为：
+
+- `Linux/Linux_WEIDS/Docs/00_Obsidian学习导航入口.md`
+- `Linux/Linux_WEIDS/Docs/Obsidian学习导航/00_学习主页.md`
+- `Linux/Linux_WEIDS/Docs/Obsidian学习导航/10_资料库总索引.md`
+- `Linux/Linux_WEIDS/Docs/Obsidian学习导航/15_源码与构建入口索引.md`
+- `Linux/Linux_WEIDS/Docs/Obsidian学习导航/14_航空背景项目映射.md`
+
+#### 嵌入式阶段任务与验收
+
+| 子阶段 | 主资料 | 最小验证产出 | 进入下一步的条件 |
+| --- | --- | --- | --- |
+| MCU 外设 | `Linux_WEIDS/DShanMCU-F103/` | GPIO、按键/中断、UART 收发、I2C 或 SPI 实验；保存构建与硬件观测记录 | 能解释引脚、时钟、数据流和错误现象 |
+| FreeRTOS | F103 FreeRTOS 视频配套资料、`Linux_WEIDS/EmbedStudy/`、RTOS 示例 | 多任务采集/处理/通信；使用队列、同步原语和 FromISR API；记录栈与 CPU 监控 | 能画任务时序图，说明共享资源和 ISR 边界 |
+| Linux 驱动入门 | `Linux_WEIDS/02_嵌入式Linux驱动入门直播/StudyPlan/` | 外部模块构建、加载、用户态读写、卸载的完整证据 | 能从 APP 调用追踪至 `file_operations` 并说明内核版本 |
+| platform / DTS | 同目录下 platform、设备树、Pinctrl/GPIO 章节 | 追踪 `compatible → of_match_table → probe/remove → 资源释放` | 能说明硬件描述和驱动代码如何分离 |
+| 子系统驱动 | I2C、SPI、Input、Framebuffer 章节 | 选择一项专题完成阅读、测试或受控改造 | 能说明何时接入内核子系统，而非套用私有字符设备 |
+| BSP / 异构系统 | 快速入门视频中的镜像、裸机、STM32MP157 M4 专题 | 记录工具链/内核/镜像版本；解释 A7/M4 的启动和消息链路 | 前置驱动闭环完成，且能区分已实测与仅源码分析 |
+
+#### 关键源码阅读顺序
+
+1. Linux 应用：`fileio → pthread 条件变量 → select/poll → UART termios`，先理解文件描述符、阻塞和共享数据。
+2. MCU/RTOS：先运行最小任务与外设示例，再局部阅读调度、队列、中断和资源管理实现。
+3. Linux 驱动：`hello 字符设备 → platform/Device Tree → 综合按键驱动 → I2C/SPI → Input/Framebuffer`。
+4. RTOS 网络扩展：在任务、队列和网络基础完成后，再读 FreeRTOS+TCP 的 IP task 与事件队列。
+5. RT-Thread epoll：作为 POSIX 兼容层实现案例，理解 poll waitqueue 与 ready list；不要将它等同于 Linux 内核 epoll 实现。
+
+#### 代码资料使用边界
+
+- `Linux_WEIDS` 是多平台、多来源的教学资料集合，不是单一、可在根目录直接构建的完整 BSP。
+- 先以 i.MX6ULL/QEMU 或课程指定环境复现最小驱动链路；明确记录目标内核树、`ARCH`、`CROSS_COMPILE` 和工具链版本。
+- 课程示例可能对应 Linux 4.4/4.9 等旧接口。先在其目标环境学习机制，再对照新内核 API；不得将教学样例默认为生产级驱动。
+- 对 FreeRTOS-LTS/AWS、测试框架、第三方依赖和归档平台按问题选读，不作为新手的全量阅读任务。详见 `Linux/Linux_WEIDS/Docs/Obsidian学习导航/16_第三方与参考资料边界.md`。
+- 硬件相关结论要区分“源码推断”“仿真验证”和“真实板卡验证”；没有示波器、逻辑分析或目标板证据时，不宣称已完成硬件验证。
+
+其他可选方向：
 
 - 嵌入式 Linux 应用开发
 - Linux 驱动和设备树
@@ -242,7 +294,7 @@
 - 工业控制和实时通信
 - 航空主题实时嵌入式项目
 
-进入该阶段前，必须完成至少一个具有真实测试证据的系统编程或网络项目。
+进入任何深入方向前，必须完成至少一个具有真实测试证据的系统编程、网络或板级实验项目。
 
 ---
 
