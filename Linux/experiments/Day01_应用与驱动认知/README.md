@@ -48,5 +48,6 @@ Hello, Linux!
 
 ## 验证状态
 
+- 已实测：WSL Ubuntu 26.04 + gcc 15.2.0 + GNU Make 4.4.1，输出与上例一致。
 - 已实测：Windows 11 + MinGW gcc 15.1.0，输出与上例一致。
-- 未覆盖：Linux 原生编译、WSL 编译（当前 WSL 未安装 gcc）。
+- 未覆盖：无（本篇只涉及用户态）。

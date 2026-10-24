@@ -1,6 +1,6 @@
 # Day1：Linux 应用与驱动的整体认知
 
-**验证状态**：用户态实验已实测（Windows MinGW gcc 15.1.0，2026-10-25）；内核相关结论为源码分析，未在目标环境验证。
+**验证状态**：用户态实验已实测（WSL Ubuntu 26.04 + gcc 15.2.0，以及 Windows MinGW gcc 15.1.0，2026-10-25）；内核相关结论为源码分析，未在目标环境验证。
 
 ## 学习目标
 
@@ -23,6 +23,9 @@
 本材料实测环境：
 
 ```text
+WSL Ubuntu 26.04 + gcc 15.2.0 + GNU Make 4.4.1
+命令: make && ./hello_arg Linux driver
+
 Windows 11 + Git Bash + gcc.exe (MinGW-Builds) 15.1.0
 命令: gcc -Wall -Wextra -std=c11 hello_arg.c -o hello_arg.exe
 ```
@@ -176,7 +179,20 @@ gcc -Wall -Wextra -std=c11 hello_arg.c -o hello_arg.exe
 
 ## 结果观察
 
-实测输出（2026-10-25，MinGW gcc 15.1.0）：
+实测输出一（2026-10-25，WSL Ubuntu 26.04 + gcc 15.2.0）：
+
+```text
+$ make && ./hello_arg Linux driver
+cc -Wall -Wextra -std=c11 -O0 -g hello_arg.c -o hello_arg
+argc = 3
+argv[0] = ./hello_arg
+argv[1] = Linux
+argv[2] = driver
+Hello, Linux!
+exit=0
+```
+
+实测输出二（2026-10-25，Windows MinGW gcc 15.1.0）：
 
 ```text
 $ ./hello_arg.exe
@@ -275,7 +291,10 @@ int main(int argc, char **argv)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 环境 | Windows 11 + Git Bash + MinGW gcc 15.1.0 |
-| 命令 | `gcc -Wall -Wextra -std=c11 hello.c -o hello.exe` |
-| 结果 | `Hello, world!` / `Hello, Linux!`，退出码 0 |
-| 未覆盖 | Linux 原生编译、WSL 编译（WSL 缺 gcc） |
+| 环境一 | WSL Ubuntu 26.04 + gcc 15.2.0 + make 4.4.1 |
+| 命令一 | `make && ./hello_arg Linux driver` |
+| 结果一 | `argc = 3`、`argv[0] = ./hello_arg`、`Hello, Linux!`，退出码 0 |
+| 环境二 | Windows 11 + Git Bash + MinGW gcc 15.1.0 |
+| 命令二 | `gcc -Wall -Wextra -std=c11 hello.c -o hello.exe` |
+| 结果二 | `Hello, world!` / `Hello, Linux!`，退出码 0 |
+| 未覆盖 | 内核模块相关实验（WSL2 无匹配内核头文件且不支持模块加载） |

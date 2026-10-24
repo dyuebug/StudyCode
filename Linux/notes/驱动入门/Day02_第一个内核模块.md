@@ -25,10 +25,11 @@
 
 ```text
 WSL Ubuntu 26.04 / 内核 6.6.87.2-microsoft-standard-WSL2
-gcc: 未安装
-make: 未安装
+gcc: 15.2.0（已安装）
+make: 4.4.1（已安装）
 /lib/modules/6.6.87.2-microsoft-standard-WSL2/build: 不存在
-结论: 无法在 WSL 中编译或加载内核模块
+apt 源中无匹配该内核的 linux-headers 包
+结论: 工具链可用，但仍无法在 WSL 中编译或加载内核模块
 ```
 
 可选验证路径：
@@ -326,7 +327,7 @@ module_exit(hello_exit);
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 环境 | WSL Ubuntu 26.04（gcc/make 缺失，内核头文件缺失） |
-| 已执行 | 环境能力检查：`gcc --version` 失败、`/lib/modules/.../build` 不存在 |
+| 环境 | WSL Ubuntu 26.04，gcc 15.2.0 + make 4.4.1 已安装，内核头文件缺失 |
+| 已执行 | 工具链安装与验证；`/lib/modules/.../build` 确认不存在 |
 | 未执行 | 编译、`insmod`、`dmesg`、`rmmod` |
 | 结论 | 本材料中的运行结果均为预期值，不作实测结论 |
