@@ -16,3 +16,20 @@ MAA/MaaAssistantArknights/
 *.db
 Cpp/**/build/
 Cpp/**/build-*/
+
+# Embedded course materials (vendor SDK / RTOS sources, too large to track)
+Linux/Linux_WEIDS/DShanMCU-F103/5_程序源码/
+Linux/Linux_WEIDS/rtos_doc_source/
+Linux/Linux_WEIDS/EmbedStudy/
+
+# Keil MDK / IAR build artifacts
+**/Objects/
+**/Listings/
+**/*.uvguix.*
+**/*.axf
+**/*.elf
+**/*.map
+**/*.hex
+**/*.lst
+**/*.crf
+**/*.dep
