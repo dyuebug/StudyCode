@@ -1,0 +1,34 @@
+/*
+ * vexpress-a9 验证用设备树
+ *
+ * 在原始板级 dts 基础上追加两个节点：
+ *   myled_for_test  -> Day8 驱动匹配（compatible = "100ask,led"）
+ *   myled_gpio      -> Day9 驱动匹配（compatible = "100ask,led-gpio"）
+ *
+ * GPIO 控制器选择：
+ *   - v2m_mmc_gpios 只有 2 个引脚，且被 mmc 的 cd/wp 占用
+ *   - v2m_led_gpios 有 8 个引脚，被 gpio-leds 占用
+ *   - 因此先禁用 gpio-leds，再使用 v2m_led_gpios 的第 0 号引脚
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include "vexpress-v2p-ca9.dts"
+
+/* 释放 LED GPIO，供本实验使用 */
+&{/bus@40000000/motherboard-bus@40000000/leds} {
+	status = "disabled";
+};
+
+/ {
+	myled: myled_for_test {
+		compatible = "100ask,led";
+		pin = <3>;
+		status = "okay";
+	};
+
+	myled_gpio {
+		compatible = "100ask,led-gpio";
+		led-gpios = <&v2m_led_gpios 0 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};

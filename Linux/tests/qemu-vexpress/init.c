@@ -178,6 +178,39 @@ static void test_day07(void)
 	}
 }
 
+static void test_day08(void)
+{
+	mark(access("/sys/bus/platform/devices/myled_for_test", F_OK) == 0,
+	     "Day8 DT node present (myled_for_test)");
+	mark(access("/sys/bus/platform/drivers/led_dts", F_OK) == 0,
+	     "Day8 driver registered");
+}
+
+static void test_day09(void)
+{
+	int fd, v = -1;
+	ssize_t n;
+
+	mark(access("/dev/myled_gpio", F_OK) == 0,
+	     "Day9 /dev/myled_gpio created");
+
+	fd = open("/dev/myled_gpio", O_RDWR);
+	if (fd < 0) {
+		mark(0, "Day9 open /dev/myled_gpio");
+		return;
+	}
+
+	mark(write(fd, "\1", 1) == 1, "Day9 set logical 1");
+	n = read(fd, &v, sizeof(v));
+	mark(n == sizeof(v) && v == 1, "Day9 read back 1");
+
+	mark(write(fd, "\0", 1) == 1, "Day9 set logical 0");
+	n = read(fd, &v, sizeof(v));
+	mark(n == sizeof(v) && v == 0, "Day9 read back 0");
+
+	close(fd);
+}
+
 int main(void)
 {
 	printf("\n===== qemu-vexpress verification =====\n");
@@ -209,6 +242,14 @@ int main(void)
 	load_module("/led_platform_dev.ko");
 	if (load_module("/led_platform_drv.ko") == 0)
 		test_day07();
+
+	/* Day8：设备树匹配 */
+	load_module("/led_dts_drv.ko");
+	test_day08();
+
+	/* Day9：GPIO 消费者（gpiolib） */
+	if (load_module("/led_gpio_drv.ko") == 0)
+		test_day09();
 
 	printf("===== result: %s (failures=%d) =====\n",
 	       failures ? "FAILED" : "PASSED", failures);

@@ -1,6 +1,6 @@
 # Day8：设备树入门与驱动匹配
 
-**验证状态**：未验证。设备树编译需要目标内核源码树，当前环境不具备；本文的 dtb 与运行结果均为预期值。
+**验证状态**：已实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。自定义 dtb 中新增节点，驱动通过 `compatible` 匹配并读到 `pin = <3>`，证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -315,6 +315,8 @@ static int led_probe(struct platform_device *pdev)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 已执行 | 源码阅读：`led_drv.c` 的 of_node 分支、`1.dts` |
-| 未执行 | dtb 编译、目标板启动、probe 验证 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0，自定义 dtb |
+| 已执行 | 追加 `myled_for_test` 节点、cpp+dtc 编译 dtb、加载驱动 |
+| 实测输出 | `led_dts myled_for_test: probe: pin=3`；`/sys/bus/platform/devices/myled_for_test` 存在 |
+| 未执行 | 真实板卡 |
+| 结论 | 设备树匹配与属性读取已实测通过 |

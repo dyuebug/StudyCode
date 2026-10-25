@@ -20,17 +20,22 @@ MODULES := \
 	$(EXP)/Day06_分离思想与platform/hello_platform_dev.ko \
 	$(EXP)/Day06_分离思想与platform/hello_platform_drv.ko \
 	$(EXP)/Day07_多设备与drvdata/led_platform_dev.ko \
-	$(EXP)/Day07_多设备与drvdata/led_platform_drv.ko
+	$(EXP)/Day07_多设备与drvdata/led_platform_drv.ko \
+	$(EXP)/Day08_设备树匹配/led_dts_drv.ko \
+	$(EXP)/Day09_pinctrl与GPIO/led_gpio_drv.ko
 
-.PHONY: all clean modules initramfs
+.PHONY: all clean modules initramfs dtb
 
 all: initramfs
+
+dtb:
+	bash build-dtb.sh
 
 init:
 	$(CC) -static -O2 -Wall -o init init.c
 
 modules:
-	cd $(EXP) && for d in Day02_* Day03_* Day04_* Day06_* Day07_*; do \
+	cd $(EXP) && for d in Day02_* Day03_* Day04_* Day06_* Day07_* Day08_* Day09_*; do \
 		$(MAKE) -s -C $$d all KDIR=$(KDIR) ARCH=arm CROSS_COMPILE=$(CROSS); \
 	done
 

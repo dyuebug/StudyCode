@@ -20,12 +20,18 @@ if [ ! -f initramfs.cpio.gz ]; then
 	exit 1
 fi
 
+DTB="${DTB:-$PWD/100ask-vexpress.dtb}"
+if [ ! -f "$DTB" ]; then
+	echo "custom dtb missing, run: make dtb" >&2
+	exit 1
+fi
+
 exec timeout "$TIMEOUT" qemu-system-arm \
 	-M vexpress-a9 \
 	-m 512M \
 	-nographic \
 	-no-reboot \
 	-kernel "$KDIR/arch/arm/boot/zImage" \
-	-dtb "$KDIR/arch/arm/boot/dts/arm/vexpress-v2p-ca9.dtb" \
+	-dtb "$DTB" \
 	-initrd initramfs.cpio.gz \
 	-append "console=ttyAMA0 loglevel=7 rdinit=/init"

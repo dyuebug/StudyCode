@@ -16,8 +16,10 @@
 | 3 | 字符设备注册与调用链 | 无 |
 | 4 | `copy_to_user` / `copy_from_user` | 无 |
 | 6 | platform device/driver 匹配 | 无 |
-| 7 | 多实例、次设备号、drvdev | 无 |
-| 8–14 | 设备树节点、GPIO、I2C、SPI | vexpress 无对应外设，不覆盖 |
+| 7 | 多实例、次设备号、drvdata | 无 |
+| 8 | 自定义设备树节点、`compatible` 匹配 | 无（需自定义 dtb） |
+| 9 | `devm_gpiod_get`、GPIO 写入与读回 | `basic-mmio-gpio` |
+| 10–14 | 中断源、I2C、SPI、传感器 | vexpress 未建模，不覆盖 |
 
 ## 前置
 
@@ -30,13 +32,22 @@ mkdir -p ~/kbuild && cd ~/kbuild
 tar xf /usr/src/linux-source-7.0.0.tar.bz2
 cd linux-source-7.0.0
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- vexpress_defconfig
+
+# Day8/Day9 需要 vexpress sysreg GPIO（basic-mmio-gpio）
+./scripts/config --enable ARCH_VIRT
+./scripts/config --enable GPIO_GENERIC_PLATFORM
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- olddefconfig
+
 make -j$(nproc) ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage dtbs modules
 ```
+
+> `olddefconfig` 必须带 `ARCH=arm`。漏掉会把配置重算成主机 x86，导致外部模块结构体布局错误，加载时内核 oops。
 
 ## 运行
 
 ```bash
-make            # 编译 init 与 7 个模块，打包 initramfs
+make            # 编译 init 与 9 个模块，打包 initramfs
+make dtb        # 编译自定义 vexpress 设备树
 bash run.sh     # 启动 QEMU，自动执行并退出
 ```
 

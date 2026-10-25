@@ -57,3 +57,5 @@ Linux/experiments/*/*_test
 Linux/tests/qemu-vexpress/rootfs/
 Linux/tests/qemu-vexpress/initramfs.cpio.gz
 Linux/tests/qemu-vexpress/init
+Linux/tests/qemu-vexpress/100ask-vexpress.dtb
+Linux/tests/qemu-vexpress/.100ask-vexpress.pre.dts

@@ -4,6 +4,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
@@ -44,6 +45,22 @@ static ssize_t led_write(struct file *file, const char __user *buf,
 	return 1;
 }
 
+static ssize_t led_read(struct file *file, char __user *buf,
+			size_t size, loff_t *offset)
+{
+	struct led_gpio *lg = file->private_data;
+	int v;
+
+	if (!lg || size < sizeof(v))
+		return -EINVAL;
+
+	v = gpiod_get_value(lg->led);
+	if (copy_to_user(buf, &v, sizeof(v)))
+		return -EFAULT;
+
+	return sizeof(v);
+}
+
 static int led_open(struct inode *inode, struct file *file)
 {
 	if (!the_led)
@@ -55,6 +72,7 @@ static int led_open(struct inode *inode, struct file *file)
 static struct file_operations led_fops = {
 	.owner = THIS_MODULE,
 	.open  = led_open,
+	.read  = led_read,
 	.write = led_write,
 };
 

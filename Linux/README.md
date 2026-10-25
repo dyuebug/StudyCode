@@ -48,8 +48,8 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 | 5 | 交叉编译与板级驱动 | 未验证 |
 | 6 | 分离思想与 platform | 已实测（QEMU vexpress-a9） |
 | 7 | 总线模型深化与复盘 | 已实测（QEMU vexpress-a9） |
-| 8 | 设备树入门 | 未验证 |
-| 9 | pinctrl 与 GPIO | 未验证 |
+| 8 | 设备树入门 | 已实测（QEMU vexpress-a9） |
+| 9 | pinctrl 与 GPIO | 已实测（QEMU vexpress-a9） |
 | 10 | 中断与 poll | 未验证 |
 | 11 | 上下文与资源退出 | 未验证 |
 | 12 | SR501 实战 | 未验证 |
@@ -61,8 +61,8 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 验证方式：
 
 - Day1：WSL gcc 15.2.0 + MinGW gcc 15.1.0 实测。
-- Day2/3/4/6/7：QEMU vexpress-a9 + Linux 7.0.0 实测，证据见 [`tests/qemu-vexpress/RESULT.md`](tests/qemu-vexpress/RESULT.md)。
-- Day5/8/9/10/11/12/13/14：需要 GPIO、I2C、SPI 或真实传感器，当前未覆盖。
+- Day2/3/4/6/7/8/9：QEMU vexpress-a9 + Linux 7.0.0 实测，证据见 [`tests/qemu-vexpress/RESULT.md`](tests/qemu-vexpress/RESULT.md)。
+- Day5/10/11/12/13/14：需要 i.MX6ULL 目标内核、可触发中断、I2C/SPI 外设或真实传感器，当前未覆盖。
 
 ## 配套学习材料
 

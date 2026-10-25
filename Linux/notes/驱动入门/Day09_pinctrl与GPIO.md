@@ -1,6 +1,6 @@
 # Day9：pinctrl 与 GPIO 子系统
 
-**验证状态**：未验证。需要目标内核树、设备树与板卡，当前环境不具备。
+**验证状态**：已实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。`devm_gpiod_get` 取得 GPIO，写入逻辑 1/0 后读回一致，证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -298,6 +298,8 @@ return 0;
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 已执行 | 阅读 pinctrl 讲义目录与 Day8 dts 结构 |
-| 未执行 | dtb 编译、模块加载、GPIO 观测 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0；`v2m_led_gpios`（basic-mmio-gpio） |
+| 已执行 | 禁用 gpio-leds 释放引脚、`devm_gpiod_get`、写入并读回 |
+| 实测输出 | `/dev/myled_gpio` 创建；写 1 读回 1；写 0 读回 0 |
+| 未执行 | 真实板卡、pinctrl 复用（vexpress 无 pinctrl 子系统） |
+| 结论 | gpiolib 消费者路径已实测通过 |
