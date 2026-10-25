@@ -68,6 +68,15 @@ Day3～Day14 已编排，验证进度见下方「14 天标准材料」表的「�
 - Day5：交叉编译、加载、设备节点与卸载已在 QEMU 实测；i.MX6ULL 寄存器与 LED 现象需要真实目标板。
 - Day12/13/14：三个驱动与测试程序已交叉编译为 ARM 产物（2026-10-25）；SR501、AT24C02、SPI OLED 的外设行为需要真实硬件。
 
+## MCU 分支（STM32F103）
+
+驱动入门之后的嵌入式主干，按 `CLAUDE.md` 阶段 7 的「STM32F103 外设 → FreeRTOS」推进。
+
+- [`experiments/F103_common/`](experiments/F103_common/README.md)：自撰链接脚本、裁剪的 CMSIS 子集、CMake 工具链文件、OpenOCD 烧写配置。
+- [`experiments/F103_01_GPIO_Blink/`](experiments/F103_01_GPIO_Blink/README.md)：寄存器级 LED 点灯，已构建实测，板级现象待接板确认。
+- 工具链：`arm-none-eabi-gcc` + CMake + Ninja + ST-Link V2 + OpenOCD。
+- 课程资料 `Linux_WEIDS/DShanMCU-F103/` 不入库（体积原因），实验所需的最小 vendor 子集已随仓库跟踪。
+
 ## 配套学习材料
 
 | 材料 | 解决的问题 |

@@ -61,3 +61,6 @@ Linux/tests/qemu-vexpress/initramfs.cpio.gz
 Linux/tests/qemu-vexpress/init
 Linux/tests/qemu-vexpress/100ask-vexpress.dtb
 Linux/tests/qemu-vexpress/.100ask-vexpress.pre.dts
+
+# F103 裸机实验的 CMake 构建目录（.elf/.hex/.map 另由上面的通配规则忽略）
+Linux/experiments/F103_*/build/
