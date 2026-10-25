@@ -1,6 +1,6 @@
 # Day3：驱动结构、设备文件与读写调用链
 
-**验证状态**：未验证。当前环境无法构建或加载内核模块，本篇的 `mknod`、`open/read/write` 调用链均为源码分析结论，见文末"验证记录"。
+**验证状态**：已实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。`register_chrdev`、`mknod`、`open/write/read/release` 调用链全部通过，证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -330,7 +330,8 @@ static int __init hello_init(void)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 环境 | WSL Ubuntu 26.04（不可构建模块） |
-| 已执行 | 源码阅读：`03_test/`、`04_call/`、Makefile |
-| 未执行 | 编译、`insmod`、`mknod`、运行测试程序、`dmesg` 观察 |
-| 结论 | 调用链结论来自源码与内核 VFS 语义，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0，arm-linux-gnueabihf-gcc 15.2.0 |
+| 已执行 | 编译、加载、`mknod /dev/hello_chrdev major=248`、open/write/read/close |
+| 实测输出 | `write` 与 `read` 均返回 1；内核日志出现 open/write/release |
+| 未执行 | 真实板卡验证 |
+| 结论 | 调用链已实测通过，返回值语义与预期一致 |

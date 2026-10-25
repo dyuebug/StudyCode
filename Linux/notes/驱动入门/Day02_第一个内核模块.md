@@ -1,6 +1,6 @@
 # Day2：第一个内核模块
 
-**验证状态**：未验证。当前环境的 WSL2 缺少内核头文件且不支持加载自定义模块，本材料的编译、加载、日志观察均未实测，见文末"验证记录"。
+**验证状态**：已实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。交叉编译、模块加载与 printk 日志均通过，证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -327,7 +327,9 @@ module_exit(hello_exit);
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 环境 | WSL Ubuntu 26.04，gcc 15.2.0 + make 4.4.1 已安装，内核头文件缺失 |
-| 已执行 | 工具链安装与验证；`/lib/modules/.../build` 确认不存在 |
-| 未执行 | 编译、`insmod`、`dmesg`、`rmmod` |
-| 结论 | 本材料中的运行结果均为预期值，不作实测结论 |
+| 环境 | QEMU vexpress-a9（qemu 10.2.1）+ `vexpress_defconfig` Linux 7.0.0 |
+| 工具链 | arm-linux-gnueabihf-gcc 15.2.0 |
+| 已执行 | 交叉编译 `hello_module.ko`；initramfs 内 `finit_module` 加载成功 |
+| 实测输出 | `hello_module: init`（内核日志），`[ OK ] loaded /hello_module.ko` |
+| 未执行 | 真实板卡上的 `insmod` / `rmmod` 命令（QEMU 中用系统调用替代） |
+| 结论 | 编译与加载闭环已实测通过 |

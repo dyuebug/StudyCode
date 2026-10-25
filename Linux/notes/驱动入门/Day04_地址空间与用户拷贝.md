@@ -1,6 +1,6 @@
 # Day4：地址空间、模块信息与用户拷贝
 
-**验证状态**：未验证。WSL2 缺少匹配内核头文件且不支持模块加载，本篇的编译与运行结果均为预期值，见文末"验证记录"。
+**验证状态**：已实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。初值读取、写入回读与短读边界全部通过，证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -313,7 +313,8 @@ static ssize_t hello_write(struct file *f, const char __user *buf,
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 环境 | WSL Ubuntu 26.04，gcc 15.2.0 / make 4.4.1，内核头文件缺失 |
-| 已执行 | 源码阅读：`05_transfer_data/hello_drv.c` 与测试程序 |
-| 未执行 | 编译、加载、读写验证 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0，arm-linux-gnueabihf-gcc 15.2.0 |
+| 已执行 | 编译、加载、`read` 初值、`write 456`、回读、1 字节短读 |
+| 实测输出 | 初值 123；写入后回读 456；短读返回 1 且未越界 |
+| 未执行 | 真实板卡验证 |
+| 结论 | `copy_to_user` / `copy_from_user` 与长度限制已实测通过 |

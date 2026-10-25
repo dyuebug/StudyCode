@@ -1,0 +1,62 @@
+# QEMU vexpress-a9 自动验证
+
+## 目的
+
+在没有开发板的条件下，用 QEMU 跑通内核模块的完整闭环：
+
+```text
+交叉编译 .ko -> 打包 initramfs -> QEMU 启动 -> init 加载模块 -> 读写验证 -> 打印结果
+```
+
+覆盖范围：
+
+| Day | 验证内容 | 依赖硬件 |
+| --- | --- | --- |
+| 2 | 模块加载与 printk | 无 |
+| 3 | 字符设备注册与调用链 | 无 |
+| 4 | `copy_to_user` / `copy_from_user` | 无 |
+| 6 | platform device/driver 匹配 | 无 |
+| 7 | 多实例、次设备号、drvdev | 无 |
+| 8–14 | 设备树节点、GPIO、I2C、SPI | vexpress 无对应外设，不覆盖 |
+
+## 前置
+
+```bash
+sudo apt install qemu-system-arm gcc-arm-linux-gnueabihf linux-source \
+                 libncurses-dev flex bison bc libssl-dev libelf-dev cpio
+
+# 一次性构建 ARM 内核
+mkdir -p ~/kbuild && cd ~/kbuild
+tar xf /usr/src/linux-source-7.0.0.tar.bz2
+cd linux-source-7.0.0
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- vexpress_defconfig
+make -j$(nproc) ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage dtbs modules
+```
+
+## 运行
+
+```bash
+make            # 编译 init 与 7 个模块，打包 initramfs
+bash run.sh     # 启动 QEMU，自动执行并退出
+```
+
+## 预期输出
+
+```text
+===== qemu-vexpress verification =====
+[ OK ] loaded /hello_module.ko
+[ OK ] loaded /hello_chrdev.ko
+[ OK ] mknod /dev/hello_chrdev major=...
+[ OK ] Day3 open /dev/hello_chrdev
+[ OK ] Day3 write returns 1 (callback stub)
+...
+===== result: PASSED (failures=0) =====
+```
+
+同时可在控制台看到驱动自身的 `pr_info` 输出。
+
+## 已知限制
+
+- vexpress-a9 没有课程用的 GPIO 按键、SR501、AT24C02、SPI OLED，因此 Day8–Day14 的硬件实验不覆盖。
+- 模块必须用 `KDIR` 指向的同一棵内核树构建，否则 vermagic 不匹配。
+- init 以 PID 1 运行，`init_module` 直接使用系统调用，不依赖 kmod。

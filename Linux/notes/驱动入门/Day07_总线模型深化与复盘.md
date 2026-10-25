@@ -1,6 +1,6 @@
 # Day7：总线设备驱动模型深化与第一阶段复盘
 
-**验证状态**：未验证。WSL2 无法构建与加载内核模块，本文的运行结果均为预期值。
+**验证状态**：已实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。两个设备实例分别 probe，`/dev/led0`、`/dev/led1` 创建成功，写入生效，证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -276,6 +276,8 @@ static int led_remove(struct platform_device *pdev)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 已执行 | 源码阅读：`led_drv.c`、`led_dev3.c` 完整 probe/remove |
-| 未执行 | 编译、加载、多实例验证 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0，arm-linux-gnueabihf-gcc 15.2.0 |
+| 已执行 | 编译、加载两个模块、观测两次 probe、写入 `/dev/led0` |
+| 实测输出 | `probe: minor=0 pin=3`、`probe: minor=1 pin=5`、`/dev/led0`/`led1` 存在 |
+| 未执行 | 真实板卡、`remove` 路径观测 |
+| 结论 | 多实例、次设备号与 drvdata 已实测通过 |

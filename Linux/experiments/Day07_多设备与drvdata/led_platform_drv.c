@@ -89,6 +89,17 @@ static int led_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
+static void led_remove(struct platform_device *pdev)
+{
+	struct led_desc *desc = platform_get_drvdata(pdev);
+
+	if (desc) {
+		device_destroy(led_class, MKDEV(major, desc->minor));
+		dev_info(&pdev->dev, "remove: minor=%d\n", desc->minor);
+	}
+}
+#else
 static int led_remove(struct platform_device *pdev)
 {
 	struct led_desc *desc = platform_get_drvdata(pdev);
@@ -99,6 +110,7 @@ static int led_remove(struct platform_device *pdev)
 	}
 	return 0;
 }
+#endif
 
 static struct platform_driver led_driver = {
 	.probe  = led_probe,

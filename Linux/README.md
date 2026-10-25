@@ -42,12 +42,12 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 | Day | 主题 | 验证状态 |
 | --- | --- | --- |
 | 1 | 应用与驱动整体认知 | 已实测（WSL gcc 15.2.0 + MinGW 15.1.0） |
-| 2 | 第一个内核模块 | 未验证 |
-| 3 | 驱动结构与调用链 | 未验证 |
-| 4 | 地址空间与用户拷贝 | 未验证 |
+| 2 | 第一个内核模块 | 已实测（QEMU vexpress-a9） |
+| 3 | 驱动结构与调用链 | 已实测（QEMU vexpress-a9） |
+| 4 | 地址空间与用户拷贝 | 已实测（QEMU vexpress-a9） |
 | 5 | 交叉编译与板级驱动 | 未验证 |
-| 6 | 分离思想与 platform | 未验证 |
-| 7 | 总线模型深化与复盘 | 未验证 |
+| 6 | 分离思想与 platform | 已实测（QEMU vexpress-a9） |
+| 7 | 总线模型深化与复盘 | 已实测（QEMU vexpress-a9） |
 | 8 | 设备树入门 | 未验证 |
 | 9 | pinctrl 与 GPIO | 未验证 |
 | 10 | 中断与 poll | 未验证 |
@@ -58,7 +58,11 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 
 可运行实验位于 [`experiments/`](experiments/)，每个 Day 一个目录，含驱动、测试程序与设备树片段。
 
-未验证的统一原因：WSL2 无匹配内核头文件且不支持加载模块；Day5 起还需要交叉工具链与目标板。
+验证方式：
+
+- Day1：WSL gcc 15.2.0 + MinGW gcc 15.1.0 实测。
+- Day2/3/4/6/7：QEMU vexpress-a9 + Linux 7.0.0 实测，证据见 [`tests/qemu-vexpress/RESULT.md`](tests/qemu-vexpress/RESULT.md)。
+- Day5/8/9/10/11/12/13/14：需要 GPIO、I2C、SPI 或真实传感器，当前未覆盖。
 
 ## 配套学习材料
 

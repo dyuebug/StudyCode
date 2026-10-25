@@ -1,6 +1,6 @@
 # Day6：分离思想与 device / driver / bus 模型
 
-**验证状态**：未验证。WSL2 无法构建和加载内核模块，本篇的 `probe`/`remove` 观测结果均为预期值。
+**验证状态**：已实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。`platform_device` 与 `platform_driver` 匹配成功，`probe` 被调用，证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -353,7 +353,8 @@ static int hello_probe(struct platform_device *pdev)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 环境 | WSL Ubuntu 26.04，内核头文件缺失 |
-| 已执行 | 源码阅读：`hello_dev.c`、`hello_drv.c`、`Makefile` |
-| 未执行 | 编译、加载、probe/remove 观测 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0，arm-linux-gnueabihf-gcc 15.2.0 |
+| 已执行 | 编译、先加设备后加驱动、观测 probe |
+| 实测输出 | `hello_platform hello_platform: probe matched: hello_platform` |
+| 未执行 | 反向加载顺序、真实板卡 |
+| 结论 | 匹配与 probe 已实测通过 |
