@@ -1,0 +1,11 @@
+/*
+ * Day11 设备树片段
+ */
+
+/ {
+	key_ctx {
+		compatible = "100ask,key_ctx";
+		gpios = <&gpio4 19 GPIO_ACTIVE_LOW>;
+		status = "okay";
+	};
+};

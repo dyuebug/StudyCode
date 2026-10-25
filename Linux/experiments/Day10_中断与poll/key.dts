@@ -1,0 +1,14 @@
+/*
+ * Day10 设备树片段
+ *
+ * GPIO_ACTIVE_LOW 还是 HIGH，取决于按键电路：
+ *   按键一端接 GPIO、另一端接 GND，通常上拉 + ACTIVE_LOW
+ */
+
+/ {
+	key {
+		compatible = "100ask,gpio_key";
+		gpios = <&gpio4 19 GPIO_ACTIVE_LOW>;
+		status = "okay";
+	};
+};

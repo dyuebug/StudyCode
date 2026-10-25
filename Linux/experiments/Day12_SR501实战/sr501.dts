@@ -1,0 +1,21 @@
+/*
+ * Day12 SR501 设备树片段
+ *
+ * 接线（示例）：
+ *   SR501 VCC -> 3.3V
+ *   SR501 GND -> GND
+ *   SR501 OUT -> GPIO4_IO19
+ *
+ * 说明：
+ *   - 使用 gpiod_to_irq() 时不需要 interrupt-parent/interrupts
+ *   - 若模块输出高电平表示"有人"，用 GPIO_ACTIVE_HIGH
+ *   - 若经过反相电路，改为 GPIO_ACTIVE_LOW
+ */
+
+/ {
+	sr501 {
+		compatible = "100ask,sr501";
+		gpios = <&gpio4 19 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
