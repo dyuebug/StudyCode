@@ -52,6 +52,8 @@ Linux/Linux_WEIDS/02_嵌入式Linux驱动入门直播/[0-9][0-9]_*/
 
 # 实验用户态测试程序产物
 Linux/experiments/*/*_test
+# Day5 沿用课程命名（ledtest），不符合 *_test 约定，单独忽略
+Linux/experiments/Day05_交叉编译与板级驱动/ledtest
 
 # QEMU 验证产物
 Linux/tests/qemu-vexpress/rootfs/

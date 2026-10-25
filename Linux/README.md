@@ -63,7 +63,8 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 - Day1：WSL gcc 15.2.0 + MinGW gcc 15.1.0 实测。
 - Day2/3/4/6/7/8/9：QEMU vexpress-a9 + Linux 7.0.0 实测，证据见 [`tests/qemu-vexpress/RESULT.md`](tests/qemu-vexpress/RESULT.md)。
 - Day10/11：QEMU 中用定时器事件替代硬件中断，验证等待队列、poll、ioctl、timer/tasklet/work 与卸载清理；中断投递未覆盖。
-- Day5/12/13/14：需要 i.MX6ULL 目标内核、I2C/SPI 外设或真实传感器，当前未覆盖。
+- Day5：交叉编译、加载、设备节点与卸载已在 QEMU 实测；i.MX6ULL 寄存器与 LED 现象需要真实目标板。
+- Day12/13/14：需要 SR501、AT24C02、SPI OLED 等外设，当前未覆盖。
 
 ## 配套学习材料
 

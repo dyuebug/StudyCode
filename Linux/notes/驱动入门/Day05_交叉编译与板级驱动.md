@@ -221,20 +221,29 @@ rmmod led_drv
 
 ## 结果观察
 
-以下为**预期结果，未在本机实测**：
+**已在 QEMU vexpress-a9 实测**（2026-10-25）：
 
 ```text
 $ file led_drv.ko
 led_drv.ko: ELF 32-bit LSB relocatable, ARM, EABI5 version 1 (SYSV)
 
-$ modinfo led_drv.ko | grep vermagic
-vermagic: 4.9.88 SMP preempt mod_unload modversions ARMv7 p2v8
-
+# 加载后由 class_create / device_create 自动生成节点
 $ ls /dev/myled
 /dev/myled
 ```
 
-LED 现象：`./ledtest on` 后板载 LED 点亮，`off` 后熄灭。没有板卡时无法确认。
+卸载后节点消失，`dmesg` 可见 `100ask_led: exit`。
+
+**未实测（需要 i.MX6ULL 目标板）**：
+
+```text
+$ modinfo led_drv.ko | grep vermagic
+vermagic: 4.9.88 SMP preempt mod_unload modversions ARMv7 p2v8
+```
+
+该 vermagic 对应课程使用的 4.9.88 内核；本机 QEMU 验证用的是 Linux 7.0.0 内核树，vermagic 随之不同——这正说明**模块必须用目标内核树编译**。
+
+LED 现象：`./ledtest on` 后板载 LED 点亮，`off` 后熄灭。QEMU 的 vexpress 没有 i.MX6ULL 的 GPIO5 / IOMUXC，无法确认。
 
 ## 常见错误和陷阱
 
@@ -294,7 +303,8 @@ all:
 - [ ] 能独立配置 `ARCH` / `CROSS_COMPILE` / `KERN_DIR` 并构建出 ARM 模块。
 - [ ] 能用 `file` 与 `modinfo` 验证产物架构和 vermagic。
 - [ ] 能说明 `ioremap`、`class_create`、`device_create` 的作用与释放路径。
-- [ ] 在目标板或 QEMU 上完成一次加载与现象验证（当前环境未完成）。
+- [x] 在 QEMU 上完成一次交叉编译模块的加载与设备节点验证。
+- [ ] 在真实目标板上完成 LED 点亮现象验证（需要 i.MX6ULL 板卡）。
 
 ## 延伸阅读
 

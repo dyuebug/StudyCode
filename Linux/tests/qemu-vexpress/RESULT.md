@@ -3,7 +3,7 @@
 **日期**：2026-10-25
 **环境**：QEMU 10.2.1 `vexpress-a9`，Linux 7.0.0（Ubuntu `linux-source-7.0.0`）
 **工具链**：arm-linux-gnueabihf-gcc 15.2.0
-**载荷**：initramfs 766 KB，含静态 init 与 9 个外部模块
+**载荷**：initramfs 921 KB，含静态 init 与 11 个外部模块
 
 ## 内核配置
 
@@ -123,20 +123,20 @@ event_demo: exit, resources released
 | 2 | 交叉编译、模块加载、printk | 通过 |
 | 3 | `register_chrdev`、`mknod`、open/write/read/release | 通过 |
 | 4 | `copy_to_user` / `copy_from_user`、短读边界 | 通过 |
+| 5 | 交叉编译、加载、设备节点、卸载 | 通过（寄存器未访问） |
 | 6 | platform 设备与驱动匹配、probe | 通过 |
 | 7 | 多实例、次设备号、drvdata、设备节点 | 通过 |
 | 8 | 设备树 compatible 匹配、属性读取 | 通过 |
-| 5 | 交叉编译、加载、设备节点、卸载 | 通过（寄存器未访问） |
 | 9 | `devm_gpiod_get`、GPIO 写入与读回 | 通过 |
 | 10 | 阻塞/非阻塞/poll/ioctl | 通过（中断未覆盖） |
 | 11 | timer/tasklet/workqueue、卸载清理 | 通过（中断未覆盖） |
 
 ## 未覆盖
 
-- Day5：需要 i.MX6ULL 目标内核树或板卡。
-- Day10/11：需要可触发的中断源，QEMU 无外部输入。
+- Day5：i.MX6ULL 寄存器写入与 LED 点亮现象需要真实目标板。
+- Day10/11：需要可触发的中断源，QEMU 无外部输入，`request_irq` 的真实投递未验证。
 - Day12/13/14：需要 SR501、AT24C02、SPI OLED，`vexpress-a9` 未建模。
-- `rmmod` 卸载路径：init 以 `finit_module` 加载，未执行卸载。
+- 模块卸载走 `SYS_delete_module` 系统调用（Day5、Day10/11 已覆盖）；`insmod` / `rmmod` 命令行工具路径未验证。
 
 ## 过程中发现并修复的问题
 

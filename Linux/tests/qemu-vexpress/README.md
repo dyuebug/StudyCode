@@ -49,7 +49,7 @@ make -j$(nproc) ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage dtbs modules
 ## 运行
 
 ```bash
-make            # 编译 init 与 10 个模块，打包 initramfs
+make            # 编译 init 与 11 个内核模块，打包 initramfs
 make dtb        # 编译自定义 vexpress 设备树
 bash run.sh     # 启动 QEMU，自动执行并退出
 ```
@@ -71,6 +71,7 @@ bash run.sh     # 启动 QEMU，自动执行并退出
 
 ## 已知限制
 
-- vexpress-a9 没有课程用的 GPIO 按键、SR501、AT24C02、SPI OLED，因此 Day8–Day14 的硬件实验不覆盖。
+- vexpress-a9 没有 SR501、AT24C02、SPI OLED，Day12–Day14 未覆盖；Day5 的 i.MX6ULL 寄存器访问同样无对应硬件。
+- Day10/11 用定时器事件替代硬件中断，`request_irq` 的真实投递未验证。
 - 模块必须用 `KDIR` 指向的同一棵内核树构建，否则 vermagic 不匹配。
 - init 以 PID 1 运行，`init_module` 直接使用系统调用，不依赖 kmod。
