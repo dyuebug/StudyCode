@@ -5,6 +5,8 @@
 ## 总控与资料
 
 - `CLAUDE.md`：Linux 学习总控文件。
+- [`notes/航空转嵌入式路线图.md`](notes/航空转嵌入式路线图.md)：从航空飞管 C 软件转向嵌入式的定位、能力差距与阶段规划，是 `CLAUDE.md` 学习目标的展开说明。
+- `job-descriptions.csv`：目标岗位原始数据（职位名、城市、薪资、JD 正文），用于校准学习重点。
 - `Linux_WEIDS/`：STM32、FreeRTOS、RT-Thread、Linux 应用、Linux 驱动和 BSP 参考资料。
 - `Linux_WEIDS/Docs/Obsidian学习导航/00_学习主页.md`：资料库的 Obsidian 导航入口。
 
