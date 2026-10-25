@@ -10,9 +10,11 @@
 
 obj-m += led_drv.o
 
-ARCH         ?= arm
-CROSS_COMPILE ?= arm-linux-gnueabihf-
 KERN_DIR     ?= $(HOME)/100ask_imx6ull-sdk/Linux-4.9.88
+ARCH          ?= arm
+CROSS_COMPILE ?= arm-linux-gnueabihf-
+export ARCH
+export CROSS_COMPILE
 PWD          := $(shell pwd)
 
 CC_TARGET := $(CROSS_COMPILE)gcc

@@ -8,6 +8,10 @@
 obj-m += hello_module.o
 
 KDIR ?= /lib/modules/$(shell uname -r)/build
+ARCH          ?= arm
+CROSS_COMPILE ?= arm-linux-gnueabihf-
+export ARCH
+export CROSS_COMPILE
 PWD  := $(shell pwd)
 
 .PHONY: all clean info

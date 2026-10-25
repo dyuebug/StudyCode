@@ -251,6 +251,7 @@ LED 现象：`./ledtest on` 后板载 LED 点亮，`off` 后熄灭。QEMU 的 ve
 | --- | --- | --- |
 | `arm-linux-gnueabihf-gcc: not found` | 工具链未安装或不在 `PATH` | `which $(CROSS_COMPILE)gcc` |
 | 编译出 x86 模块 | `ARCH` / `CROSS_COMPILE` 未设置 | `file xxx.ko` 查看架构 |
+| `fatal error: asm/rwonce.h: No such file` | Makefile 里的 `ARCH ?= arm` 未 `export`，kbuild 子进程按主机架构解析头文件 | 在 Makefile 加 `export ARCH` / `export CROSS_COMPILE`，或命令行传 `make ARCH=arm` |
 | `No such file or directory: Module.symvers` | 目标内核未编译 | 在 `KERN_DIR` 执行 `make modules_prepare` |
 | `insmod: Invalid module format` | vermagic 与目标内核不匹配 | 对比 `modinfo` 与 `uname -r` |
 | `class_create` 参数数量不匹配 | 内核 ≥6.4 签名变更 | 检查内核版本与调用形式 |

@@ -1,10 +1,14 @@
 # Day9 pinctrl 与 GPIO
 #
-# make KERN_DIR=/path/to/target/kernel
+# make KDIR=/path/to/target/kernel-tree ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 
 obj-m += led_gpio_drv.o
 
 KDIR ?= /lib/modules/$(shell uname -r)/build
+ARCH          ?= arm
+CROSS_COMPILE ?= arm-linux-gnueabihf-
+export ARCH
+export CROSS_COMPILE
 PWD  := $(shell pwd)
 
 .PHONY: all clean info
