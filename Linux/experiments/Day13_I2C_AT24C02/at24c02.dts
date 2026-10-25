@@ -1,0 +1,15 @@
+/*
+ * Day13 设备树片段
+ *
+ * AT24C02 地址：0x50（A0/A1/A2 接地）
+ * 接线：VCC 3.3V、GND、SDA、SCL，SDA/SCL 需要上拉电阻
+ */
+
+&i2c1 {
+	status = "okay";
+
+	at24c02 {
+		compatible = "100ask,at24c02";
+		reg = <0x50>;
+	};
+};
