@@ -82,6 +82,18 @@ led_multi: minor=0 pin=3 value=1
 led_dts myled_for_test: probe: pin=3
 ```
 
+## 实测输出（Day5，交叉编译与模块生命周期）
+
+```text
+[ OK ] Day5 cross-built module loaded, /dev/myled created
+100ask_led: init, major = 244, /dev/myled ready
+100ask_led: exit
+[ OK ] unload led_drv (remove path)
+```
+
+> 限制：板级寄存器（i.MX6ULL GPIO5 / IOMUXC）在 vexpress 上无对应硬件，未访问。
+> 本验证覆盖交叉编译、架构校验、加载、设备节点创建与卸载路径。
+
 ## 实测输出（Day10–Day11，定时器事件替代硬件中断）
 
 ```text
@@ -114,6 +126,7 @@ event_demo: exit, resources released
 | 6 | platform 设备与驱动匹配、probe | 通过 |
 | 7 | 多实例、次设备号、drvdata、设备节点 | 通过 |
 | 8 | 设备树 compatible 匹配、属性读取 | 通过 |
+| 5 | 交叉编译、加载、设备节点、卸载 | 通过（寄存器未访问） |
 | 9 | `devm_gpiod_get`、GPIO 写入与读回 | 通过 |
 | 10 | 阻塞/非阻塞/poll/ioctl | 通过（中断未覆盖） |
 | 11 | timer/tasklet/workqueue、卸载清理 | 通过（中断未覆盖） |

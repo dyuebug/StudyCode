@@ -1,6 +1,6 @@
 # Day5：主机、交叉编译与目标板流程
 
-**验证状态**：未验证。本篇涉及 ARM 交叉编译与真实板卡硬件（i.MX6ULL GPIO），当前环境无交叉工具链、无目标板，所有运行结果均为预期值。
+**验证状态**：部分实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。交叉编译、`file` 架构校验、模块加载、`/dev/myled` 创建与卸载路径已验证；**i.MX6ULL 寄存器访问与 LED 现象未验证**（vexpress 无对应硬件）。
 
 ## 学习目标
 
@@ -21,7 +21,7 @@
 | 目标板或 QEMU | 100ask_imx6ull 开发板或 `100ask_imx6ull-qemu` |
 | 传输方式 | NFS 挂载、tftp、scp 或 SD 卡 |
 
-本机现状：WSL 无交叉工具链、无目标内核树、无 QEMU 镜像启动配置。
+本机现状（2026-10-25）：WSL 已安装 `arm-linux-gnueabihf-gcc 15.2.0`，并具备 QEMU vexpress-a9 的 ARM 内核树；无 i.MX6ULL 目标内核与开发板。
 
 ## 核心概念
 
@@ -310,7 +310,8 @@ all:
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 环境 | WSL Ubuntu 26.04；无 ARM 交叉工具链、无目标内核树、无目标板 |
-| 已执行 | 源码阅读：`imx6ull/led_drv.c`、`Makefile` |
-| 未执行 | 交叉编译、传输、`insmod`、LED 现象验证 |
-| 结论 | 全部运行结果为预期值，未实测 |
+| 环境 | WSL Ubuntu 26.04 + arm-linux-gnueabihf-gcc 15.2.0 + QEMU vexpress-a9 |
+| 已执行 | 交叉编译 `led_drv.ko`（ARM ELF）、加载、`/dev/myled` 创建、`delete_module` 卸载 |
+| 实测输出 | `100ask_led: init, major = 244, /dev/myled ready`；`100ask_led: exit` |
+| 未执行 | i.MX6ULL 寄存器写入、LED 点亮、真实板卡传输 |
+| 结论 | 交叉编译与模块生命周期已实测；硬件访问未验证 |

@@ -15,6 +15,7 @@
 | 2 | 模块加载与 printk | 无 |
 | 3 | 字符设备注册与调用链 | 无 |
 | 4 | `copy_to_user` / `copy_from_user` | 无 |
+| 5 | 交叉编译、加载、设备节点、卸载 | 板级寄存器不访问 |
 | 6 | platform device/driver 匹配 | 无 |
 | 7 | 多实例、次设备号、drvdata | 无 |
 | 8 | 自定义设备树节点、`compatible` 匹配 | 无（需自定义 dtb） |
@@ -48,7 +49,7 @@ make -j$(nproc) ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage dtbs modules
 ## 运行
 
 ```bash
-make            # 编译 init 与 9 个模块，打包 initramfs
+make            # 编译 init 与 10 个模块，打包 initramfs
 make dtb        # 编译自定义 vexpress 设备树
 bash run.sh     # 启动 QEMU，自动执行并退出
 ```

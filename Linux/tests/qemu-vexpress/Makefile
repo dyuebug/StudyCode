@@ -17,6 +17,7 @@ MODULES := \
 	$(EXP)/Day02_首次模块加载/hello_module.ko \
 	$(EXP)/Day03_字符设备调用链/hello_chrdev.ko \
 	$(EXP)/Day04_地址空间与用户拷贝/hello_copy.ko \
+	$(EXP)/Day05_交叉编译与板级驱动/led_drv.ko \
 	$(EXP)/Day06_分离思想与platform/hello_platform_dev.ko \
 	$(EXP)/Day06_分离思想与platform/hello_platform_drv.ko \
 	$(EXP)/Day07_多设备与drvdata/led_platform_dev.ko \
@@ -40,8 +41,9 @@ init:
 	$(CC) -static -O2 -Wall -o init init.c
 
 modules:
-	cd $(EXP) && for d in Day02_* Day03_* Day04_* Day06_* Day07_* Day08_* Day09_*; do \
-		$(MAKE) -s -C $$d all KDIR=$(KDIR) ARCH=arm CROSS_COMPILE=$(CROSS); \
+	cd $(EXP) && for d in Day02_* Day03_* Day04_* Day05_* Day06_* Day07_* Day08_* Day09_*; do \
+		$(MAKE) -s -C $$d all KDIR=$(KDIR) KERN_DIR=$(KDIR) \
+			ARCH=arm CROSS_COMPILE=$(CROSS); \
 	done
 
 initramfs: init modules event-module

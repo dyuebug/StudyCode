@@ -260,11 +260,21 @@ static void test_event(void)
 	close(fd);
 }
 
-static void test_unload(void)
+static void test_unload(const char *name)
 {
-	long r = syscall(SYS_delete_module, "event_demo", O_NONBLOCK);
+	long r = syscall(SYS_delete_module, name, O_NONBLOCK);
 
-	mark(r == 0, "Day11 unload triggers remove path");
+	if (r == 0)
+		printf("[ OK ] unload %s (remove path)\n", name);
+	else
+		mark(0, "unload module");
+}
+
+static void test_day05(void)
+{
+	mark(access("/dev/myled", F_OK) == 0,
+	     "Day5 cross-built module loaded, /dev/myled created");
+	/* 注意：不打开设备，避免访问 i.MX6ULL 寄存器地址 */
 }
 
 int main(void)
@@ -307,10 +317,16 @@ int main(void)
 	if (load_module("/led_gpio_drv.ko") == 0)
 		test_day09();
 
+	/* Day5：交叉编译产物 + 加载/卸载流程（不访问板级寄存器） */
+	if (load_module("/led_drv.ko") == 0) {
+		test_day05();
+		test_unload("led_drv");
+	}
+
 	/* Day10/11：定时器事件 + 等待队列 + poll + ioctl + 卸载清理 */
 	if (load_module("/event_demo.ko") == 0) {
 		test_event();
-		test_unload();
+		test_unload("event_demo");
 	}
 
 	printf("===== result: %s (failures=%d) =====\n",

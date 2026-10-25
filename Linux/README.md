@@ -45,7 +45,7 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 | 2 | 第一个内核模块 | 已实测（QEMU vexpress-a9） |
 | 3 | 驱动结构与调用链 | 已实测（QEMU vexpress-a9） |
 | 4 | 地址空间与用户拷贝 | 已实测（QEMU vexpress-a9） |
-| 5 | 交叉编译与板级驱动 | 未验证 |
+| 5 | 交叉编译与板级驱动 | 部分实测（交叉编译/加载/卸载；寄存器未访问） |
 | 6 | 分离思想与 platform | 已实测（QEMU vexpress-a9） |
 | 7 | 总线模型深化与复盘 | 已实测（QEMU vexpress-a9） |
 | 8 | 设备树入门 | 已实测（QEMU vexpress-a9） |
