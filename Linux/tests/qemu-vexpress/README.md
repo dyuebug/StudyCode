@@ -19,7 +19,9 @@
 | 7 | 多实例、次设备号、drvdata | 无 |
 | 8 | 自定义设备树节点、`compatible` 匹配 | 无（需自定义 dtb） |
 | 9 | `devm_gpiod_get`、GPIO 写入与读回 | `basic-mmio-gpio` |
-| 10–14 | 中断源、I2C、SPI、传感器 | vexpress 未建模，不覆盖 |
+| 10 | 等待队列、非阻塞、poll、ioctl | 定时器替代硬件中断 |
+| 11 | timer / tasklet / workqueue / 卸载清理 | 无 |
+| 12–14 | 传感器、I2C、SPI | vexpress 未建模，不覆盖 |
 
 ## 前置
 

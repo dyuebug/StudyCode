@@ -24,12 +24,17 @@ MODULES := \
 	$(EXP)/Day08_设备树匹配/led_dts_drv.ko \
 	$(EXP)/Day09_pinctrl与GPIO/led_gpio_drv.ko
 
-.PHONY: all clean modules initramfs dtb
+EVENT_KO := module/event_demo.ko
+
+.PHONY: all clean modules initramfs dtb event-module
 
 all: initramfs
 
 dtb:
 	bash build-dtb.sh
+
+event-module:
+	$(MAKE) -C $(KDIR) M=$(PWD)/module ARCH=arm CROSS_COMPILE=$(CROSS) modules
 
 init:
 	$(CC) -static -O2 -Wall -o init init.c
@@ -39,13 +44,15 @@ modules:
 		$(MAKE) -s -C $$d all KDIR=$(KDIR) ARCH=arm CROSS_COMPILE=$(CROSS); \
 	done
 
-initramfs: init modules
+initramfs: init modules event-module
 	rm -rf rootfs initramfs.cpio.gz
 	mkdir -p rootfs/proc rootfs/sys rootfs/dev
 	cp init rootfs/init
 	cp $(MODULES) rootfs/
+	cp $(EVENT_KO) rootfs/
 	cd rootfs && find . -print0 | cpio --null -o -H newc 2>/dev/null | gzip -9 > ../initramfs.cpio.gz
 	@ls -lh initramfs.cpio.gz
 
 clean:
-	rm -rf rootfs initramfs.cpio.gz init
+	rm -rf rootfs initramfs.cpio.gz init 100ask-vexpress.dtb .100ask-vexpress.pre.dts
+	rm -f module/*.ko module/*.o module/.*.cmd module/Module.symvers module/modules.order

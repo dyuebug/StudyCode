@@ -1,6 +1,6 @@
 # Day11：综合机制、上下文与资源退出
 
-**验证状态**：未验证。需要目标内核与硬件中断源，当前环境不具备。
+**验证状态**：部分实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。定时器、tasklet、workqueue 与卸载清理顺序已验证，模块可正常卸载并打印 `resources released`；**线程化中断未覆盖**（QEMU 无中断源）。
 
 ## 学习目标
 
@@ -303,6 +303,8 @@ static int key_remove(struct platform_device *pdev)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 已执行 | 源码阅读：综合版 `gpio_key_drv.c`（329 行）的机制调用清单 |
-| 未执行 | 编译、加载、卸载稳定性测试 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0 |
+| 已执行 | timer / tasklet / workqueue 运行；`SYS_delete_module` 触发 remove 路径 |
+| 实测输出 | `event_demo: tasklet ran`、`event_demo: exit, resources released` |
+| 未执行 | 线程化中断、真实硬件中断、压力循环卸载 |
+| 结论 | 上下文机制与卸载顺序已实测；中断部分仍需板卡 |

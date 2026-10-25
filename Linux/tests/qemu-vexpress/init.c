@@ -15,15 +15,21 @@
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/mount.h>
 #include <sys/reboot.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/sysmacros.h>
 #include <unistd.h>
+
+#define EVENT_IOC_CLEAR  _IO('q', 0)
+#define EVENT_IOC_PAUSE  _IO('q', 1)
+#define EVENT_IOC_RESUME _IO('q', 2)
 
 static int failures;
 
@@ -211,6 +217,56 @@ static void test_day09(void)
 	close(fd);
 }
 
+static void test_event(void)
+{
+	struct pollfd pfd;
+	int fd, fdn, v = 0;
+	ssize_t n;
+
+	mark(access("/dev/qemu_event", F_OK) == 0,
+	     "Day10 /dev/qemu_event created");
+
+	fd = open("/dev/qemu_event", O_RDWR);
+	if (fd < 0) {
+		mark(0, "Day10 open /dev/qemu_event");
+		return;
+	}
+
+	/* 先停事件源并清零，保证非阻塞读结果确定 */
+	mark(ioctl(fd, EVENT_IOC_PAUSE) == 0, "Day10 ioctl PAUSE");
+	mark(ioctl(fd, EVENT_IOC_CLEAR) == 0, "Day10 ioctl CLEAR");
+
+	fdn = open("/dev/qemu_event", O_RDONLY | O_NONBLOCK);
+	mark(fdn >= 0, "Day10 open nonblocking");
+	if (fdn >= 0) {
+		n = read(fdn, &v, sizeof(v));
+		mark(n < 0 && errno == EAGAIN,
+		     "Day10 nonblocking read returns EAGAIN");
+		close(fdn);
+	}
+
+	mark(ioctl(fd, EVENT_IOC_RESUME) == 0, "Day10 ioctl RESUME");
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	v = poll(&pfd, 1, 2000);
+	mark(v > 0 && (pfd.revents & POLLIN), "Day10 poll reports POLLIN");
+
+	v = 0;
+	n = read(fd, &v, sizeof(v));
+	mark(n == sizeof(v) && v > 0, "Day10 blocking read returns event");
+
+	close(fd);
+}
+
+static void test_unload(void)
+{
+	long r = syscall(SYS_delete_module, "event_demo", O_NONBLOCK);
+
+	mark(r == 0, "Day11 unload triggers remove path");
+}
+
 int main(void)
 {
 	printf("\n===== qemu-vexpress verification =====\n");
@@ -250,6 +306,12 @@ int main(void)
 	/* Day9：GPIO 消费者（gpiolib） */
 	if (load_module("/led_gpio_drv.ko") == 0)
 		test_day09();
+
+	/* Day10/11：定时器事件 + 等待队列 + poll + ioctl + 卸载清理 */
+	if (load_module("/event_demo.ko") == 0) {
+		test_event();
+		test_unload();
+	}
 
 	printf("===== result: %s (failures=%d) =====\n",
 	       failures ? "FAILED" : "PASSED", failures);

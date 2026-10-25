@@ -82,6 +82,28 @@ led_multi: minor=0 pin=3 value=1
 led_dts myled_for_test: probe: pin=3
 ```
 
+## 实测输出（Day10–Day11，定时器事件替代硬件中断）
+
+```text
+[ OK ] loaded /event_demo.ko
+[ OK ] Day10 /dev/qemu_event created
+[ OK ] Day10 ioctl PAUSE
+[ OK ] Day10 ioctl CLEAR
+[ OK ] Day10 open nonblocking
+[ OK ] Day10 nonblocking read returns EAGAIN
+[ OK ] Day10 ioctl RESUME
+[ OK ] Day10 poll reports POLLIN
+[ OK ] Day10 blocking read returns event
+event_demo: tasklet ran, count=1
+[ OK ] Day11 unload triggers remove path
+===== result: PASSED (failures=0) =====
+event_demo: exit, resources released
+```
+
+> 限制：QEMU vexpress 没有可注入的中断源，`request_irq` / `request_threaded_irq`
+> 的真实投递未验证。上面的验证覆盖等待队列、`poll`、`ioctl`、timer、tasklet、
+> workqueue 与卸载清理顺序。
+
 ## 结论
 
 | Day | 验证项 | 结果 |
@@ -93,6 +115,8 @@ led_dts myled_for_test: probe: pin=3
 | 7 | 多实例、次设备号、drvdata、设备节点 | 通过 |
 | 8 | 设备树 compatible 匹配、属性读取 | 通过 |
 | 9 | `devm_gpiod_get`、GPIO 写入与读回 | 通过 |
+| 10 | 阻塞/非阻塞/poll/ioctl | 通过（中断未覆盖） |
+| 11 | timer/tasklet/workqueue、卸载清理 | 通过（中断未覆盖） |
 
 ## 未覆盖
 

@@ -1,6 +1,6 @@
 # Day10：中断、阻塞/非阻塞、poll 与控制接口
 
-**验证状态**：未验证。需要目标内核树、设备树与板卡，当前环境不具备。
+**验证状态**：部分实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。阻塞读、非阻塞 `EAGAIN`、`poll` 与 `ioctl` 已用内核定时器事件验证通过；**硬件中断投递（`request_irq` / `request_threaded_irq`）未覆盖**。证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -339,6 +339,8 @@ static irqreturn_t key_isr(int irq, void *data)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 已执行 | 源码阅读：`gpio_key_drv.c`（120 行完整）、Day11 综合版关键调用 |
-| 未执行 | 编译、加载、中断与 poll 验证 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | QEMU vexpress-a9 + Linux 7.0.0；定时器驱动事件（100ms） |
+| 已执行 | 非阻塞读 `EAGAIN`、`poll` 返回 `POLLIN`、阻塞读返回事件、`ioctl` PAUSE/CLEAR/RESUME |
+| 实测输出 | 五项断言全部 `[ OK ]` |
+| 未执行 | 硬件中断注册与投递（QEMU 无外部输入） |
+| 结论 | 等待队列与多路复用路径已实测；中断部分仍需板卡 |
