@@ -160,7 +160,52 @@
 
 验收：能解释所用接口的返回值；能标出所有权；能指出三个版本/并发陷阱；有实验则另附真实证据，无实验则维持“未验证”。完整题目见 [工作簿](../notes/驱动入门_Day2-Day14_练习与验收工作簿.md)。
 
-## 11. 延伸阅读
+## 11. 实测版本差异与构建陷阱
+
+以下条目均为 2026-10 在 Linux 7.0.0 源码树上交叉编译 / QEMU 运行时实际命中并修复过的问题，不是文档转述。完整记录见 [`tests/qemu-vexpress/RESULT.md`](../tests/qemu-vexpress/RESULT.md)。
+
+### 宏名冲突
+
+| 现象 | 根因 | 处理 |
+| --- | --- | --- |
+| `macro 'key_init' passed 1 arguments, but takes just 0` | `include/linux/key.h` 已定义 `#define key_init() do { } while (0)` | 模块入口改名（如 `key_irq_init`） |
+
+结论：模块入口函数名不一定冲突于函数，也可能撞上内核头文件的宏；报错信息指向的是预处理阶段，先查宏再查语法。
+
+### 定时器 API（6.15 起改名）
+
+| 旧名 | 新名 | 可移植写法 |
+| --- | --- | --- |
+| `from_timer(p, t, member)` | `timer_container_of(t, p, member)` | `container_of(t, struct X, member)` 跨版本通用 |
+| `del_timer_sync(t)` | `timer_delete_sync(t)` | `LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)` 分支 |
+
+### 驱动回调签名（6.11 起）
+
+`platform_driver.remove`、`i2c_driver.remove`、`spi_driver.remove` 均返回 `void`；旧示例返回 `int` 会报 `incompatible pointer type`。另外 6.3 起 `i2c_driver.probe` 去掉了 `id` 参数，6.4 起 `class_create()` 去掉了 `owner` 参数。
+
+### drvdata 必须走所属总线的接口
+
+| 总线 | 正确接口 | 错误写法 |
+| --- | --- | --- |
+| platform | `platform_set_drvdata()` / `platform_get_drvdata()` | — |
+| I2C | `i2c_set_clientdata()` / `i2c_get_clientdata()` | 用 `platform_*`，编译即报隐式声明 |
+| SPI | `spi_set_drvdata()` / `spi_get_drvdata()` | — |
+
+### framebuffer 的 `fb_ops` 是功能闸门
+
+`register_framebuffer()` 成功后 `/dev/fb0` 是否可 `read`/`write`，取决于 `fb_info.fbops` 是否提供 `fb_read`/`fb_write`。显存在 CPU 可直接访问的内存中时，用 `fb_sys_read` / `fb_sys_write` + `sys_fillrect` / `sys_copyarea` / `sys_imageblit`；否则 `dd ... of=/dev/fb0` 不会成功。另：`dma_alloc_wc(NULL, ...)` 会因内部解引用 `dev` 而失败，必须传真实设备并在 `dma_free_wc` 中使用同一设备。
+
+### 交叉编译三件事
+
+| 现象 | 根因 | 处理 |
+| --- | --- | --- |
+| `fatal error: asm/rwonce.h: No such file or directory` | Makefile 内的 `ARCH ?= arm` 未 `export`，kbuild 子进程按主机架构解析头文件 | 补 `export ARCH` / `export CROSS_COMPILE` |
+| `modpost: "__spi_register_driver" undefined` | 目标内核未开启对应子系统 | 开 `CONFIG_SPI` 并重建 `zImage`，使 `Module.symvers` 含该符号 |
+| 配置被改回主机架构 | `make olddefconfig` 漏了 `ARCH=arm` | 所有 kbuild 调用统一带 `ARCH` |
+
+`CONFIG_SPI` 在现代内核中是 `bool` 而非 `tristate`，`./scripts/config --module SPI` 会被静默忽略。
+
+## 12. 延伸阅读
 
 - [Linux Driver API](https://docs.kernel.org/driver-api/index.html)
 - [Device Tree 文档](https://docs.kernel.org/devicetree/index.html)
