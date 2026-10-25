@@ -140,8 +140,12 @@ static int key_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, k);
 
 	if (IS_ERR(device_create(key_class, NULL, MKDEV(major, 0),
-				 NULL, "myk")))
+				 NULL, "myk"))) {
+		/* probe 失败时平台核心不会调用 remove，中断必须在此释放 */
+		free_irq(k->irq, k);
+		the_key = NULL;
 		return -ENODEV;
+	}
 
 	dev_info(&pdev->dev, "probe: irq=%d\n", k->irq);
 	return 0;
@@ -179,7 +183,12 @@ static struct platform_driver key_driver = {
 	},
 };
 
-static int __init key_init(void)
+/*
+ * 注意：不能把模块初始化函数命名为 key_init。
+ * <linux/key.h> 已定义 #define key_init() do { } while (0)，
+ * 同名会导致 "macro passed 1 arguments, but takes just 0" 编译错误。
+ */
+static int __init key_irq_init(void)
 {
 	int err;
 
@@ -206,15 +215,15 @@ static int __init key_init(void)
 	return err;
 }
 
-static void __exit key_exit(void)
+static void __exit key_irq_exit(void)
 {
 	platform_driver_unregister(&key_driver);
 	class_destroy(key_class);
 	unregister_chrdev(major, DEV_NAME);
 }
 
-module_init(key_init);
-module_exit(key_exit);
+module_init(key_irq_init);
+module_exit(key_irq_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Day10 IRQ + waitqueue + poll + ioctl");

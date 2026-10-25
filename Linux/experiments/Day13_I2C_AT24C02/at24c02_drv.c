@@ -146,7 +146,8 @@ static int at24c02_probe(struct i2c_client *client,
 	}
 
 	at24c02_client = client;
-	platform_set_drvdata(&client->dev, client);
+	/* I2C 设备的驱动数据应走 i2c_set_clientdata，而不是 platform_set_drvdata */
+	i2c_set_clientdata(client, client);
 
 	if (IS_ERR(device_create(at24c02_class, &client->dev,
 				 MKDEV(major, 0), NULL, DEV_NAME)))
@@ -156,12 +157,19 @@ static int at24c02_probe(struct i2c_client *client,
 	return 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
+static void at24c02_remove(struct i2c_client *client)
+#else
 static int at24c02_remove(struct i2c_client *client)
+#endif
 {
 	device_destroy(at24c02_class, MKDEV(major, 0));
+	i2c_set_clientdata(client, NULL);
 	at24c02_client = NULL;
 	dev_info(&client->dev, "remove\n");
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static const struct of_device_id at24c02_of_match[] = {

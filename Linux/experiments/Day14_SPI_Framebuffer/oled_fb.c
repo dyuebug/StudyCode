@@ -6,6 +6,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/spi/spi.h>
+#include <linux/string.h>
 #include <linux/version.h>
 
 /*
@@ -83,6 +84,19 @@ static ssize_t flush_store(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR_WO(flush);
 
+/*
+ * 没有 fb_ops，/dev/fb0 就无法 read/write，register_framebuffer 也会被 fbcon 拒绝。
+ * 显存在 CPU 可直接访问的内存中，因此使用 sys_* 系列通用实现。
+ */
+static const struct fb_ops oled_fb_ops = {
+	.owner        = THIS_MODULE,
+	.fb_read      = fb_sys_read,
+	.fb_write     = fb_sys_write,
+	.fb_fillrect  = sys_fillrect,
+	.fb_copyarea  = sys_copyarea,
+	.fb_imageblit = sys_imageblit,
+};
+
 static int oled_probe(struct spi_device *spi)
 {
 	dma_addr_t phy;
@@ -114,8 +128,10 @@ static int oled_probe(struct spi_device *spi)
 	oled_fb_info->fix.type = FB_TYPE_PACKED_PIXELS;
 	oled_fb_info->fix.visual = FB_VISUAL_MONO10;
 	oled_fb_info->fix.line_length = XRES / 8;
+	oled_fb_info->fbops = &oled_fb_ops;
 
-	oled_fb_info->screen_base = dma_alloc_wc(NULL, FB_SIZE, &phy,
+	/* 必须传入真实设备：dma_alloc_wc(NULL, ...) 会在内部解引用 dev 而崩溃 */
+	oled_fb_info->screen_base = dma_alloc_wc(&spi->dev, FB_SIZE, &phy,
 						 GFP_KERNEL);
 	if (!oled_fb_info->screen_base) {
 		err = -ENOMEM;
@@ -141,7 +157,7 @@ static int oled_probe(struct spi_device *spi)
 err_unregister:
 	unregister_framebuffer(oled_fb_info);
 err_free:
-	dma_free_wc(NULL, FB_SIZE, oled_fb_info->screen_base,
+	dma_free_wc(&spi->dev, FB_SIZE, oled_fb_info->screen_base,
 		    oled_fb_info->fix.smem_start);
 err_release:
 	framebuffer_release(oled_fb_info);
@@ -149,16 +165,22 @@ err_release:
 	return err;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
+static void oled_remove(struct spi_device *spi)
+#else
 static int oled_remove(struct spi_device *spi)
+#endif
 {
 	device_remove_file(oled_fb_info->dev, &dev_attr_flush);
 	unregister_framebuffer(oled_fb_info);
-	dma_free_wc(NULL, FB_SIZE, oled_fb_info->screen_base,
+	dma_free_wc(&spi->dev, FB_SIZE, oled_fb_info->screen_base,
 		    oled_fb_info->fix.smem_start);
 	framebuffer_release(oled_fb_info);
 	oled_fb_info = NULL;
 	dev_info(&spi->dev, "remove\n");
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static const struct of_device_id oled_of_match[] = {

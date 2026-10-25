@@ -46,7 +46,8 @@ static irqreturn_t key_hardirq(int irq, void *data)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
 static void key_timer_cb(struct timer_list *t)
 {
-	struct key_dev *k = from_timer(k, t, timer);
+	/* from_timer() 在 6.15 被改名为 timer_container_of()，直接用 container_of 可跨版本 */
+	struct key_dev *k = container_of(t, struct key_dev, timer);
 
 	dev_info(k->dev, "timer: count=%u\n", k->count);
 }
@@ -171,7 +172,11 @@ static int key_remove(struct platform_device *pdev)
 
 	/* 顺序：先停事件源，再释放引用 */
 	disable_irq(k->irq);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+	timer_delete_sync(&k->timer);	/* 6.15 起 del_timer_sync() 的新名字 */
+#else
 	del_timer_sync(&k->timer);
+#endif
 	cancel_work_sync(&k->work);
 	free_irq(k->irq, k);
 
@@ -199,7 +204,7 @@ static struct platform_driver key_driver = {
 	},
 };
 
-static int __init key_init(void)
+static int __init key_ctx_init(void)
 {
 	int err;
 
@@ -226,15 +231,15 @@ static int __init key_init(void)
 	return err;
 }
 
-static void __exit key_exit(void)
+static void __exit key_ctx_exit(void)
 {
 	platform_driver_unregister(&key_driver);
 	class_destroy(key_class);
 	unregister_chrdev(major, DEV_NAME);
 }
 
-module_init(key_init);
-module_exit(key_exit);
+module_init(key_ctx_init);
+module_exit(key_ctx_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Day11 context rules and resource teardown");
