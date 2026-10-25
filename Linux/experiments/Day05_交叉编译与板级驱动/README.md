@@ -77,4 +77,9 @@ rmmod led_drv
 
 ## 验证状态
 
-未在本机验证。当前环境无 ARM 交叉工具链、无目标内核树、无开发板。
+**部分实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`led_drv.ko` 为 ARM ELF，`modinfo` 架构校验通过
+- 加载后 `/dev/myled` 创建成功，卸载走 remove 路径
+
+**未验证**：i.MX6ULL GPIO5 / IOMUXC 寄存器写入与 LED 点亮现象，`vexpress-a9` 无对应硬件，需要真实目标板。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

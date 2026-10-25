@@ -1,6 +1,6 @@
 # Day10：中断、阻塞/非阻塞、poll 与控制接口
 
-**验证状态**：部分实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。阻塞读、非阻塞 `EAGAIN`、`poll` 与 `ioctl` 已用内核定时器事件验证通过；**硬件中断投递（`request_irq` / `request_threaded_irq`）未覆盖**。证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
+**验证状态**：编译实测 + 机制部分实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。本日驱动 `gpio_key_irq.ko` 已交叉编译通过；阻塞读、非阻塞 `EAGAIN`、`poll` 与 `ioctl` 由**替代模块 `event_demo`** 验证通过——运行期证据不来自本日驱动本身；**硬件中断投递（`request_irq` / `request_threaded_irq`）未覆盖**。证据见 `Linux/tests/qemu-vexpress/RESULT.md`。
 
 ## 学习目标
 
@@ -226,7 +226,7 @@ static irqreturn_t key_thread(int irq, void *data)
 
 ```bash
 cd Linux/experiments/Day10_中断与poll
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 目标板：
@@ -273,6 +273,7 @@ key event: value=0 count=2
 | 非阻塞读不返回 `EAGAIN` | 未检查 `O_NONBLOCK` | 在 `read` 开头分支 |
 | 卸载后中断仍触发 | 未 `free_irq` | 检查 `remove` 路径 |
 | `ioctl` 返回 `EINVAL` | 命令号不匹配 | 打印 `cmd` 的十六进制值 |
+| 编译报 `macro 'key_init' passed 1 arguments, but takes just 0` | 函数名与 `<linux/key.h>` 的 `#define key_init()` 冲突 | 改名为 `key_irq_init` |
 
 ## 故障排查方法
 
@@ -340,7 +341,9 @@ static irqreturn_t key_isr(int irq, void *data)
 | --- | --- |
 | 日期 | 2026-10-25 |
 | 环境 | QEMU vexpress-a9 + Linux 7.0.0；定时器驱动事件（100ms） |
-| 已执行 | 非阻塞读 `EAGAIN`、`poll` 返回 `POLLIN`、阻塞读返回事件、`ioctl` PAUSE/CLEAR/RESUME |
+| 已执行（编译） | `gpio_key_irq.c` 交叉编译为 ARM ELF `gpio_key_irq.ko`，测试程序 `button_test` 同为 ARM |
+| 已执行（运行） | 非阻塞读 `EAGAIN`、`poll` 返回 `POLLIN`、阻塞读返回事件、`ioctl` PAUSE/CLEAR/RESUME |
 | 实测输出 | 五项断言全部 `[ OK ]` |
-| 未执行 | 硬件中断注册与投递（QEMU 无外部输入） |
-| 结论 | 等待队列与多路复用路径已实测；中断部分仍需板卡 |
+| 验证载体 | 运行验证使用替代模块 `tests/qemu-vexpress/module/event_demo.c`，不是本日驱动 |
+| 未执行 | 本日驱动的运行期行为、硬件中断注册与投递（QEMU 无外部输入） |
+| 结论 | 本日驱动编译通过；等待队列与多路复用机制已由等价模块实测；中断部分仍需板卡 |

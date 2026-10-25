@@ -200,7 +200,7 @@ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- dtbs
 
 ```bash
 cd Linux/experiments/Day09_pinctrl与GPIO
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 3. 目标板上：

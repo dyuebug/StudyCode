@@ -1,6 +1,6 @@
 # Day14：SPI、Framebuffer 与 14 天总复盘
 
-**验证状态**：未验证。需要目标板、SPI OLED 模块与可加载的 dtb，当前环境不具备。
+**验证状态**：编译实测，运行未验证。`oled_fb.ko` 与 `oled_test` 已交叉编译为 ARM 产物并通过 `modpost`（2026-10-25，Linux 7.0.0 内核树）；SPI 通信与屏幕显示需要目标板、SSD1306 模块与可加载的 dtb。
 
 ## 学习目标
 
@@ -184,9 +184,10 @@ ret = spi_transfer(spi, &xfer);
 
 ```text
 oled_fb.c      最小 Framebuffer 驱动 + SSD1306 初始化 + 手动 flush
+oled_test.c    用户态测试：checker / bars / fill / clear 四种图案
 oled.dts       设备树片段
 Makefile
-README.md      接线、编译、mmap 测试与超时排查
+README.md      接线、编译、写显存与超时排查
 ```
 
 核心流程：
@@ -195,20 +196,24 @@ README.md      接线、编译、mmap 测试与超时排查
 probe
   -> 取 spi_device、dc gpio
   -> framebuffer_alloc
-  -> 设置 var/fix
+  -> 设置 var/fix/fbops
   -> dma_alloc_wc 分配 1024 字节显存
   -> register_framebuffer
   -> OLED 初始化（命令序列）
 应用
-  -> mmap /dev/fb0 写入像素
+  -> write() /dev/fb0 写入像素（走 fb_ops->fb_write）
   -> echo 1 > /sys/.../flush 触发整屏刷新
 ```
+
+> `fb_ops` 是这个驱动能否工作的分界点：没有它，`register_framebuffer` 之后
+> `/dev/fb0` 不能 `read`/`write`，fbcon 也不会接管。本驱动用
+> `fb_sys_read` / `fb_sys_write` 加三个 `sys_*` 绘图函数，因为显存由 CPU 直接访问。
 
 ## 编译与运行
 
 ```bash
 cd Linux/experiments/Day14_SPI_Framebuffer
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 目标板：
@@ -218,7 +223,10 @@ insmod oled_fb.ko
 ls -l /dev/fb*
 cat /sys/class/graphics/fb0/virtual_size
 
-# 写满一屏
+# 写满一屏（走 fb_ops->fb_write）
+./oled_test checker
+
+# 或用 dd 手工写入
 dd if=/dev/urandom of=/dev/fb0 bs=1024 count=1
 
 # 触发刷新（路径以实际 class 名为准）
@@ -253,7 +261,9 @@ oled_fb: flush 1024 bytes
 | 显示花屏 | 显存页/列地址设置错误 | 对照 SSD1306 手册 |
 | `spi_write` 返回 `-EINVAL` | `spi-max-frequency` 或模式不匹配 | 检查 dts |
 | `/dev/fb0` 不存在 | `register_framebuffer` 失败 | 看 `dmesg` |
-| `mmap` 失败 | 未设置 `fix.smem_len` | 检查 fix 字段 |
+| 写 `/dev/fb0` 失败 | 没有 `fb_ops` 或未设置 `fb_write` | 补 `fb_sys_write` |
+| `mmap` 失败 | 未实现 `fb_mmap` | 本驱动用 `write()` 写显存 |
+| `modpost: "__spi_register_driver" undefined` | 目标内核未开启 `CONFIG_SPI` | 内核配置中启用 SPI 后重编 |
 | 卸载后 oops | 未 `unregister_framebuffer` / `dma_free_wc` | 检查 remove 顺序 |
 | 屏幕闪烁 | 整屏刷新过于频繁 | 加脏区或降低刷新率 |
 
@@ -345,6 +355,7 @@ static int oled_remove(struct spi_device *spi)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 已执行 | 源码阅读：`oled.dts`、`01_oled_framebuffer/oled_drv.c` 结构 |
-| 未执行 | 编译、SPI 通信、屏幕显示验证 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | WSL Ubuntu + arm-linux-gnueabihf-gcc 15.2.0 + Linux 7.0.0 内核树（`CONFIG_SPI=y`） |
+| 已执行 | 交叉编译 `oled_fb.ko`、`oled_test`（均为 ARM ELF）、`modpost` 符号解析、源码阅读 |
+| 未执行 | SPI 通信、屏幕显示、`fb_ops` 运行时行为 |
+| 结论 | 编译链路已实测；运行行为未验证 |

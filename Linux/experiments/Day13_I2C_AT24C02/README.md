@@ -15,7 +15,7 @@
 ```bash
 i2cdetect -y 1          # 确认 0x50
 
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 insmod at24c02_drv.ko
 ls -l /dev/at24c02
 
@@ -52,4 +52,6 @@ data match
 
 ## 验证状态
 
-未在本机验证。需要目标板与 AT24C02 模块。
+**编译实测**（2026-10-25）：`at24c02_drv.ko` 与 `at24c02_test` 均为 ARM ELF 产物。
+
+**未验证**：`i2cdetect` 探测、读写比对与写周期等待效果，需要目标板与 AT24C02 器件。

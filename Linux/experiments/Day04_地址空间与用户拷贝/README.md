@@ -69,4 +69,11 @@ read short -> 1, byte0 = 200
 
 ## 验证状态
 
-未在本机验证（WSL2 无法构建和加载内核模块）。请在 QEMU、虚拟机或开发板中执行。
+**已实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`hello_copy.ko` 为 ARM ELF
+- 内核缓冲区初值 123 经 `copy_to_user` 正确读出
+- `copy_from_user` 写入 456 后读回一致
+- 1 字节短读只拿到 1 字节，无越界
+
+**未验证**：非法用户指针（`-EFAULT` 路径）与并发读写。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

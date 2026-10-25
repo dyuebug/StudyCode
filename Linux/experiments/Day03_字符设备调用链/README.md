@@ -66,4 +66,10 @@ sudo dmesg | tail -5
 
 ## 验证状态
 
-未在本机验证（WSL2 无法构建和加载内核模块）。请在 QEMU、虚拟机或开发板中执行。
+**已实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`hello_chrdev.ko` 与 `hello_chrdev_test` 均为 ARM ELF
+- `mknod /dev/hello_chrdev` 后 open/write/read/release 全部打通（write/read 为桩函数，返回 1）
+- 主设备号由内核动态分配，并通过 `/proc/devices` 解析后建节点
+
+**未验证**：真实应用的数据协议与并发访问。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

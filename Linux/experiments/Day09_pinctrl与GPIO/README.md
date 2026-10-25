@@ -20,7 +20,7 @@
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- dtbs
 
 # 模块
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88
 ```
 
 ### 3. 目标板验证
@@ -66,4 +66,10 @@ led_gpio: set logical value 1
 
 ## 验证状态
 
-未在本机验证。需要目标内核树、可加载 dtb 的板卡或 QEMU。
+**已实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`led_gpio_drv.ko` 为 ARM ELF
+- 从设备树取得 GPIO，`/dev/myled_gpio` 创建成功
+- 写逻辑 1 后读回 1、写逻辑 0 后读回 0（底层为 `basic-mmio-gpio` 模拟的 vexpress `sys_led`）
+
+**未验证**：真实 LED 的亮灭现象与 pinctrl 复用配置。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

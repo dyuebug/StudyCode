@@ -1,6 +1,6 @@
 # Day13：I2C 驱动与总线分层（AT24C02）
 
-**验证状态**：未验证。需要目标板、I2C 总线与 AT24C02 器件，当前环境不具备。
+**验证状态**：编译实测，运行未验证。`at24c02_drv.ko` 与 `at24c02_test` 已交叉编译为 ARM 产物（2026-10-25，Linux 7.0.0 内核树，`CONFIG_I2C=y`）；I2C 总线、AT24C02 器件与读写比对需要目标板。
 
 ## 学习目标
 
@@ -197,7 +197,7 @@ static int at24c02_read(struct i2c_client *c, u8 addr, u8 *buf, int len)
 
 ```bash
 cd Linux/experiments/Day13_I2C_AT24C02
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 目标板：
@@ -236,6 +236,8 @@ data match
 | 写后立即读得到旧值 | 未等待写周期 | 加 `msleep(10)` |
 | 多进程读写错乱 | 未加锁 | 用 `mutex` 保护 EEPROM 访问 |
 | `probe` 不执行 | `compatible` 不一致 | 检查 dts 与 `of_match_table` |
+| `platform_set_drvdata` 未声明 | I2C 设备不该用 platform 的 drvdata API | 改用 `i2c_set_clientdata` / `i2c_get_clientdata` |
+| `.remove` 初始化类型不兼容 | 6.11 起 `i2c_driver.remove` 返回 `void` | 加 `LINUX_VERSION_CODE` 版本分支 |
 
 ## 故障排查方法
 
@@ -302,6 +304,7 @@ static int at24c02_read(struct i2c_client *c, u8 *buf, int len)
 | 项目 | 内容 |
 | --- | --- |
 | 日期 | 2026-10-25 |
-| 已执行 | 源码阅读：`03_at24c02_read_write_ok` 的驱动结构、`at24c02.dts` |
-| 未执行 | 编译、`i2cdetect`、读写比对 |
-| 结论 | 运行结果为预期值，未实测 |
+| 环境 | WSL Ubuntu + arm-linux-gnueabihf-gcc 15.2.0 + Linux 7.0.0 内核树（`CONFIG_I2C=y`） |
+| 已执行 | 源码阅读：`03_at24c02_read_write_ok` 的驱动结构、`at24c02.dts`；交叉编译 `at24c02_drv.ko` 与 `at24c02_test`（均为 ARM ELF） |
+| 未执行 | `i2cdetect` 探测、读写比对、写周期等待的实际效果 |
+| 结论 | 编译链路已实测；I2C 通信未验证 |

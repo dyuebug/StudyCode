@@ -28,7 +28,7 @@ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- dtbs
 ### 3. 编译模块
 
 ```bash
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88
 ```
 
 ### 4. 目标板验证
@@ -59,4 +59,10 @@ led_dts myled_for_test: probe: pin=3
 
 ## 验证状态
 
-未在本机验证。需要目标内核树与可加载 dtb 的板卡/QEMU。
+**已实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`led_dts_drv.ko` 为 ARM ELF
+- 自定义 dtb 中禁用 `gpio-leds`、追加 `myled_for_test`（`compatible = "100ask,led"`）
+- 驱动注册后与节点 `compatible` 匹配成功，probe 从设备树读到 `pin=3`
+
+**未验证**：真实板卡上覆盖原始 dtb 的加载流程。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

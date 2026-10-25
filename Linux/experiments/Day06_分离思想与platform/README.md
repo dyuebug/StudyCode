@@ -62,4 +62,10 @@ ls /sys/bus/platform/drivers/ | grep hello
 
 ## 验证状态
 
-未在本机验证（WSL2 无法构建和加载内核模块）。
+**已实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`hello_platform_dev.ko` / `hello_platform_drv.ko` 均为 ARM ELF
+- 设备与驱动分别加载后按 name 匹配成功，probe 打印 `probe matched: hello_platform`
+- 先加载驱动、后加载设备同样能匹配（注册时机不影响结果）
+
+**未验证**：真实总线（PCI/USB）枚举场景。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

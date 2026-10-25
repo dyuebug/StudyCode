@@ -7,7 +7,7 @@
 ## 步骤
 
 ```bash
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 insmod key_ctx.ko
 
 ./key_ctx_test -b     # 按一次键
@@ -57,4 +57,6 @@ key_ctx: remove: irq/timer/work released
 
 ## 验证状态
 
-未在本机验证（WSL2 无法构建和加载内核模块）。
+**编译实测**（2026-10-25）：`key_ctx.ko` 与 `key_ctx_test` 均为 ARM ELF 产物。
+
+**未验证**：线程化中断、真实硬件中断与压力循环卸载，需要目标板。

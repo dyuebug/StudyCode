@@ -44,13 +44,13 @@ make clean
 
 ## 本机限制
 
-当前 WSL2 环境（内核 `6.6.87.2-microsoft-standard-WSL2`）：
+初次记录时的 WSL2 环境（内核 `6.6.87.2-microsoft-standard-WSL2`）：
 
 - 未安装 gcc / make
 - `/lib/modules/$(uname -r)/build` 不存在
 - WSL2 不支持加载自定义内核模块
 
-因此本实验**未在本机验证**。可用替代环境：
+因此无法在 WSL2 本机直接加载模块。本实验已在 QEMU vexpress-a9 中完成验证；若要在真实板卡上复现，可用：
 
 1. QEMU + 100ask_imx6ull 镜像（资料内已有）
 2. Ubuntu 虚拟机（VMware / VirtualBox）
@@ -58,5 +58,10 @@ make clean
 
 ## 验证状态
 
-- 已执行：环境能力检查（确认不可用）
-- 未执行：编译、加载、日志观察、卸载
+**已实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`hello_module.ko` 为 ARM ELF
+- `finit_module` 加载成功，`hello_module: init` 打印到控制台
+- 卸载走 `SYS_delete_module`，`hello_module: exit` 正常打印
+
+**未验证**：`insmod` / `rmmod` 命令行工具路径（QEMU 内由 PID 1 init 直接调用系统调用）；WSL2 本机加载。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

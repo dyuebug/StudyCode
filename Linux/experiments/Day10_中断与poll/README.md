@@ -10,7 +10,7 @@
 2. 编译模块：
 
 ```bash
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 3. 目标板：
@@ -61,4 +61,6 @@ key event: value=0
 
 ## 验证状态
 
-未在本机验证。需要目标板与可触发中断的 GPIO。
+**编译实测**（2026-10-25）：`gpio_key_irq.ko` 与 `button_test` 均为 ARM ELF 产物。
+
+**未验证**：真实 GPIO 中断触发、按键事件时序，需要目标板与可触发中断的引脚。

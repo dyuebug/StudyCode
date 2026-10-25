@@ -20,9 +20,9 @@
 | 7 | 多实例、次设备号、drvdata | 无 |
 | 8 | 自定义设备树节点、`compatible` 匹配 | 无（需自定义 dtb） |
 | 9 | `devm_gpiod_get`、GPIO 写入与读回 | `basic-mmio-gpio` |
-| 10 | 等待队列、非阻塞、poll、ioctl | 定时器替代硬件中断 |
-| 11 | timer / tasklet / workqueue / 卸载清理 | 无 |
-| 12–14 | 传感器、I2C、SPI | vexpress 未建模，不覆盖 |
+| 10 | 等待队列、非阻塞、poll、ioctl | 定时器替代硬件中断（运行验证用 `event_demo`） |
+| 11 | timer / tasklet / workqueue / 卸载清理 | 无（运行验证用 `event_demo`） |
+| 12–14 | 编译验证（ARM ELF） | 传感器、I2C、SPI 外设未建模，只编译不运行 |
 
 ## 前置
 
@@ -39,6 +39,7 @@ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- vexpress_defconfig
 # Day8/Day9 需要 vexpress sysreg GPIO（basic-mmio-gpio）
 ./scripts/config --enable ARCH_VIRT
 ./scripts/config --enable GPIO_GENERIC_PLATFORM
+./scripts/config --enable SPI                    # 仅 Day14 编译检查需要
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- olddefconfig
 
 make -j$(nproc) ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage dtbs modules

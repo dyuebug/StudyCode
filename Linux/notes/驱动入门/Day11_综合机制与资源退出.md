@@ -1,6 +1,6 @@
 # Day11：综合机制、上下文与资源退出
 
-**验证状态**：部分实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。定时器、tasklet、workqueue 与卸载清理顺序已验证，模块可正常卸载并打印 `resources released`；**线程化中断未覆盖**（QEMU 无中断源）。
+**验证状态**：编译实测 + 机制部分实测（QEMU vexpress-a9 + Linux 7.0.0，2026-10-25）。本日驱动 `key_ctx.ko` 已交叉编译通过；定时器、tasklet、workqueue 与卸载清理顺序由**替代模块 `event_demo`** 验证（`resources released`）——运行期证据不来自本日驱动本身；**线程化中断未覆盖**（QEMU 无中断源）。
 
 ## 学习目标
 
@@ -187,7 +187,7 @@ static int key_remove(struct platform_device *pdev)
 
 ```bash
 cd Linux/experiments/Day11_上下文与资源退出
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 目标板：
@@ -236,6 +236,9 @@ $ rmmod key_ctx
 | 中断计数持续增长但无人处理 | `free_irq` 未执行 | 检查 `remove` 路径 |
 | 卸载时卡住 | `del_timer_sync` 与回调互等 | 检查回调是否等待同一把锁 |
 | 并发读写数据错乱 | 未加锁或锁类型不当 | 用 `spin_lock_irqsave` 保护共享数据 |
+| `macro 'key_init' passed 1 arguments` | 函数名与 `<linux/key.h>` 的 `#define key_init()` 冲突 | 改名为 `key_ctx_init` |
+| `implicit declaration of 'from_timer'` | 6.15 改名为 `timer_container_of` | 直接用 `container_of(t, struct key_dev, timer)` |
+| `implicit declaration of 'del_timer_sync'` | 6.15 改名为 `timer_delete_sync` | 加 `LINUX_VERSION_CODE` 版本分支 |
 
 ## 故障排查方法
 
@@ -304,7 +307,9 @@ static int key_remove(struct platform_device *pdev)
 | --- | --- |
 | 日期 | 2026-10-25 |
 | 环境 | QEMU vexpress-a9 + Linux 7.0.0 |
-| 已执行 | timer / tasklet / workqueue 运行；`SYS_delete_module` 触发 remove 路径 |
+| 已执行（编译） | `key_ctx.c` 交叉编译为 ARM ELF `key_ctx.ko`，测试程序 `key_ctx_test` 同为 ARM |
+| 已执行（运行） | timer / tasklet / workqueue 运行；`SYS_delete_module` 触发 remove 路径 |
 | 实测输出 | `event_demo: tasklet ran`、`event_demo: exit, resources released` |
-| 未执行 | 线程化中断、真实硬件中断、压力循环卸载 |
-| 结论 | 上下文机制与卸载顺序已实测；中断部分仍需板卡 |
+| 验证载体 | 运行验证使用替代模块 `tests/qemu-vexpress/module/event_demo.c`，不是本日驱动 |
+| 未执行 | 本日驱动的运行期行为、线程化中断、真实硬件中断、压力循环卸载 |
+| 结论 | 本日驱动编译通过；上下文机制与卸载顺序已由等价模块实测；中断部分仍需板卡 |

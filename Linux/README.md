@@ -33,7 +33,7 @@
 - [Day2 当前衔接任务](daily_tasks/2026-09-19_第2天_任务.md)：模块生命周期、日志、字符设备和文件身份。
 - [Day3 后续入口](daily_tasks/2026-09-19_第3天_任务.md)：构建规则、设备文件、调用链与数据协议；后续可按序独立学习，不必等逐题聊天批改。
 
-Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day 序号不完全一致，请按 Day 学习；本批新增文件日期是计划编制日期，实际日期在执行时填写，不重命名历史记录。
+Day3～Day14 已编排，验证进度见下方「14 天标准材料」表的「验证状态」列。现有文件日期与 Day 序号不完全一致，请按 Day 学习；任务文件日期是计划编制日期，实际执行日期以 `daily_logs/` 为准，不重命名历史记录。
 
 ### 14 天标准材料
 
@@ -50,11 +50,11 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 | 7 | 总线模型深化与复盘 | 已实测（QEMU vexpress-a9） |
 | 8 | 设备树入门 | 已实测（QEMU vexpress-a9） |
 | 9 | pinctrl 与 GPIO | 已实测（QEMU vexpress-a9） |
-| 10 | 中断与 poll | 部分实测（等待队列/poll/ioctl；中断未覆盖） |
-| 11 | 上下文与资源退出 | 部分实测（timer/tasklet/work/卸载；中断未覆盖） |
-| 12 | SR501 实战 | 未验证 |
-| 13 | I2C 与总线分层 | 未验证 |
-| 14 | SPI / Framebuffer 与总复盘 | 未验证 |
+| 10 | 中断与 poll | 编译实测 + 机制部分实测（运行用替代模块；中断未覆盖） |
+| 11 | 上下文与资源退出 | 编译实测 + 机制部分实测（运行用替代模块；中断未覆盖） |
+| 12 | SR501 实战 | 编译实测（ARM）；硬件未验证 |
+| 13 | I2C 与总线分层 | 编译实测（ARM）；I2C 未验证 |
+| 14 | SPI / Framebuffer 与总复盘 | 编译实测（ARM）；SPI/FB 未验证 |
 
 可运行实验位于 [`experiments/`](experiments/)，每个 Day 一个目录，含驱动、测试程序与设备树片段。
 
@@ -62,9 +62,9 @@ Day3～Day14 已预先编排，全部仍为计划。现有文件日期与 Day �
 
 - Day1：WSL gcc 15.2.0 + MinGW gcc 15.1.0 实测。
 - Day2/3/4/6/7/8/9：QEMU vexpress-a9 + Linux 7.0.0 实测，证据见 [`tests/qemu-vexpress/RESULT.md`](tests/qemu-vexpress/RESULT.md)。
-- Day10/11：QEMU 中用定时器事件替代硬件中断，验证等待队列、poll、ioctl、timer/tasklet/work 与卸载清理；中断投递未覆盖。
+- Day10/11：本日驱动 `gpio_key_irq.ko` / `key_ctx.ko` 已交叉编译通过；运行验证使用**等价替代模块** `tests/qemu-vexpress/module/event_demo.c`（定时器事件替代硬件中断），覆盖等待队列、poll、ioctl、timer/tasklet/work 与卸载清理；中断投递未覆盖。
 - Day5：交叉编译、加载、设备节点与卸载已在 QEMU 实测；i.MX6ULL 寄存器与 LED 现象需要真实目标板。
-- Day12/13/14：需要 SR501、AT24C02、SPI OLED 等外设，当前未覆盖。
+- Day12/13/14：三个驱动与测试程序已交叉编译为 ARM 产物（2026-10-25）；SR501、AT24C02、SPI OLED 的外设行为需要真实硬件。
 
 ## 配套学习材料
 

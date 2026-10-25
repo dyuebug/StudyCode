@@ -49,4 +49,11 @@ led_multi: minor=1 pin=5 value=0
 
 ## 验证状态
 
-未在本机验证（WSL2 无法构建和加载内核模块）。
+**已实测**（2026-10-25，QEMU 10.2.1 `vexpress-a9` + Linux 7.0.0 + arm-linux-gnueabihf-gcc 15.2.0）：
+
+- 交叉编译：`led_platform_dev.ko` / `led_platform_drv.ko` 均为 ARM ELF
+- 两个同 name、不同 id 的设备分别 probe 为 `led_multi.0` / `led_multi.1`，次设备号为 0 / 1
+- `platform_data.pin` 经 probe 传入驱动，`/dev/led0`、`/dev/led1` 均创建成功
+- 写入 `/dev/led0` 后驱动侧打印 `minor=0 pin=3 value=1`
+
+**未验证**：真实 GPIO 输出与并发写。详见 [`../../tests/qemu-vexpress/RESULT.md`](../../tests/qemu-vexpress/RESULT.md)。

@@ -213,7 +213,7 @@ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- dtbs
 
 ```bash
 cd Linux/experiments/Day08_设备树匹配
-make KERN_DIR=~/100ask_imx6ull-sdk/Linux-4.9.88
+make KDIR=~/100ask_imx6ull-sdk/Linux-4.9.88 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
 4. 目标板启动新 dtb 后：
