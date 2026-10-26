@@ -1,0 +1,22 @@
+
+[F103_05] USART1 RX IRQ + ring buffer (128 B, usable 127 B)
+[1000 ms] alive, rx=0, drop=0, ore=0
+[2000 ms] alive, rx=0, drop=0, ore=0
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA[3000 ms] alive, rx=235, drop=0, ore=0
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+[4000 ms] alive, rx=302, drop=0, ore=0
+[5000 ms] alive, rx=302, drop=0, ore=0
+[6000 ms] alive, rx=302, drop=0, ore=0
+[7000 ms] alive, rx=302, drop=0, ore=0
+[8000 ms] alive, rx=302, drop=0, ore=0
+[9000 ms] alive, rx=302, drop=0, ore=0
+[10000 ms] alive, rx=302, drop=0, ore=0
+[11000 ms] alive, rx=302, drop=0, ore=0
+[12000 ms] alive, rx=302, drop=0, ore=0
+[13000 ms] alive, rx=302, drop=0, ore=0
+[14000 ms] alive, rx=302, drop=0, ore=0
+[15000 ms] alive, rx=302, drop=0, ore=0
+[16000 ms] alive, rx=302, drop=0, ore=0
+[17000 ms] alive, rx=302, drop=0, ore=0
+qemu-system-arm: terminating on signal 15 from pid 504 (timeout)

@@ -1,0 +1,22 @@
+
+=== QEMU STM32 建模探针 ===
+[1] UART：你看到这一行，说明 USART1 的 TX 通路已建模
+    SystemCoreClock = 8000000 Hz（RCC 读回 0 时走 HSI 8 MHz 分支）
+[2] Flash[0x08000000] = 0x20002000（应为初始 MSP，证明 Flash 区域有效）
+    RAM[0x20001FF0] 读回 0xA5A55A5A（写入 0xA5A55A5A，8 KB 之内）
+RCC->APB2ENR   写入 0x00000004  读回 0x00000000  未建模/只读
+    RCC->CFGR = 0x00000000
+GPIOA->ODR     写入 0x00000020  读回 0x00000000  未建模/只读
+GPIOA->CRL     写入 0x44444444  读回 0x00000000  未建模/只读
+    GPIOA->IDR = 0x00000000
+[5] TIM4：CNT 两次读数为 0 -> 0（不变说明定时器未建模）
+TIM4->CR1      写入 0x00000001  读回 0x00000000  未建模/只读
+I2C1->CR1      写入 0x00000001  读回 0x00000000  未建模/只读
+    I2C1->SR1 = 0x00000000
+SPI1->CR1      写入 0x0000034C  读回 0x0000034C  有状态
+    SPI1：写 DR 后 RXNE 置位，SR = 0x0000000B，DR = 0x00000000
+[8] DWT：CTRL 读回 0x00000000，CYCCNT 0 -> 0（差 0）
+[9] SysTick 轮询：捕获 5 次 COUNTFLAG（5 次即视为工作）
+[10] SysTick 中断：5 ms 计数到 5（≥5 说明中断通路正常）
+=== 探针结束 ===
+qemu-system-arm: terminating on signal 15 from pid 468 (timeout)

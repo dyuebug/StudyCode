@@ -13,6 +13,15 @@ set(F103_COMMON_ROOT "${CMAKE_CURRENT_LIST_DIR}/.."
     CACHE INTERNAL "F103_common 目录")
 
 set(F103_LDSCRIPT "${F103_COMMON_ROOT}/ld/STM32F103C8Tx.ld")
+
+# QEMU 的 stm32vldiscovery 建模的是 STM32F100RB（128 KB Flash / 8 KB SRAM），
+# 沿用 F103C8T6 的 _estack = 0x20005000 会在第一次压栈时 BusFault。
+# 该选项只切换链接脚本，便于做"能跑起来"的仿真验证；
+# 仿真能力边界见 Linux/tests/qemu-stm32/README.md。
+option(F103_QEMU "按 STM32F100RB（QEMU stm32vldiscovery）的内存布局构建" OFF)
+if(F103_QEMU)
+  set(F103_LDSCRIPT "${F103_COMMON_ROOT}/ld/STM32F100RB_qemu.ld")
+endif()
 set(F103_STARTUP  "${F103_COMMON_ROOT}/vendor/startup/startup_stm32f103xb.s")
 set(F103_SYSTEM   "${F103_COMMON_ROOT}/vendor/src/system_stm32f1xx.c")
 set(F103_CRTSTUB  "${F103_COMMON_ROOT}/src/crt_stubs.c")
@@ -23,10 +32,16 @@ set(F103_UART     "${F103_COMMON_ROOT}/src/f103_uart.c")
 set(F103_CPU_FLAGS -mcpu=cortex-m3 -mthumb -mfloat-abi=soft)
 
 function(f103_add_firmware TARGET)
-  cmake_parse_arguments(ARG "" "" "SOURCES;INCLUDES;DEFINES" ${ARGN})
+  cmake_parse_arguments(ARG "" "LDSCRIPT" "SOURCES;INCLUDES;DEFINES" ${ARGN})
 
   if(NOT ARG_SOURCES)
     message(FATAL_ERROR "f103_add_firmware(${TARGET}) 需要 SOURCES 参数")
+  endif()
+
+  if(ARG_LDSCRIPT)
+    set(_f103_ldscript "${ARG_LDSCRIPT}")
+  else()
+    set(_f103_ldscript "${F103_LDSCRIPT}")
   endif()
 
   add_executable(${TARGET}
@@ -56,7 +71,7 @@ function(f103_add_firmware TARGET)
 
   target_link_options(${TARGET} PRIVATE
     ${F103_CPU_FLAGS}
-    -T${F103_LDSCRIPT}
+    -T${_f103_ldscript}
     # 自带启动文件，不需要 crt0/crti；同时避免 crt0 拉入 stdio 与 syscall stub
     -nostartfiles
     --specs=nano.specs

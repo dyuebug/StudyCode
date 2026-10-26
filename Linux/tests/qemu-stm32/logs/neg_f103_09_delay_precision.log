@@ -1,0 +1,17 @@
+
+[F103_09] HCLK = 8000000 Hz，1 us = 8 cycles
+SysTick : LOAD = 7999（1 ms），CTRL = 0x10005
+TIM4    : PSC = 0，ARR = 0（1 MHz，65.536 ms 回卷）
+DWT     : CYCCNTENA 读回 = 0
+DWT 未使能，下表的周期列将恒为 0，请先排查 DEMCR/CTRL 写入
+
+请求us    方法        DWT周期     实测us   误差us
+----------------------------------------------------
+     0  SysTick            0      0.0  +0.0
+     1  SysTick            0      0.0  -1.0
+    10  SysTick            0      0.0  -10.0
+   100  SysTick            0      0.0  -100.0
+  1000  SysTick            0      0.0  -1000.0
+ 10000  SysTick            0      0.0  -10000.0
+     0  TIM4               0      0.0  +0.0
+qemu-system-arm: terminating on signal 15 from pid 524 (timeout)

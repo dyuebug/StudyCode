@@ -1,0 +1,16 @@
+
+[F103_08] SPI1 master, mode 0, 8-bit, SCLK = 2000000 Hz, CR1 = 0x034C
+JEDEC ID = 00 00 00
+非 Winbond 厂商码，按原始值记录，不猜型号
+
+--- 自检：擦除 → 写入 → 回读（会清空 4 KB 扇区 0）---
+扇区擦除 : ok         (1 ms)
+页编程 55 B: ok         (1 ms)
+回读内容 : 
+原始字节 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+结果     : FAIL（内容不一致）
+
+[3030 ms] ID = 00 00 00
+[6030 ms] ID = 00 00 00
+[9031 ms] ID = 00 00 00
+qemu-system-arm: terminating on signal 15 from pid 518 (timeout)

@@ -64,3 +64,8 @@ Linux/tests/qemu-vexpress/.100ask-vexpress.pre.dts
 
 # F103 裸机实验的 CMake 构建目录（.elf/.hex/.map 另由上面的通配规则忽略）
 Linux/experiments/F103_*/build/
+Linux/experiments/F103_*/build-qemu/
+Linux/tests/qemu-stm32/probe/build/
+
+# QEMU STM32 仿真的串口原始输出属于验证证据，需入库（*.log 默认被忽略）
+!Linux/tests/qemu-stm32/logs/*.log

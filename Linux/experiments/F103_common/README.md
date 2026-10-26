@@ -10,6 +10,7 @@
 | `cmake/arm-none-eabi.cmake` | 交叉编译工具链文件（`CMAKE_TOOLCHAIN_FILE`） |
 | `cmake/f103.cmake` | `f103_add_firmware()` / `f103_add_flash_target()` 两个函数 |
 | `ld/STM32F103C8Tx.ld` | 链接脚本。课程素材只有 Keil 的 `.sct`，此文件为自撰 |
+| `ld/STM32F100RB_qemu.ld` | QEMU `stm32vldiscovery` 用的链接脚本（128 KB Flash / 8 KB SRAM），仅在 `-DF103_QEMU=ON` 时启用 |
 | `include/f103_tick.h` | 1 ms 时基接口：轮询模式（`wait_1ms`/`delay_ms`）与中断模式（`init_irq`/`now_ms`） |
 | `src/f103_tick.c` | SysTick 实现，集中处理 `SystemCoreClock` 刷新；中断模式下占用 `SysTick_Handler`，见下文「体积开销」 |
 | `include/f103_uart.h` | USART1 轮询收发接口（`init`/`putc`/`poll`），含 `F103_UART_OVER` 状态 |
@@ -42,6 +43,22 @@ cmake --build build --target flash   # 需 ST-Link 已连接，且 openocd 可�
 ```
 
 `flash` 目标要求 `openocd` 在 `PATH` 中，或用 `-DF103_OPENOCD=<路径>` 指定；找不到时该目标自动跳过，构建不受影响。
+
+## QEMU 仿真构建
+
+加 `-DF103_QEMU=ON` 即可产出能跑在 `qemu-system-arm -M stm32vldiscovery` 上的固件：
+
+```bash
+cmake -S . -B build-qemu -G Ninja -DF103_QEMU=ON \
+  -DCMAKE_TOOLCHAIN_FILE=../F103_common/cmake/arm-none-eabi.cmake
+cmake --build build-qemu
+```
+
+该选项只做一件事：把链接脚本换成 `ld/STM32F100RB_qemu.ld`。**为什么必须换脚本**：QEMU 的 `stm32vldiscovery` 建模的是 STM32F100RB（8 KB SRAM），而 `STM32F103C8Tx.ld` 的 `_estack = 0x20005000` 超出其 RAM 范围，第一次压栈就 BusFault，表现为串口一片空白。
+
+产物放在独立的 `build-qemu/`（已加入 `.gitignore`），与真机 `build/` 并存，便于逐字节对照。
+
+**能仿真的范围很窄**：QEMU 只真实建模 USART1–3 与 SysTick；GPIO、EXTI、RCC、TIM、I2C、DWT 全部未建模，SPI 半建模。且 QEMU 的 SYSCLK 是 24 MHz，而固件按 8 MHz 计算时基，实测偏差约 2.9 倍。完整能力矩阵、原始日志与运行脚本见 [`../../tests/qemu-stm32/`](../../tests/qemu-stm32/README.md)。
 
 ## 设计取舍
 

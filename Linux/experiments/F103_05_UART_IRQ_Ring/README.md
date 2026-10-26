@@ -71,6 +71,23 @@ Memory region         Used Size  Region Size  %age Used
 
 **RAM 占用**（符号地址）：`s_drop = 0x20000060`、`s_ore = 0x20000064`、`s_ring = 0x2000006C`。
 
+**QEMU 仿真实测**（2026-10-26，QEMU 10.2.1 `-M stm32vldiscovery`，`-DF103_QEMU=ON` 构建）：
+
+```text
+[F103_05] USART1 RX IRQ + ring buffer (128 B, usable 127 B)
+alpha
+[3000 ms] alive, rx=7, drop=0, ore=0
+beta
+[6000 ms] alive, rx=13, drop=0, ore=0
+```
+
+主循环只调 `rx_ring_get()`、从不碰 `USART1->DR`（`main.c:115`），因此 `rx` 的增长只能来自
+`USART1_IRQHandler` —— **RXNE 中断确实被触发并执行了**，环形缓冲的入队/出队也正确。
+
+另跑了 300 字节突发：`rx=302`、`drop=0`、`ore=0`，且中间夹了一行心跳，说明 ISR 与主循环在交错执行。
+但**不能用它证明溢出处理正确**：QEMU 在 `RDR` 未读时通过 `can_receive` 背压住后端，
+根本不会产生真 UART 的 ORE。日志：`Linux/tests/qemu-stm32/logs/exp05_irq_ring.log`、`exp05_burst300.log`。
+
 **未验证**：实物上中断是否按预期触发、粘贴长文本时 `drop` 是否保持 0、`ORE` 在何种速率下出现。需要接板与串口工具确认。
 
 ## 关键实现点

@@ -1,0 +1,16 @@
+
+[F103_07] I2C1 master @ 100000 Hz, PCLK1 = 8000000 Hz
+CCR = 0, TRISE = 0
+WHO_AM_I 读取失败：timeout。检查 J2/J4 是否接了模块、上拉与供电。
+[1000 ms] accel 读取失败：timeout
+[2000 ms] accel 读取失败：timeout
+[3000 ms] accel 读取失败：timeout
+[4000 ms] accel 读取失败：timeout
+[5000 ms] accel 读取失败：timeout
+[6000 ms] accel 读取失败：timeout
+[7000 ms] accel 读取失败：timeout
+[8000 ms] accel 读取失败：timeout
+[9000 ms] accel 读取失败：timeout
+[10000 ms] accel 读取失败：timeout
+[11000 ms] accel 读取失败：timeout
+qemu-system-arm: terminating on signal 15 from pid 512 (timeout)

@@ -69,7 +69,26 @@ Memory region         Used Size  Region Size  %age Used
 | `UE \| TE \| RE` | `movw r2,#0x200C` → `str [+0x0C]` | UE=0x2000、TE=0x8、RE=0x4 ✓ |
 | `_sbrk` 上界 | `end`(0x200001B8) + `_Min_Heap_Size`(0x200) | 堆上限 0x200003B8，与链接脚本预留一致 ✓ |
 
+**QEMU 仿真实测**（2026-10-26，QEMU 10.2.1 `-M stm32vldiscovery`，`-DF103_QEMU=ON` 构建）：
+
+```text
+[F103_04] USART1 echo, PCLK2=8000000 Hz, 115200 8N1
+[2000 ms] alive, rx=0, over=0
+hello
+
+[3000 ms] alive, rx=7, over=0
+...
+xyz
+
+[6000 ms] alive, rx=12, over=0
+```
+
+输入 `hello\r\n`（7 字节）与 `xyz\r\n`（5 字节）后，`rx` 由 0 → 7 → 12，回显逐字节正确，`over` 始终 0。
+说明轮询收发的寄存器路径在 QEMU 的 USART 模型上成立。原始日志：`Linux/tests/qemu-stm32/logs/exp04_echo.log`。
+
 **未验证**：真实串口收发、波特率误差在实物上的容错、USB 转串口驱动的缓冲行为。需要接板与串口工具确认。
+另外 QEMU 不做比特级移位，`BRR` 配错也照样收发，因此"115200 8N1"这一项**不能**由仿真结果背书；
+QEMU 的 SYSCLK 是 24 MHz，心跳里的"毫秒"约为真实时间的 2.9 倍（见 `tests/qemu-stm32/RESULT.md` §3.3）。
 
 ## 关键实现点
 
