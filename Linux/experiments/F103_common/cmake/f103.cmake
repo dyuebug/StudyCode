@@ -16,6 +16,8 @@ set(F103_LDSCRIPT "${F103_COMMON_ROOT}/ld/STM32F103C8Tx.ld")
 set(F103_STARTUP  "${F103_COMMON_ROOT}/vendor/startup/startup_stm32f103xb.s")
 set(F103_SYSTEM   "${F103_COMMON_ROOT}/vendor/src/system_stm32f1xx.c")
 set(F103_CRTSTUB  "${F103_COMMON_ROOT}/src/crt_stubs.c")
+set(F103_TICK     "${F103_COMMON_ROOT}/src/f103_tick.c")
+set(F103_UART     "${F103_COMMON_ROOT}/src/f103_uart.c")
 
 # Cortex-M3 无 FPU：浮点一律走软件库，避免链接期找不到硬件浮点指令
 set(F103_CPU_FLAGS -mcpu=cortex-m3 -mthumb -mfloat-abi=soft)
@@ -31,9 +33,12 @@ function(f103_add_firmware TARGET)
     ${ARG_SOURCES}
     ${F103_STARTUP}
     ${F103_SYSTEM}
-    ${F103_CRTSTUB})
+    ${F103_CRTSTUB}
+    ${F103_TICK}
+    ${F103_UART})
 
   target_include_directories(${TARGET} PRIVATE
+    "${F103_COMMON_ROOT}/include"
     "${F103_COMMON_ROOT}/vendor/cmsis/core"
     "${F103_COMMON_ROOT}/vendor/cmsis/device"
     ${ARG_INCLUDES})

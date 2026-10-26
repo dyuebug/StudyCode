@@ -73,7 +73,7 @@ Day3～Day14 已编排，验证进度见下方「14 天标准材料」表的「�
 驱动入门之后的嵌入式主干，按 `CLAUDE.md` 阶段 7 的「STM32F103 外设 → FreeRTOS」推进。
 
 - [`experiments/F103_common/`](experiments/F103_common/README.md)：自撰链接脚本、裁剪的 CMSIS 子集、CMake 工具链文件、OpenOCD 烧写配置。
-- [`experiments/F103_01_GPIO_Blink/`](experiments/F103_01_GPIO_Blink/README.md)：寄存器级 LED 点灯，已构建实测，板级现象待接板确认。
+- 实验索引：[`experiments/README.md`](experiments/README.md) 的「MCU 分支实验」表。已覆盖 GPIO 输出、按键轮询、EXTI 中断、USART1 轮询收发、串口中断接收与环形缓冲、TIM2 PWM、I2C1 主机读写、SPI1 读写外部 Flash 八组寄存器级实验，均为构建实测与反汇编核对，板级现象待接板确认；I2C 与 SPI 实验还需外接对应模块。
 - 工具链：`arm-none-eabi-gcc` + CMake + Ninja + ST-Link V2 + OpenOCD。
 - 课程资料 `Linux_WEIDS/DShanMCU-F103/` 不入库（体积原因），实验所需的最小 vendor 子集已随仓库跟踪。
 

@@ -58,13 +58,17 @@ LED 以 1 Hz 闪烁（亮 500 ms、灭 500 ms）。
 
 ```text
 Memory region         Used Size  Region Size  %age Used
-           FLASH:         748 B        64 KB      1.14%
+           FLASH:         772 B        64 KB      1.18%
              RAM:        1544 B        20 KB      7.54%
    text    data     bss     dec     hex filename
-    744       4    1540    2288     8f0 f103_01_gpio_blink.elf
+    768       4    1540    2312     908 f103_01_gpio_blink.elf
 ```
 
 零编译告警、零链接告警。`RAM` 的 1544 B 中 1536 B 是链接脚本为堆栈预留的哨兵区，实际变量只有 4 B `.data` + 4 B `.bss`。
+
+其中 16 B Flash 与 4 B bss 并非本实验代码：`f103_tick.c` 为中断模式提供了 `SysTick_Handler`，
+它被向量表引用、无法被 `--gc-sections` 回收，所以只用轮询模式的实验也要付这份开销。
+未使用的 `f103_tick_init_irq`（0x34）和 `f103_tick_now_ms`（0xC）已确认被回收（map 中地址为 0）。
 
 **布局自检**：
 
@@ -97,6 +101,8 @@ Memory region         Used Size  Region Size  %age Used
 
 CubeMX 版本的 `vendor/src/system_stm32f1xx.c` 中，`SystemInit()` 只处理向量表重定位，**不设置 `SystemCoreClock`**。该变量停在初值 `16000000`，而复位后实际是 HSI 8 MHz。直接用会让 `SysTick` 的 1 ms 变成 2 ms，闪烁整体慢一倍。`SystemCoreClockUpdate()` 会读 `RCC->CFGR` 反推真实频率。
 
+这段逻辑已在实验 02 时提取到 `F103_common/src/f103_tick.c`，本实验通过 `f103_tick_init()` 调用。
+
 ## 常见错误
 
 | 现象 | 可能原因 | 排查 |
@@ -111,7 +117,7 @@ CubeMX 版本的 `vendor/src/system_stm32f1xx.c` 中，`SystemInit()` 只处理�
 ## 下一步
 
 1. 接板烧写，记录实际闪烁周期，把「未验证」项补成实测。
-2. 按键输入（PA0 / 板载 KEY）：`CRL` 的输入配置、上拉/下拉、`IDR` 读取。
+2. 按键输入见 [`F103_02_GPIO_Input`](../F103_02_GPIO_Input/README.md)：PB14 输入、消抖与边沿检测。
 3. 把 SysTick 的轮询延时换成 SysTick 中断，引入 NVIC，为 GPIO 外部中断铺路。
 4. 需要 HAL 时再向 `F103_common/vendor/` 增补 HAL 模块，见 `../F103_common/vendor/README.md` 的边界说明。
 
