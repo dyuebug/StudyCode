@@ -1,0 +1,35 @@
+SYS04|case|name=single|port=45195|args=--mode single --delay-us 2000
+SYS04|srv|ready|port=45195|mode=single|flags=lt|delay_us=2000|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=lt|delay_us=2000|accepted=8|handoff=0|frames=160|iters=44|peak=8|buf_drops=0|q_drops=0|serve_ms=748|subs=0
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=0|verified=160|expect=160|mismatch=0|total_ms=339|max_conn_ms=338|timeouts=0
+SYS04|case|name=single|gen_rc=0
+SYS04|case|name=pool4|port=33053|args=--mode pool --delay-us 2000 --workers 4
+SYS04|srv|ready|port=33053|mode=pool|flags=lt|delay_us=2000|workers=4|subs=0
+SYS04|srv|done|mode=pool|flags=lt|delay_us=2000|accepted=8|handoff=0|frames=160|iters=244|peak=8|buf_drops=0|q_drops=0|serve_ms=492|subs=0
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=0|verified=160|expect=160|mismatch=0|total_ms=85|max_conn_ms=84|timeouts=0
+SYS04|case|name=pool4|gen_rc=0
+SYS04|case|name=master2|port=41793|args=--mode master --delay-us 2000 --subs 2
+SYS04|srv|ready|port=41793|mode=master|flags=lt|delay_us=2000|workers=4|subs=2
+SYS04|srv|done|mode=master|flags=lt|delay_us=2000|accepted=0|handoff=8|frames=160|iters=6|peak=0|buf_drops=0|q_drops=0|serve_ms=560|sub0_frames=80|sub1_frames=80|subs=2
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=0|verified=160|expect=160|mismatch=0|total_ms=169|max_conn_ms=169|timeouts=0
+SYS04|case|name=master2|gen_rc=0
+SYS04|case|name=et|port=35739|args=--mode single --et --delay-us 2000
+SYS04|srv|ready|port=35739|mode=single|flags=et|delay_us=2000|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=et|delay_us=2000|accepted=8|handoff=0|frames=160|iters=28|peak=8|buf_drops=0|q_drops=0|serve_ms=747|subs=0
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=0|verified=160|expect=160|mismatch=0|total_ms=338|max_conn_ms=338|timeouts=0
+SYS04|case|name=et|gen_rc=0
+SYS04|case|name=oneshot|port=41367|args=--mode single --oneshot --delay-us 500
+SYS04|srv|ready|port=41367|mode=single|flags=oneshot|delay_us=500|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=oneshot|delay_us=500|accepted=8|handoff=0|frames=160|iters=44|peak=8|buf_drops=0|q_drops=0|serve_ms=507|subs=0
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=2|verified=160|expect=160|mismatch=0|total_ms=98|max_conn_ms=97|timeouts=0
+SYS04|case|name=oneshot|gen_rc=0
+SYS04|case|name=et-broken|port=44511|args=--mode single --et-broken --max-run 6000
+SYS04|srv|ready|port=44511|mode=single|flags=et-broken|delay_us=0|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=et-broken|delay_us=0|accepted=8|handoff=0|frames=8|iters=10|peak=8|buf_drops=0|q_drops=0|serve_ms=6042|subs=0
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=0|verified=0|expect=160|mismatch=0|total_ms=4042|max_conn_ms=4042|timeouts=8
+SYS04|case|name=et-broken|gen_rc=1
+SYS04|case|name=oneshot-broken|port=46097|args=--mode single --oneshot-broken --max-run 6000
+SYS04|srv|ready|port=46097|mode=single|flags=oneshot-broken|delay_us=0|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=oneshot-broken|delay_us=0|accepted=8|handoff=0|frames=8|iters=6|peak=8|buf_drops=0|q_drops=0|serve_ms=6025|subs=0
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=5|verified=8|expect=160|mismatch=0|total_ms=4053|max_conn_ms=4053|timeouts=8
+SYS04|case|name=oneshot-broken|gen_rc=1

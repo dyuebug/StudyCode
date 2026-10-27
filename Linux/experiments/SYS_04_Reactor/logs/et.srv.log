@@ -1,0 +1,2 @@
+SYS04|srv|ready|port=35739|mode=single|flags=et|delay_us=2000|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=et|delay_us=2000|accepted=8|handoff=0|frames=160|iters=28|peak=8|buf_drops=0|q_drops=0|serve_ms=747|subs=0

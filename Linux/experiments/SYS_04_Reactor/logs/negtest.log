@@ -1,0 +1,15 @@
+[PASS] 原日志应全通过  
+[PASS] single 少收一帧  抓到 1 条：[FAIL] single/一帧不差  verified=159（期望 160）
+[PASS] single 内容错一帧  抓到 1 条：[FAIL] single/无内容错  mismatch=1（期望 0）
+[PASS] single 出现超时  抓到 1 条：[FAIL] single/无超时  timeouts=1（期望 0）
+[PASS] single 服务端帧数不符  抓到 1 条：[FAIL] single/服务端帧数一致  frames=159（期望 160）
+[PASS] pool4 队列丢任务  抓到 1 条：[FAIL] pool4/队列未丢任务  q_drops=3（期望 0）
+[PASS] pool4 没有变快  抓到 1 条：[FAIL] pool4/比单线程快  pool=300ms single=339ms（要求 ≤60%）
+[PASS] master2 少一个 sub  抓到 1 条：[FAIL] master2/两个 sub  subs=1（期望 2）
+[PASS] master2 有连接没转交  抓到 1 条：[FAIL] master2/连接全部转交  handoff=7（期望 8）
+[PASS] master2 连接全压在 sub0  抓到 1 条：[FAIL] master2/连接真的分到两个 sub  sub0=80 sub1=0
+[PASS] single 其实没串行  抓到 3 条：[FAIL] pool4/比单线程快  pool=85ms single=100ms（要求 ≤60%）
+[PASS] et-broken 居然收齐了  抓到 1 条：[FAIL] et-broken/客户端未收齐  verified=160/160
+[PASS] oneshot-broken 服务端没停  抓到 1 条：[FAIL] oneshot-broken/连接停在第一帧  frames=160/160
+[PASS] 缺失日志应返回 2  
+-- pass=14 fail=0 total=14

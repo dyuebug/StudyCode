@@ -1,0 +1,27 @@
+[PASS] single/一帧不差  verified=160（期望 160）
+[PASS] single/无内容错  mismatch=0（期望 0）
+[PASS] single/无超时  timeouts=0（期望 0）
+[PASS] single/服务端帧数一致  frames=160（期望 160）
+[PASS] et/一帧不差  verified=160（期望 160）
+[PASS] et/无内容错  mismatch=0（期望 0）
+[PASS] et/服务端帧数一致  frames=160（期望 160）
+[PASS] oneshot/一帧不差  verified=160（期望 160）
+[PASS] oneshot/无内容错  mismatch=0（期望 0）
+[PASS] oneshot/服务端帧数一致  frames=160（期望 160）
+[PASS] pool4/一帧不差  verified=160（期望 160）
+[PASS] pool4/无内容错  mismatch=0（期望 0）
+[PASS] pool4/服务端帧数一致  frames=160（期望 160）
+[PASS] pool4/队列未丢任务  q_drops=0（期望 0）
+[PASS] pool4/比单线程快  pool=85ms single=339ms（要求 ≤60%）
+[PASS] master2/一帧不差  verified=160（期望 160）
+[PASS] master2/无内容错  mismatch=0（期望 0）
+[PASS] master2/两个 sub  subs=2（期望 2）
+[PASS] master2/连接全部转交  handoff=8（期望 8）
+[PASS] master2/连接真的分到两个 sub  sub0=80 sub1=80
+[PASS] master2/比单线程快  master=169ms single=339ms（要求 ≤85%）
+[PASS] single/串行确实发生  total=339ms 下限=160ms
+[PASS] et-broken/客户端未收齐  verified=0/160
+[PASS] et-broken/服务端确实停在半路  frames=8/160
+[PASS] oneshot-broken/客户端未收齐  verified=8/160
+[PASS] oneshot-broken/连接停在第一帧  frames=8/160
+-- 26/26 通过

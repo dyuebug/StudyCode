@@ -1,0 +1,2 @@
+SYS04|srv|ready|port=33053|mode=pool|flags=lt|delay_us=2000|workers=4|subs=0
+SYS04|srv|done|mode=pool|flags=lt|delay_us=2000|accepted=8|handoff=0|frames=160|iters=244|peak=8|buf_drops=0|q_drops=0|serve_ms=492|subs=0

@@ -1,0 +1,2 @@
+SYS04|srv|ready|port=46097|mode=single|flags=oneshot-broken|delay_us=0|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=oneshot-broken|delay_us=0|accepted=8|handoff=0|frames=8|iters=6|peak=8|buf_drops=0|q_drops=0|serve_ms=6025|subs=0
