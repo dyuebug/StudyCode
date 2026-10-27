@@ -12,6 +12,7 @@
 #   ./run.sh exp13      # F103_13 FreeRTOS 软件定时器（单次 / 周期 / 到期漂移）
 #   ./run.sh exp14      # F103_14 FreeRTOS 心跳与看门狗（监督逻辑；IWDG 未建模）
 #   ./run.sh exp15      # F103_15 FreeRTOS 栈溢出检出（钩子触发后停机，以日志判定成败）
+#   ./run.sh exp16      # F103_16 FreeRTOS 优先级反转与继承（二值信号量 vs 互斥量）
 #   ./run.sh aviation   # projects/aviation-node 航空主题节点（PC 注入帧 → 模式状态机；跑完自动判定）
 #   ./run.sh tickrate   # 量化"固件毫秒"与真实时间的比例
 #
@@ -168,6 +169,68 @@ run_exp15() {
   echo "判定通过：钩子报出任务名 probe，全程无 FAIL 行"
 }
 
+# 优先级反转 / 继承：只依赖调度器 + 队列 + SysTick（均已建模），两轮读数都是真实调度结果。
+# 判定不看绝对 tick（QEMU 时基不可信），只看三件事：
+#   1 二值信号量轮里 L 的优先级没被提升（1），互斥量轮里被提升到 H 的优先级（3）
+#   2 互斥量轮的 H 等锁时长不到二值信号量轮的一半（实测约 1:3.9，留到 2 倍作判据）
+#   3 没有 OOM / 栈溢出 / 断言
+# 全流程固件时间约 1.4 s，按 2.90 倍时基折算约 0.5 s 真实时间；给 8 s 余量。
+# 判定与执行分开：单独跑 judge 可以在不重跑 QEMU 的前提下对日志做变异，
+# 用来确认"判据真的会失败"，而不是永远打印通过。
+judge_exp16() {
+  local log="$1"
+
+  [ -f "$log" ] || {
+    echo "判定失败：日志不存在 $log" >&2
+    return 2
+  }
+
+  if grep -qE 'MALLOC FAILED|STACK OVERFLOW|\[ASSERT\]' "$log"; then
+    echo "判定失败：出现 OOM / 栈溢出 / 断言（见 $log）" >&2
+    return 1
+  fi
+
+  if ! grep -q 'A-bin 观测：H 阻塞期间 L 的实时优先级 = 1' "$log"; then
+    echo "判定失败：二值信号量轮里 L 的优先级被改动了（不该有继承）" >&2
+    return 1
+  fi
+
+  if ! grep -q 'B-mutex 观测：H 阻塞期间 L 的实时优先级 = 3' "$log"; then
+    echo "判定失败：互斥量轮里没有发生优先级继承" >&2
+    return 1
+  fi
+
+  # 汇总表格式：[inv] <锁类型> <H等锁> <L持锁> ...，所以 $3 是 H 等锁
+  local h_bin h_mtx
+  h_bin=$(awk '$2 == "binary-sem" { print $3 }' "$log")
+  h_mtx=$(awk '$2 == "mutex"      { print $3 }' "$log")
+
+  if [ -z "$h_bin" ] || [ -z "$h_mtx" ]; then
+    echo "判定失败：汇总表缺少 binary-sem 或 mutex 行" >&2
+    return 1
+  fi
+
+  if [ "$h_mtx" -le 0 ] || [ "$h_bin" -le $(( h_mtx * 2 )) ]; then
+    echo "判定失败：继承未压缩等待时间（binary=$h_bin, mutex=$h_mtx，要求 binary > 2×mutex）" >&2
+    return 1
+  fi
+
+  # 用 awk 做浮点除法：bash 的整数除法会把 3.86 印成 "3 倍"，与实测比值不符
+  local ratio
+  ratio=$(awk -v a="$h_bin" -v b="$h_mtx" 'BEGIN { printf "%.2f", a / b }')
+  echo "判定通过：继承生效（L 优先级 1→3），H 等锁 $h_bin → $h_mtx tick（${ratio} 倍）"
+}
+
+run_exp16() {
+  local dir="$LINUX_ROOT/experiments/F103_16_FreeRTOS_PriorityInversion"
+  local log="$LOG_DIR/exp16_priority_inversion.log"
+
+  run_case exp16_priority_inversion \
+    "$dir/build-qemu/f103_16_freertos_priority_inversion.elf" 8 ""
+
+  judge_exp16 "$log"
+}
+
 # 航空主题地面仿真节点（CLAUDE.md §12 P1 的可仿真部分）：
 # PC 侧 Python 注入器按 50 Hz 发 SENSOR、10 Hz 发 STATUS（地面站心跳），
 # 固件做帧校验 → 有效性判定 → 模式状态机 → 降级/恢复。
@@ -247,9 +310,13 @@ case "${1:-all}" in
   exp13)    run_exp13 ;;
   exp14)    run_exp14 ;;
   exp15)    run_exp15 || exit 1 ;;
+  exp16)    run_exp16 || exit 1 ;;
+  # 只判定不跑 QEMU：用于对日志做变异，确认判据会失败。退出码沿用 judge 的 0/1/2
+  exp16-judge)
+            judge_exp16 "${2:-$LOG_DIR/exp16_priority_inversion.log}" || { rc=$?; exit "$rc"; } ;;
   aviation) run_aviation || exit 1 ;;
   aviation-link) run_aviation_link || exit 1 ;;
   tickrate) run_tickrate ;;
-  all)      run_probe; run_exp04; run_exp05; run_exp10; run_exp11; run_exp12; run_exp13; run_exp14; run_exp15 || exit 1; run_aviation_link || exit 1; run_tickrate ;;
+  all)      run_probe; run_exp04; run_exp05; run_exp10; run_exp11; run_exp12; run_exp13; run_exp14; run_exp15 || exit 1; run_exp16 || exit 1; run_aviation_link || exit 1; run_tickrate ;;
   *)        echo "未知用例：$1" >&2; exit 2 ;;
 esac

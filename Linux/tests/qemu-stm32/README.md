@@ -54,7 +54,7 @@ cmake --build build-qemu
 
 ```bash
 cd Linux/tests/qemu-stm32
-bash run.sh            # 全部：probe + exp04 + exp05 + exp10 + exp11 + exp12 + exp13 + exp14 + exp15 + aviation-link + tickrate
+bash run.sh            # 全部：probe + exp04 + exp05 + exp10 + exp11 + exp12 + exp13 + exp14 + exp15 + exp16 + aviation-link + tickrate
 bash run.sh probe      # 只有探针
 bash run.sh exp04      # UART 轮询回显
 bash run.sh exp05      # UART 中断 + 环形缓冲
@@ -64,6 +64,8 @@ bash run.sh exp12      # FreeRTOS 同步原语（信号量 / 事件组 / 中断�
 bash run.sh exp13      # FreeRTOS 软件定时器（单次 / 周期 / 回调阻塞代价）
 bash run.sh exp14      # FreeRTOS 心跳与看门狗（监督逻辑；IWDG 未建模）
 bash run.sh exp15      # FreeRTOS 栈溢出检出（钩子触发即正常终点，以日志判定成败）
+bash run.sh exp16      # FreeRTOS 优先级反转与继承（二值信号量 vs 互斥量，两轮读数对照）
+bash run.sh exp16-judge [日志]   # 只判定不跑 QEMU：对日志做变异，确认判据会失败（0/1/2）
 bash run.sh aviation   # projects/aviation-node：PC 注入二进制帧 → 帧校验 → 模式状态机 → 自动判定（仅上行）
 bash run.sh aviation-link  # 同上，另抓 USART2 下行二进制 → link.py 判定 → 两条通道一起判
 bash run.sh tickrate   # 量化时基偏差
@@ -107,7 +109,7 @@ bash run_negative.sh   # 反向用例：01/02/03/06/07/08/09
 
 由此得出（每条都对应 `run.sh` / `run_negative.sh` 的一次实测，见 RESULT.md）：
 
-- **可以在 QEMU 里验证**：`F103_04_UART_Echo`、`F103_05_UART_IRQ_Ring`、`F103_10_FreeRTOS_Tasks`、`F103_11_FreeRTOS_ISR_Queue`、`F103_12_FreeRTOS_Sync`、`F103_13_FreeRTOS_Timers`、`F103_14_FreeRTOS_Watchdog`（仅监督逻辑）、`F103_15_FreeRTOS_StackOverflow`（仅 paint 判据），以及任何只用到"串口 + SysTick + NVIC"的代码。FreeRTOS 的调度器正建立在 SysTick/PendSV/SVCall 之上，中断→任务的交接又只用到 USART1 RXNE，软件定时器只用到 SysTick，心跳监督只用 SysTick + 信号量，栈溢出检出只用内核自己的检查宏与任务切换，所以任务切换、队列交接、`xQueueSendFromISR`/`portYIELD_FROM_ISR` 的效果、信号量/事件组语义、定时器守护任务与到期调度、心跳超时判定与停喂/恢复、堆与栈指标、栈底 paint 被写穿后的钩子调用都可实测——**只有绝对时间、真机中断延迟、`IWDG` 与复位原因不可信**。栈溢出检出另一难点是 QEMU 不会因越界写抛总线错误，所以真板上"先撞 HardFault 还是先到钩子"的顺序在仿真里得不到答案。
+- **可以在 QEMU 里验证**：`F103_04_UART_Echo`、`F103_05_UART_IRQ_Ring`、`F103_10_FreeRTOS_Tasks`、`F103_11_FreeRTOS_ISR_Queue`、`F103_12_FreeRTOS_Sync`、`F103_13_FreeRTOS_Timers`、`F103_14_FreeRTOS_Watchdog`（仅监督逻辑）、`F103_15_FreeRTOS_StackOverflow`（仅 paint 判据）、`F103_16_FreeRTOS_PriorityInversion`（优先级继承与等待时长比例），以及任何只用到"串口 + SysTick + NVIC"的代码。FreeRTOS 的调度器正建立在 SysTick/PendSV/SVCall 之上，中断→任务的交接又只用到 USART1 RXNE，软件定时器只用到 SysTick，心跳监督只用 SysTick + 信号量，栈溢出检出只用内核自己的检查宏与任务切换，所以任务切换、队列交接、`xQueueSendFromISR`/`portYIELD_FROM_ISR` 的效果、信号量/事件组语义、定时器守护任务与到期调度、心跳超时判定与停喂/恢复、堆与栈指标、栈底 paint 被写穿后的钩子调用都可实测——**只有绝对时间、真机中断延迟、`IWDG` 与复位原因不可信**。栈溢出检出另一难点是 QEMU 不会因越界写抛总线错误，所以真板上"先撞 HardFault 还是先到钩子"的顺序在仿真里得不到答案。
 - **综合项目同样可以验证**：`projects/aviation-node`（`bash run.sh aviation-link`）把上面这些能力串成一条链——外部注入二进制帧（`SENSOR` 数据 + `STATUS` 地面站心跳）→ RXNE 中断 → 帧解析与 CRC16 → 三层有效性判定 → 模式状态机与降级/恢复 → 停喂门控与统计 → USART2 下行二进制帧。它能验证的是**软件数据链与判定逻辑**（上行 24 项 + 下行 7 项不变量），其中包括"链路层 / 数据层 / 地面站层各自独立计时"这件事——`hb_only` 段（只发心跳）`T=0 STALE=1 GND=0`、`hb_lost` 段（只发数据）`T=0 STALE=0 GND=1` 两个方向都有实测。CAN、ADC、示波器时序、`IWDG` 复位、下行发送抖动仍不可验证（`RESULT.md` §3.10）。
 - **能跑起来、但结果不可信**：`F103_07`（I2C 永远无应答，只验证到超时分支；`CCR`/`TRISE` 读回 0 说明配置根本没生效）、`F103_08`（JEDEC ID 读出 `00 00 00`，擦写"成功"、回读全 0，自检停在 FAIL）。
 - **跑起来但拿不到任何证据**：`F103_01/02/03/06`——它们只操作 GPIO/TIM，且不初始化串口，QEMU 里既无输出也无波形，等于空转。

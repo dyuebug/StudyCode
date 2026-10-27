@@ -1,0 +1,35 @@
+
+[F103_16] FreeRTOS V11.3.0 优先级反转 / 优先级继承, tick=1000 Hz
+[F103_16] prio: coord=4 high=3 mid=2 low=1; low hold=50 ms x 2; mid busy=300 ms
+[F103_16] 初始空闲堆 4008 B，启动调度器
+
+[inv] ===== 场景 A-bin：二值信号量当锁（无继承） =====
+[inv] A-bin L: 取锁 prio=1 t=4
+[inv] A-bin 观测：H 阻塞期间 L 的实时优先级 = 1
+[inv] A-bin M: 忙等结束 t=306 距取锁 302 tick 时长 300 tick
+[inv] A-bin L: 阶段一完成 prio=1 距取锁 354 tick
+[inv] A-bin L: 释放前 prio=1 持锁 404 tick
+[inv] A-bin H: 等锁 405 tick result=1 prio=3
+[inv] A-bin 结果：H 等锁=405  L 持锁=404  L 阶段一=354  M 开始=2  L prio(阻塞期)=1 -> (释放后)=1
+[inv] A-bin 栈水位（字）：coord=82 low=58 mid=64 high=54
+
+[inv] ===== 场景 B-mutex：互斥量（优先级继承） =====
+[inv] B-mutex L: 取锁 prio=1 t=429
+[inv] B-mutex 观测：H 阻塞期间 L 的实时优先级 = 3
+[inv] B-mutex L: 阶段一完成 prio=3 距取锁 52 tick
+[inv] B-mutex L: 释放前 prio=3 持锁 105 tick
+[inv] B-mutex H: 等锁 105 tick result=1 prio=3
+[inv] B-mutex M: 忙等结束 t=731 距取锁 302 tick 时长 300 tick
+[inv] B-mutex 结果：H 等锁=105  L 持锁=105  L 阶段一=52  M 开始=2  L prio(阻塞期)=3 -> (释放后)=1
+[inv] B-mutex 栈水位（字）：coord=82 low=58 mid=64 high=62
+
+[inv] ===== 两轮对照（单位：tick）=====
+[inv] 锁类型          H等锁  L持锁  L阶段一  M开始  M时长  L阻塞期prio  L释放前prio
+[inv] binary-sem        405    404      354      2    300            1           1
+[inv] mutex             105    105       52      2    300            3           3
+[inv] 判读：binary-sem 轮里 M 一直占着 CPU，L 的阶段一被推迟到 M 忙等之后，
+[inv]       H 的等锁时长 ≈ M 时长 + 持锁剩余；mutex 轮里 L 被临时提到 H 的优先级，
+[inv]       M 抢不到 CPU，等待回落到持锁时长量级。继承只压缩"被插队"的部分，
+[inv]       不能让持锁者自己的 delay/IO 变短 —— 这就是等待时间不为 0 的原因。
+[inv] done heap_free=2520 B
+qemu-system-arm: terminating on signal 15 from pid 475 (timeout)

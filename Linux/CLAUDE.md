@@ -787,6 +787,17 @@ Claude 必须：
   首版用"余量反推栈底"的地址算术漏检（解得 `0x20000240`，注入点 `0x20000248`，落在 16 B paint 之外），
   改为"余量归零即判穿"后一次通过——判据要用余量，不要用地址算术。
   **只覆盖 paint 那一半**，SP 越过栈块与 MPU 隔离未覆盖。
+- [x] 优先级反转与优先级继承：同一骨架只换锁类型（二值信号量 / 互斥量）做两轮对照 ——
+  `experiments/F103_16_FreeRTOS_PriorityInversion/`，日志 `tests/qemu-stm32/logs/exp16_priority_inversion.log`。
+  实测：`binary-sem` 轮 H 等锁 405 / L 持锁 404 / L 阶段一 354 / L 阻塞期 prio 恒 1；
+  `mutex` 轮 105 / 105 / 52 / prio 1→3（`give` 内部回 1）。栈水位 82/192、58/160、64/160、54~62/160 全过
+  「绝对 ≥32 字且相对 ≥25%」。`run.sh exp16` 判定通过（只判 `binary > 2×mutex` 一条算术），
+  4 条负向验证（改坏中断轮 prio / mutex 等锁改 500 / 注入 MALLOC / 日志不存在）全部按预期失败。
+  另一次运行为 412/410/358 与 103/104/53（比值 3.86–4.0，栈水位 mid/high 差 8 字）——
+  跨运行漂移已写进 README「跨运行漂移」，这正是判据只写宽松算术的原因；
+  判定器原用整数除法把 3.86 印成"3 倍"，已改 `awk` 两位小数。
+  首版失败已写入 README：4 KB 堆被「四任务 + 三完成信号量 + ctx 在栈上」耗尽，钩子停机让日志停在
+  半截，根因是 `xTaskCreate` 返回值从未检查。**死锁、继承链、中断延迟、临界区长度未验证**。
 - [x] 心跳与看门狗（软件侧）：任务心跳超时 → 停止喂狗 → 恢复动作 → 恢复喂狗 ——
   `experiments/F103_14_FreeRTOS_Watchdog/`，日志 `tests/qemu-stm32/logs/exp14_watchdog.log`。
   实测：注入后 409 / 410 tick 判 STALE；两轮只改恢复门限（3 / 6 次 STALE），停喂窗口 819 / 1424 tick，
@@ -797,7 +808,7 @@ Claude 必须：
   寄存器写入路径已确认编入镜像（`nm` 见 `f103_watchdog_init/feed`：`0x0800010C` / `0x08000130`，
   日志打印值 `0x0800010D` / `0x08000131` 是 Thumb 位；`objdump` 见 `0x40003000` 两处），
   但"进入镜像"不等于"在真板执行"，复位路径必须上板闭环。
-- [ ] 成功标准：每项都有 QEMU 原始日志，并区分"仿真可证"与"仅构建" —— 已完成的 6 项满足；
+- [ ] 成功标准：每项都有 QEMU 原始日志，并区分"仿真可证"与"仅构建" —— 已完成的 7 项满足；
   `IWDG` 复位与复位原因只有"仅构建"级证据，不得记为已验证（见上一条）。
 
 ### P1：启动航空主题项目的可仿真部分（路线图第 7–8 周）
@@ -867,6 +878,23 @@ Claude 必须：
   模式不变。证据：`tests/qemu-stm32/logs/aviation_node.log`、`docs/protocol.md` §2.1/§3、
   `docs/test-report.md` §3.6/§3.7、README §10.8。
 - [ ] 后续其余（不属本条）：R13–R16 追踪项（须先有真板证据，不得先写进矩阵）。
+
+### P1.5：BSP 启动链（软件侧可仿真部分，第 20 天遗留第 1 条）
+
+- [x] 两阶段启动与切根：`switch_root` 四步（建 devtmpfs/proc/sys → 挂新根 → `MS_MOVE` 搬运 → `chroot`+`exec`）——
+  `experiments/BSP_03_SwitchRoot/`，日志 `experiments/BSP_03_SwitchRoot/logs/`。
+  五组对照全部机器判定通过（`run.sh` 5/5；`--judge` 可只判不跑）：`ok` 得
+  `root_before=tmpfs(0x1021994)` → `root_after=ext4(0xef53)`、`mounts_dev=devtmpfs`、`dev_vda=present`；
+  `rootfs-ramfs` 用同一份 initramfs 只在命令行加 `root=`，`root_before` 即变 `ramfs(0x858458f6)`；
+  `no-move` 根仍换成 ext4，但 `/dev` 退化为 ext4 空目录、`vda` 消失、`/proc` 不可用；
+  `noroot` / `no-stage2` 分别得 `mount` / `exec` 的 `errno=2` 且第二阶段跳过，两组都 `exit=0` 无 panic。
+  **两处判据被实测推翻并改正**：本内核 rootfs 后端是 shmem（报 tmpfs 魔数，`init/do_mounts.c:init_rootfs()`
+  在命令行无 `root=` 且 `CONFIG_TMPFS=y` 时如此），且 devtmpfs 的 `f_type` 与 tmpfs 相同
+  （`magic.h` 已无 `DEVTMPFS_MAGIC`）——所以"搬运成功"只能由 `/proc/self/mounts` 类型串与节点存在性证明。
+  **未验证**：`pivot_root` 对照、busybox `switch_root` 的实际行为（本机未装 busybox，stage1/stage2 是手写等价实现）、
+  真板启动链与时序。
+- [ ] 后续：坏 `bootargs` 用例（第 20 天遗留第 3 条）需要一个"改坏参数仍能引导"的组合，
+  才能把"bootloader 参数错"与"内核配置错"分开。
 
 ### P2：真板到手后的闭环
 

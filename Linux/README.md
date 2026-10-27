@@ -8,7 +8,7 @@
 
 - 进行中：FreeRTOS 验收（信号量、事件组、软件定时器、栈监控、栈溢出检出、心跳监督与停喂/恢复已完成 → 待 `IWDG` 复位与复位原因，需真板）。
 - 进行中：路线图第 7–8 周航空主题项目的**可仿真部分**——[`projects/aviation-node/`](projects/aviation-node/README.md) 已完成 PC 注入 → 帧校验 → 有效性判定 → 模式状态机 → 降级/恢复 → 停喂门控 → 下行二进制 `STATUS` 帧的全链路实测（证据见 `tests/qemu-stm32/RESULT.md` §3.10）；`bash run.sh aviation-link` 结束时由 `aviation/expect.py` 判 21 项上行不变量、由 `aviation/link.py` 判 7 项下行不变量，任一失败即非零退出。六类故障（错帧/越界/突变/静默/丢帧/任务阻塞，最后一类为固件侧编译期注入）都有用例与机器判定——这是第 9–10 周的主体；CAN、ADC、示波器/逻辑分析仪、`IWDG` 与故障记录掉电保持单列为待真板，复位原因（`RCC->CSR`）在仿真里读回 0，同样只能上板。
-- 已完成、待真板补测：MCU 外设 01–09、FreeRTOS 10/11/12/13/14/15、驱动入门 Day1–14、BSP_01/02（验证边界各有 README）。
+- 已完成、待真板补测：MCU 外设 01–09、FreeRTOS 10/11/12/13/14/15/16、驱动入门 Day1–14、BSP_01/02/03（验证边界各有 README）。
 - 暂停：高性能服务器工程化（`benchmarks/`、`scripts/` 为空；`projects/` 仅有嵌入式主线的 `aviation-node`，与服务器线无关），恢复条件见 `CLAUDE.md` §12「P4：暂停项」。
 
 ## 总控与资料
@@ -78,6 +78,8 @@ Day3～Day14 已编排，验证进度见下方「14 天标准材料」表的「�
 - Day12/13/14：三个驱动与测试程序已交叉编译为 ARM 产物（2026-10-25）；SR501、AT24C02、SPI OLED 的外设行为需要真实硬件。
 - 启动链（Day19）：[`experiments/BSP_01_Boot_Chain/`](experiments/BSP_01_Boot_Chain/README.md) 用四组对照实测 zImage / DTB / initramfs 的分工。实测发现 QEMU 会改写传入的 DTB（`/sys/firmware/fdt` 49086 B ≠ 磁盘 14543 B，memory 节点 1 GiB → 512 MiB），因此属性真值只认运行期 `/sys/firmware/devicetree/base/`；u-boot 阶段与块设备根文件系统未覆盖。
 - 启动链下一层（Day20）：[`experiments/BSP_02_UBoot_BlockRoot/`](experiments/BSP_02_UBoot_BlockRoot/README.md) 用八组对照实测 u-boot 装载与参数传递、initrd 传递、ext4 块设备根。实测：`bootz` 不给 fdt 参数时内核不启动（`FDT and ATAGS support not compiled in`），`/proc/cmdline` 与 u-boot `bootargs` 逐字一致；`bootz` 的 initrd 只收 uImage/FIT，裸 gzip initramfs 报 `Wrong Ramdisk Image Format`，经 `mkimage -T ramdisk` 打包后即通（`Unpacking initramfs...`、`Freeing initrd memory: 264K`）；initramfs 里有 `/init` 时 `root=` 被整个跳过（命令行含 `root=/dev/vda` 但日志无 `EXT4-fs (vda)`）；块设备根先挂只读、由 init remount；`root=/dev/vda1` 在没有分区表时报 `unknown-block(254,1)`，与"没有块设备"的 `unknown-block(0,0)` 不同。u-boot 用的是 apt 包里 `qemu_arm`(virt) 构建，机器与 BSP_01 的 vexpress 不同；真实 vexpress u-boot、SD/eMMC 的 `rootwait`、BootROM/SPL、initramfs 两阶段挂根未验证。
+- 两阶段切根（Day21）：[`experiments/BSP_03_SwitchRoot/`](experiments/BSP_03_SwitchRoot/README.md) 用五组对照实测 `switch_root` 四步（建 devtmpfs/proc/sys → 挂新根 → `MS_MOVE` 搬运 → `chroot`+`exec`）。实测：`root_before` 的 `f_type` 是 `tmpfs`(0x1021994) 而非教科书说的 `RAMFS_MAGIC`——本内核在命令行无 `root=` 且 `CONFIG_TMPFS=y` 时把 rootfs 建在 shmem 上，加一组 `rootfs-ramfs`（只改命令行）即得到 `0x858458f6`；devtmpfs 以 shmem 为后端，`f_type` 与 tmpfs 相同，所以"搬运成功"只能由 `/proc/self/mounts` 类型串（`mounts_dev=devtmpfs`）与 `/dev/vda` 存在性证明；跳过 `MS_MOVE` 时根照样换成 ext4，但 `/dev` 退化为空目录、设备节点全丢。`pivot_root`、busybox `switch_root`、真板启动链未验证。
+- 优先级反转（Day21）：[`experiments/F103_16_FreeRTOS_PriorityInversion/`](experiments/F103_16_FreeRTOS_PriorityInversion/README.md) 同一骨架只换锁类型：二值信号量轮 H 等锁 405 tick（另一次 412）、持锁者优先级恒 1；互斥量轮 105 tick（另一次 103）、优先级 1→3（`give` 内部回 1）。继承只压缩"被插队"的那段，持锁者自己的 `vTaskDelay` 未变短——这就是等待时间不为 0 的原因；两次运行的漂移区间使判定只能写成 `binary > 2 × mutex`。
 
 ## MCU 分支（STM32F103）
 
