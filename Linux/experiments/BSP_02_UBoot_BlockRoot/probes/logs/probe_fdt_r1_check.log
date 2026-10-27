@@ -1,0 +1,42 @@
+Bloblist at 0 not found (err=-2)
+alloc space exhausted ptr 400 limit 0
+Bloblist at 0 not found (err=-2)
+
+
+U-Boot 2025.10-0ubuntu2.2 (Oct 07 2026 - 20:59:03 +0000)
+
+DRAM:  512 MiB
+using memory 0x5e687000-0x5f6c7000 for malloc()
+Core:  51 devices, 14 uclasses, devicetree: board
+Flash: 64 MiB
+Loading Environment from Flash... *** Warning - bad CRC, using default environment
+
+In:    serial,usbkbd
+Out:   serial,vidconsole
+Err:   serial,vidconsole
+No USB controllers found
+Net:   eth0: virtio-net#32
+[?25h
+Hit any key to stop autoboot:  2  0
+=> printenv fdtcontroladdr fdt_addr loadaddr
+fdtcontroladdr=5e586eb0
+fdt_addr=0x40000000
+loadaddr=0x40200000
+=> fdt addr 0x40000000
+Working FDT set to 40000000
+=> fdt header
+magic:			0xd00dfeed
+totalsize:		0x100000 (1048576)
+off_dt_struct:		0x40
+off_dt_strings:		0x1b84
+off_mem_rsvmap:		0x30
+version:		17
+last_comp_version:	16
+boot_cpuid_phys:	0x0
+size_dt_strings:	0x1ce
+size_dt_struct:		0x1b44
+number mem_rsv:		0x0
+
+=> fdt print /model
+libfdt fdt_path_offset() returned FDT_ERR_NOTFOUND
+=> qemu-system-arm: terminating on signal 15 from pid 467 (timeout)

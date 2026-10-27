@@ -1,0 +1,41 @@
+Bloblist at 0 not found (err=-2)
+alloc space exhausted ptr 400 limit 0
+Bloblist at 0 not found (err=-2)
+
+
+U-Boot 2025.10-0ubuntu2.2 (Oct 07 2026 - 20:59:03 +0000)
+
+DRAM:  512 MiB
+using memory 0x5e687000-0x5f6c7000 for malloc()
+Core:  51 devices, 14 uclasses, devicetree: board
+Flash: 64 MiB
+Loading Environment from Flash... *** Warning - bad CRC, using default environment
+
+In:    serial,usbkbd
+Out:   serial,vidconsole
+Err:   serial,vidconsole
+No USB controllers found
+Net:   eth0: virtio-net#32
+[?25h
+Hit any key to stop autoboot:  2  0
+=> irtio info
+Unknown command 'irtio' - try 'help'
+=> ls virtio 0
+   507832   init
+   269943   initrd
+  6405304   zimage
+
+3 file(s), 0 dir(s)
+
+=> fatload virtio 0 0x40400000 zimage
+6405304 bytes read in 85 ms (71.9 MiB/s)
+=> fatload virtio 0 0x48000000 initrd
+269943 bytes read in 6 ms (42.9 MiB/s)
+=> setenv bootargs console=ttyAMA0 rdinit=/init panic=1
+=> printenv bootargs
+bootargs=console=ttyAMA0 rdinit=/init panic=1
+=> bootz 0x40400000 0x48000000
+Kernel image @ 0x40400000 [ 0x000000 - 0x61bcb8 ]
+Wrong Ramdisk Image Format
+Ramdisk image is corrupt or invalid
+=> qemu-system-arm: terminating on signal 15 from pid 528 (timeout)

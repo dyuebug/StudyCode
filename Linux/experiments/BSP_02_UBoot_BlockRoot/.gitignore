@@ -1,0 +1,8 @@
+build/
+init
+
+# 证据日志要入库：仓库根有 *.log 忽略规则，这里反包含回来
+!logs/
+!logs/*.log
+!probes/logs/
+!probes/logs/*.log
