@@ -8,7 +8,7 @@
 | 路径 | 作用 |
 | --- | --- |
 | `cmake/arm-none-eabi.cmake` | 交叉编译工具链文件（`CMAKE_TOOLCHAIN_FILE`） |
-| `cmake/f103.cmake` | `f103_add_firmware()` / `f103_add_flash_target()` 两个函数 |
+| `cmake/f103.cmake` | `f103_add_firmware()` / `f103_add_flash_target()` / `f103_add_freertos()` 三个函数 |
 | `ld/STM32F103C8Tx.ld` | 链接脚本。课程素材只有 Keil 的 `.sct`，此文件为自撰 |
 | `ld/STM32F100RB_qemu.ld` | QEMU `stm32vldiscovery` 用的链接脚本（128 KB Flash / 8 KB SRAM），仅在 `-DF103_QEMU=ON` 时启用 |
 | `include/f103_tick.h` | 1 ms 时基接口：轮询模式（`wait_1ms`/`delay_ms`）与中断模式（`init_irq`/`now_ms`） |
@@ -19,7 +19,9 @@
 | `vendor/cmsis/` | 裁剪后的 CMSIS Core + 设备头文件 |
 | `vendor/src/system_stm32f1xx.c` | `SystemInit()` / `SystemCoreClockUpdate()` |
 | `src/crt_stubs.c` | 补 `_init` / `_fini`、`_sbrk`（512 B 堆）、`_isatty` 及四个 stdio syscall 桩 |
+| `src/f103_freertos_vectors.s` | SVC/PendSV/SysTick 尾跳转到 FreeRTOS 移植层函数；由 `f103_add_freertos()` 自动加入 |
 | `openocd/stlink_f103.cfg` | ST-Link V2 烧写配置 |
+| `vendor/freertos/` | FreeRTOS-Kernel V11.3.0 裁剪子集（CM3 + GCC + heap_4）+ 自撰 `FreeRTOSConfig.h`，来源见 [`vendor/freertos/README.md`](vendor/freertos/README.md) |
 
 ## 工具链
 
@@ -60,6 +62,32 @@ cmake --build build-qemu
 
 **能仿真的范围很窄**：QEMU 只真实建模 USART1–3 与 SysTick；GPIO、EXTI、RCC、TIM、I2C、DWT 全部未建模，SPI 半建模。且 QEMU 的 SYSCLK 是 24 MHz，而固件按 8 MHz 计算时基，实测偏差约 2.9 倍。完整能力矩阵、原始日志与运行脚本见 [`../../tests/qemu-stm32/`](../../tests/qemu-stm32/README.md)。
 
+## FreeRTOS 接入
+
+`cmake/f103.cmake` 提供 `f103_add_freertos(<target>)`，把三个内核源文件（`list.c` / `tasks.c` / `queue.c`）、
+CM3 移植层、`heap_4.c` 和异常路由 `src/f103_freertos_vectors.s` 一并加进目标，并设置好三个头文件路径。
+内核本体在 `vendor/freertos/`，配置在 `vendor/freertos/include/FreeRTOSConfig.h`（4 KB 堆、1000 Hz tick、8 MHz HSI）。
+
+路由文件内容就三条尾跳转，**由公共 CMake 统一加入，实验代码不要重复实现**：
+
+```asm
+SVC_Handler:      b vPortSVCHandler
+PendSV_Handler:   b xPortPendSVHandler
+SysTick_Handler:  b xPortSysTickHandler
+```
+
+**必须用 `b` 而不是 C 包装函数**：`vPortSVCHandler` / `xPortPendSVHandler` 是 `naked` 函数，
+结尾 `bx r14` 直接返回任务上下文，C 包装函数的栈帧永远弹不掉，MSP 会逐 tick 下移，最终随机 HardFault。
+相应地 `FreeRTOSConfig.h` 里 `configCHECK_HANDLER_INSTALLATION = 0`（官方所称"间接路由"）。
+
+**必须给 `f103_add_firmware` 传 `NO_TICK`**：`src/f103_tick.c` 定义了 `SysTick_Handler`，
+与 FreeRTOS 同时链接会符号重定义。开 FreeRTOS 的目标里毫秒延时一律改用 `vTaskDelay`。
+
+```cmake
+f103_add_firmware(my_rtos_app NO_TICK SOURCES main.c)
+f103_add_freertos(my_rtos_app)          # 内核 + heap_4 + 异常路由
+```
+
 ## 设计取舍
 
 - **自带启动文件 + `-nostartfiles`**：默认链接会额外引入 `crt0.o`，它为 `exit()` 拉入 newlib 的 `stdio`，进而引用 `_write/_read/_lseek/_close`，使每次构建出现四条 libnosys "未实现"告警，并多占 Flash。本仓库已有完整启动文件，crt0 属重复。代价是 crti 提供的 `_init/_fini` 消失，由 `src/crt_stubs.c` 补空实现。
@@ -68,7 +96,9 @@ cmake --build build-qemu
 - **stdio 桩集中在一处**：`_sbrk`、`_isatty`、`_close`、`_fstat`、`_lseek`、`_read` 与硬件无关，统一放在 `crt_stubs.c`；`_write` 绑定具体串口，放在 `f103_uart.c`。两个容易踩的点：`_isatty` 缺失会使 stdout 全缓冲，表现成「printf 不输出」；`_sbrk` 以 `_Min_Heap_Size`（512 B）为上限，与链接脚本的堆预算一致，超出返回 `ENOMEM` 而不是悄悄爬进栈区。
 - **`._user_heap_stack` 预留 1.5 KB**：把堆栈预留量真实占进 RAM，`data + bss` 吃穿预留区时在链接期报 `region RAM overflowed`，而不是运行期踩栈表现成随机死机。因此 `size` 报告的 `bss` 含这 1536 B，不代表真实变量占用。
 - **裁剪 vendor 而非引用课程目录**：`Linux/Linux_WEIDS/DShanMCU-F103/` 被 `.gitignore` 排除，直接引用会导致克隆后无法构建。裁剪后仅约 1 MB，见 `vendor/README.md`。
-- **中断模式的固定体积开销**：`f103_tick.c` 一旦定义 `SysTick_Handler`，向量表（`KEEP`）就会引用它，`--gc-sections` 无法回收。实测代价为 16 B Flash + 4 B bss，**只用轮询模式的实验也要承担**。未调用的 `f103_tick_init_irq`（0x34）与 `f103_tick_now_ms`（0xC）可被正常回收（map 中地址为 0）。若要为极小镜像去掉这 20 B，只能把中断模式拆到独立的 `f103_tick_irq.c`，由实验按需加入；当前三个实验都远未接近 64 KB，不做此拆分。
+- **中断模式的固定体积开销**：`f103_tick.c` 一旦定义 `SysTick_Handler`，向量表（`KEEP`）就会引用它，`--gc-sections` 无法回收。实测代价为 16 B Flash + 4 B bss，**只用轮询模式的实验也要承担**。未调用的 `f103_tick_init_irq`（0x34）与 `f103_tick_now_ms`（0xC）可被正常回收（map 中地址为 0）。若要为极小镜像去掉这 20 B，只能把中断模式拆到独立的 `f103_tick_irq.c`，由实验按需加入；当前实验都远未接近 64 KB，不做此拆分。
+- **FreeRTOS 只留一条路径**：上游是全平台仓库（十几套移植层 + 全套测试 + SBOM），只保留 `GCC/ARM_CM3` + `heap_4` + 三个最小 `.c`。代价是开软件定时器/事件组时要补对应 `.c`（头文件已留），换来克隆体积与审查面积都可控。`FreeRTOSConfig.h` 是本仓库自撰文件，每个非平凡选项都写了理由。
+- **异常路由放在公共 `src/` 而不是各实验**：第一版把它写在实验 10 目录里，理由是"这是教学重点"。实验 11 需要同一份文件时，两份 20 行汇编没有教学增量，只有漂移风险，于是移到 `src/f103_freertos_vectors.s` 并由 `f103_add_freertos()` 统一加入。教学解释留在汇编文件的头注释里，谁要看都能在原来找代码的地方找到原因。
 
 ## 已知限制
 
@@ -76,3 +106,5 @@ cmake --build build-qemu
 - 链接脚本假设 Flash 64 KB / SRAM 20 KB（C8T6 实测规格）。C6T6 等同系列小容量型号不可直接复用。
 - 未接入 HAL。需要 HAL 外设时再向 `vendor/` 增补对应模块，不预先引入。
 - `flash` 目标的 OpenOCD 配置按 ST-Link V2（`hla_swd`）编写；V3 或 J-Link 需另写配置。
+- FreeRTOS 配置为**教学最小集**：4 KB `heap_4`、无软件定时器/事件组/流缓冲/静态分配。实验 10 实测三个任务 + 队列 + 互斥量 + 空闲任务后仅剩 **496 B** 空闲堆，再加一个任务即可能触发 `vApplicationMallocFailedHook`。
+- FreeRTOS 相关结论目前只在 QEMU 中实测过（真板未接）；QEMU 时基为 24 MHz 对固件 8 MHz，**绝对时间结论不可信**。

@@ -130,6 +130,68 @@ int main(void)
     printf("[10] SysTick 中断：5 ms 计数到 %lu（≥5 说明中断通路正常）\r\n",
            (unsigned long)f103_tick_now_ms());
 
+    /* ---- 11. IWDG（独立看门狗）----
+     * 顺序是"先写后读"，读回值决定能否在仿真里验证看门狗。
+     * 注意：KR 写 0xCCCC 在真芯片上会真正启动看门狗，所以探针只允许在 QEMU 里跑；
+     * 真板上不要在"没有喂狗循环"的代码里启动 IWDG。写完立刻喂一次，缩短超时窗口。 */
+    IWDG->KR  = 0x5555U;                 /* 解除 PR/RLR 写保护 */
+    IWDG->PR  = 0x04U;                   /* 预分频 ÷64 */
+    IWDG->RLR = 0x0FFFU;                 /* 重装值 */
+    uint32_t iwdg_pr  = IWDG->PR;
+    uint32_t iwdg_rlr = IWDG->RLR;
+    uint32_t iwdg_sr  = IWDG->SR;
+    IWDG->KR = 0xCCCCU;                  /* 启动 */
+    IWDG->KR = 0xAAAAU;                  /* 立刻喂一次 */
+    printf("[11] IWDG：写 PR=4 RLR=0x0FFF，读回 PR=%lu RLR=%lu SR=0x%08lX"
+           "（读回 0 说明未建模，看门狗计时与复位不可验证）\r\n",
+           (unsigned long)iwdg_pr, (unsigned long)iwdg_rlr, (unsigned long)iwdg_sr);
+
+    /* ---- 12. 复位原因寄存器 ---- */
+    uint32_t csr = RCC->CSR;
+    printf("[12] RCC->CSR = 0x%08lX：IWDGRSTF=%lu PORRSTF=%lu PINRSTF=%lu SFTRSTF=%lu\r\n",
+           (unsigned long)csr,
+           (unsigned long)((csr & RCC_CSR_IWDGRSTF) ? 1U : 0U),
+           (unsigned long)((csr & RCC_CSR_PORRSTF) ? 1U : 0U),
+           (unsigned long)((csr & RCC_CSR_PINRSTF) ? 1U : 0U),
+           (unsigned long)((csr & RCC_CSR_SFTRSTF) ? 1U : 0U));
+
+    /* ---- 13. USART2：是否存在可用的第二个串口（二进制下行通道的前提） ----
+     * 只写不读：把 8 字节特征串推给 USART2，由 run.sh 用
+     * `-serial file:logs/probe_usart2.bin` 收集宿主侧是否收到。
+     * 文件非空 → QEMU 把 USART2 接到了第二个串口后端，二进制下行可以走独立通道，
+     *   不必与 USART1 的 ASCII 日志争同一条流；
+     * 文件为空 → USART2 没有宿主出口，二进制下行只能复用 USART1（会破坏日志可解析性）。
+     * 真板上这一段只是让 UART 空转，不启动任何有副作用的设备。 */
+    RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+    USART2->CR1 = 0U;                    /* 配置期间先关 UE */
+    USART2->CR2 = 0U;
+    USART2->CR3 = 0U;
+    USART2->BRR = 0x45U;                 /* 仅给合法值；QEMU 不按 baud 排字节 */
+    USART2->CR1 = USART_CR1_UE | USART_CR1_TE;
+
+    {
+        static const uint8_t pattern[8] = { 0xAAU, 0x55U, 0x13U, 0x00U,
+                                            0x04U, 0xDEU, 0xADU, 0xBEU };
+        uint32_t written = 0U;
+
+        for (uint32_t i = 0U; i < sizeof(pattern); i++) {
+            uint32_t guard = 0U;
+
+            while (((USART2->SR & USART_SR_TXE) == 0U) && (guard < 100000U)) {
+                guard++;
+            }
+            if (guard >= 100000U) {
+                break;                   /* TXE 永不来：直接记录，不挂死 */
+            }
+            USART2->DR = pattern[i];
+            written++;
+        }
+
+        printf("[13] USART2：接受 %lu/8 字节待发，SR=0x%08lX"
+               "（宿主 logs/probe_usart2.bin 非空即说明第二串口可用）\r\n",
+               (unsigned long)written, (unsigned long)USART2->SR);
+    }
+
     printf("=== 探针结束 ===\r\n");
 
     for (;;) {

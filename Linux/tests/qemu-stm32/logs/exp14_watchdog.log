@@ -1,0 +1,46 @@
+
+[F103_14] FreeRTOS V11.3.0 heartbeat + watchdog, HCLK=8000000 Hz, tick=1000 Hz
+[F103_14] HB: sensor=100 ms io=150 ms timeout=400 ms check=200 ms，注入轮次 2（恢复门限 3 / 6 次 STALE）
+[F103_14] IWDG 路径 未启用（QEMU 未建模 IWDG）；RCC->CSR=0x00000000（IWDGRSTF=0）
+[F103_14] IWDG 代码地址 init=0x0800010D feed=0x08000131（本构建不执行）
+[F103_14] 监控通道 2 个：sensor, io（任一通道不健康即停喂狗）
+[F103_14] 三个任务已创建，堆余量 1560 B，启动调度器
+[hb] t=201 sensor age=1 io age=51 OK feed=ON feeds=1
+[hb] t=404 sensor age=4 io age=104 OK feed=ON feeds=2
+[hb] t=606 sensor age=6 io age=6 OK feed=ON feeds=3
+[hb] t=808 sensor age=8 io age=58 OK feed=ON feeds=4
+[hb] R1 快恢复 注入：t=808 sensor 阻塞在 s_gate 上，恢复门限 = 连续 3 次 STALE
+[hb] t=1015 sensor age=215 io age=114 OK feed=ON feeds=5
+[hb] t=1217 sensor age=417! io age=16 STALE feed=OFF streak=1
+[hb] t=1422 sensor age=622! io age=71 STALE feed=OFF streak=2
+[hb] t=1623 sensor age=823! io age=122 STALE feed=OFF streak=3
+[hb] R1 快恢复 恢复动作：连续 3 次 STALE（门限 3），解除 sensor 阻塞
+[hb] R1 快恢复 恢复：t=1834 重新喂狗，停止喂狗窗口 819 tick（IWDG 名义 998 ms → 软件自愈先发生）
+[hb] t=1834 sensor age=0 io age=33 OK feed=ON feeds=6
+[hb] t=2040 sensor age=6 io age=89 OK feed=ON feeds=7
+[hb] t=2241 sensor age=7 io age=140 OK feed=ON feeds=8
+[hb] t=2442 sensor age=8 io age=41 OK feed=ON feeds=9
+[hb] t=2643 sensor age=9 io age=92 OK feed=ON feeds=10
+[hb] t=2847 sensor age=13 io age=146 OK feed=ON feeds=11
+[hb] R2 慢恢复 注入：t=2847 sensor 阻塞在 s_gate 上，恢复门限 = 连续 6 次 STALE
+[hb] t=3055 sensor age=221 io age=54 OK feed=ON feeds=12
+[hb] t=3257 sensor age=423! io age=106 STALE feed=OFF streak=1
+[hb] t=3461 sensor age=627! io age=10 STALE feed=OFF streak=2
+[hb] t=3662 sensor age=828! io age=61 STALE feed=OFF streak=3
+[hb] t=3863 sensor age=1029! io age=112 STALE feed=OFF streak=4
+[hb] t=4067 sensor age=1233! io age=16 STALE feed=OFF streak=5
+[hb] t=4267 sensor age=1433! io age=66 STALE feed=OFF streak=6
+[hb] R2 慢恢复 恢复动作：连续 6 次 STALE（门限 6），解除 sensor 阻塞
+[hb] R2 慢恢复 恢复：t=4479 重新喂狗，停止喂狗窗口 1424 tick（IWDG 名义 998 ms → 真板会先复位）
+[hb] t=4479 sensor age=0 io age=128 OK feed=ON feeds=13
+[hb] t=4684 sensor age=5 io age=33 OK feed=ON feeds=14
+[hb] t=4886 sensor age=7 io age=85 OK feed=ON feeds=15
+[hb] t=5089 sensor age=10 io age=138 OK feed=ON feeds=16
+[hb] t=5292 sensor age=13 io age=41 OK feed=ON feeds=17
+[hb] 汇总：checks=26 stale_total=9 blocked=9 feeds=17 心跳次数 sensor=30 io=35
+[hb] R1 快恢复 恢复时刻 = 1834 tick（0 表示未恢复）
+[hb] R2 慢恢复 恢复时刻 = 4479 tick（0 表示未恢复）
+[hb] 栈水位（余量/总量，字）：sensor=132/160 io=106/128 health=108/224（判据：绝对 ≥32、相对 ≥25%）
+[hb] t=8103 sensor age=24 io age=2 OK feed=ON feeds=31
+[hb] t=12107 sensor age=28 io age=106 OK feed=ON feeds=51
+qemu-system-arm: terminating on signal 15 from pid 483 (timeout)

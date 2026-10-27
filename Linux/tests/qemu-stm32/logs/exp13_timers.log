@@ -1,0 +1,68 @@
+
+[F103_13] FreeRTOS V11.3.0 software timers, HCLK=8000000 Hz, tick=1000 Hz
+[F103_13] configUSE_TIMERS=1 daemon prio=4 queue=5 stack=160 words
+[F103_13] 互斥量建好后堆余量 4000 B
+[F103_13] 两个任务建好后堆余量 2384 B，启动调度器（守护任务、定时器命令队列与 idle 由内核创建）
+[tmr] 三个 Timer_t 用掉 144 B（堆余量 880 → 736）
+[tmr] 三个定时器已创建（休眠状态）：once=300 ms 单次，periodic=200 ms，fast=50 ms 周期，daemon 优先级=4
+[tmr] once fire#1 act=310 ideal=310 drift=0 in_daemon=1
+[res] heap_free=736 B, stack_hwm app=86 monitor=136 daemon=132 words
+[tmr] once fire#2 act=615 ideal=615 drift=0（reset 生效，单次定时器可复用）
+[tmr] normal period#1 act=211 ideal=210 drift=1 dur=0
+[tmr] normal period#2 act=411 ideal=410 drift=1 dur=0
+[tmr] normal period#3 act=611 ideal=610 drift=1 dur=0
+[tmr] normal period#4 act=811 ideal=810 drift=1 dur=0
+[tmr] normal fast#1 act=61 ideal=60 drift=1
+[tmr] normal fast_total=16 max_drift=1
+[tmr] 注入：周期回调忙等 60 tick（模拟回调里做重活）
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[tmr] stalled period#5 act=1011 ideal=1010 drift=1 dur=60
+[tmr] stalled period#6 act=1211 ideal=1210 drift=1 dur=60
+[tmr] stalled period#7 act=1411 ideal=1410 drift=1 dur=60
+[tmr] stalled period#8 act=1611 ideal=1610 drift=1 dur=60
+[tmr] 注入结束：回调恢复只记账
+[tmr] after period#9 act=1811 ideal=1810 drift=1 dur=0
+[tmr] after period#10 act=2011 ideal=2010 drift=1 dur=0
+[tmr] after fast#1 act=61 ideal=60 drift=1
+[tmr] after fast#20 act=1071 ideal=1010 drift=61
+[tmr] after fast#21 act=1071 ideal=1060 drift=11
+[tmr] after fast#22 act=1111 ideal=1110 drift=1
+[tmr] after fast#24 act=1271 ideal=1210 drift=61
+[tmr] after fast#25 act=1271 ideal=1260 drift=11
+[tmr] after fast#26 act=1311 ideal=1310 drift=1
+[tmr] after fast#28 act=1471 ideal=1410 drift=61
+[tmr] after fast#29 act=1471 ideal=1460 drift=11
+[tmr] after fast#30 act=1511 ideal=1510 drift=1
+[tmr] after fast#32 act=1671 ideal=1610 drift=61
+[tmr] after fast#33 act=1671 ideal=1660 drift=11
+[tmr] after fast#34 act=1711 ideal=1710 drift=1
+[tmr] after fast_total=40 max_drift=61
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[tmr] 已停止：periodic 前=10 后=10 差=0；fast 前=40 后=40 差=0（都应为 0）
+[tmr] done heap_free=736 B
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+[res] heap_free=736 B, stack_hwm app=74 monitor=58 daemon=132 words
+qemu-system-arm: terminating on signal 15 from pid 480 (timeout)

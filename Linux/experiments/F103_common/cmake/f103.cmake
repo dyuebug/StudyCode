@@ -28,11 +28,16 @@ set(F103_CRTSTUB  "${F103_COMMON_ROOT}/src/crt_stubs.c")
 set(F103_TICK     "${F103_COMMON_ROOT}/src/f103_tick.c")
 set(F103_UART     "${F103_COMMON_ROOT}/src/f103_uart.c")
 
+# FreeRTOS V11.3.0 精简子集：内核 list/queue/tasks + GCC/ARM_CM3 移植层 + heap_4
+set(F103_FREERTOS_ROOT "${F103_COMMON_ROOT}/vendor/freertos")
+
 # Cortex-M3 无 FPU：浮点一律走软件库，避免链接期找不到硬件浮点指令
 set(F103_CPU_FLAGS -mcpu=cortex-m3 -mthumb -mfloat-abi=soft)
 
 function(f103_add_firmware TARGET)
-  cmake_parse_arguments(ARG "" "LDSCRIPT" "SOURCES;INCLUDES;DEFINES" ${ARGN})
+  # NO_TICK：不链接 f103_tick.c。FreeRTOS 会接管 SysTick_Handler，
+  # 两者同时存在会符号重定义。
+  cmake_parse_arguments(ARG "NO_TICK" "LDSCRIPT" "SOURCES;INCLUDES;DEFINES" ${ARGN})
 
   if(NOT ARG_SOURCES)
     message(FATAL_ERROR "f103_add_firmware(${TARGET}) 需要 SOURCES 参数")
@@ -49,8 +54,11 @@ function(f103_add_firmware TARGET)
     ${F103_STARTUP}
     ${F103_SYSTEM}
     ${F103_CRTSTUB}
-    ${F103_TICK}
     ${F103_UART})
+
+  if(NOT ARG_NO_TICK)
+    target_sources(${TARGET} PRIVATE ${F103_TICK})
+  endif()
 
   target_include_directories(${TARGET} PRIVATE
     "${F103_COMMON_ROOT}/include"
@@ -91,6 +99,41 @@ function(f103_add_firmware TARGET)
     COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${TARGET}> ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.bin
     COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${TARGET}>
     COMMENT "生成 ${TARGET}.hex / ${TARGET}.bin")
+endfunction()
+
+# 把 FreeRTOS 内核挂到已由 f103_add_firmware(... NO_TICK) 创建的固件目标上。
+# 只收内核必需部分：list/queue/tasks + GCC/ARM_CM3 移植层 + heap_4。
+#
+# MODULES <name>...：额外内核模块（event_groups、timers、stream_buffer），
+# 按需加入。这些 .c 已随裁剪子集入库，但默认不链接 —— 不开对应配置项时
+# 链接它们只会增加体积，不会带来功能。
+function(f103_add_freertos TARGET)
+  cmake_parse_arguments(ARG "" "" "MODULES" ${ARGN})
+
+  target_sources(${TARGET} PRIVATE
+    "${F103_FREERTOS_ROOT}/Source/list.c"
+    "${F103_FREERTOS_ROOT}/Source/queue.c"
+    "${F103_FREERTOS_ROOT}/Source/tasks.c"
+    "${F103_FREERTOS_ROOT}/Source/portable/GCC/ARM_CM3/port.c"
+    "${F103_FREERTOS_ROOT}/Source/portable/MemMang/heap_4.c"
+    # 间接路由：把启动文件的 SVC/PendSV/SysTick 向量尾跳转到移植层函数。
+    # 放在公共目录是因为每个 RTOS 目标都需要它，且内容与实验无关（见文件头注释）。
+    "${F103_COMMON_ROOT}/src/f103_freertos_vectors.s")
+
+  target_include_directories(${TARGET} PRIVATE
+    "${F103_FREERTOS_ROOT}/include"                     # 本仓库写的 FreeRTOSConfig.h
+    "${F103_FREERTOS_ROOT}/Source/include"
+    "${F103_FREERTOS_ROOT}/Source/portable/GCC/ARM_CM3")
+
+  foreach(_module IN LISTS ARG_MODULES)
+    set(_src "${F103_FREERTOS_ROOT}/Source/${_module}.c")
+    if(NOT EXISTS "${_src}")
+      message(FATAL_ERROR
+        "f103_add_freertos(${TARGET}) 找不到内核模块 ${_module}.c"
+        "（已收录：event_groups / timers）")
+    endif()
+    target_sources(${TARGET} PRIVATE "${_src}")
+  endforeach()
 endfunction()
 
 # ---- 烧写（可选）------------------------------------------------------------

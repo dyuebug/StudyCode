@@ -1,0 +1,39 @@
+
+[F103_12] FreeRTOS V11.3.0 sync primitives, HCLK=8000000 Hz, tick=1000 Hz
+[F103_12] pool=3 (init 1), USART1_IRQ prio=5
+[F103_12] 五个同步对象（4 个信号量 + 1 个事件组）用掉 368 B
+[F103_12] 二值信号量初值为空（符合预期）
+[F103_12] 初始空闲堆 1496 B，启动调度器
+[sync] bin waited=802 ticks, take ok
+[sync] pool take1 ok, count=0
+[sync] pool take2(0ms) result=0, count=0
+[res] heap_free=880 B, stack_hwm core=90 feeder=96 monitor=136 words
+[sync] pool refill take ok, count=0
+[sync] pool refill take ok, count=0
+[sync] event wait_all got=0x03 waited=201 ticks
+[sync] event timeout got=0x00 waited=300 ticks
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[sync] isr wake#1 bytes=7 gives=2
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[sync] isr wake#2 bytes=7 gives=2
+[sync] isr 空闲 300 tick 后无新事件，结束采集
+[sync] isr summary bytes=7 gives=2 takes=2 coalesced=5
+[sync] done heap_free=880 B
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+[res] heap_free=880 B, stack_hwm core=86 feeder=96 monitor=58 words
+qemu-system-arm: terminating on signal 15 from pid 535 (timeout)

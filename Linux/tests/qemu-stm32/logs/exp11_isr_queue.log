@@ -1,0 +1,26 @@
+
+[F103_11] FreeRTOS ISR→task: USART1 RXNE + queue(depth=32), NVIC prio=5 (= MAX_SYSCALL)
+任务已创建，启动调度器（RXNE 中断由 consume 任务使能）
+[stats] tick=1001 rx=0 lines=0 qdrop=0 ore=0 trunc=0 queued=0 lat_max=0 heap_free=1048
+[stats] tick=2006 rx=0 lines=0 qdrop=0 ore=0 trunc=0 queued=0 lat_max=0 heap_free=1048
+[line 1] "hello" len=5
+[stats] tick=3017 rx=7 lines=1 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=4020 rx=7 lines=1 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=5025 rx=7 lines=1 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[line 2] "world" len=5
+[stats] tick=6029 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=7034 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=8036 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=9036 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=10043 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=11047 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=12053 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=13058 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=14063 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=15068 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=16070 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=17072 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=18076 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=19081 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+[stats] tick=20083 rx=14 lines=2 qdrop=0 ore=0 trunc=0 queued=0 lat_max=2 heap_free=1048
+qemu-system-arm: terminating on signal 15 from pid 497 (timeout)

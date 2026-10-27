@@ -67,5 +67,15 @@ Linux/experiments/F103_*/build/
 Linux/experiments/F103_*/build-qemu/
 Linux/tests/qemu-stm32/probe/build/
 
+# 综合项目的 CMake 构建目录（与 F103 实验同规则）；
+# build-* 覆盖 build-qemu 与对照构建（如 aviation-node 的 build-noinj，
+# 用 -DAV_DEBUG_BLOCK_RX_MS=0 重新构建以量出调试注入段的体积）
+Linux/projects/*/build/
+Linux/projects/*/build-*/
+
 # QEMU STM32 仿真的串口原始输出属于验证证据，需入库（*.log 默认被忽略）
 !Linux/tests/qemu-stm32/logs/*.log
+
+# Python 字节码缓存（测试工具的副产物，可再生）
+__pycache__/
+*.pyc

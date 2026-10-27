@@ -27,4 +27,4 @@ xyz
 [21000 ms] alive, rx=12, over=0
 [22000 ms] alive, rx=12, over=0
 [23000 ms] alive, rx=12, over=0
-qemu-system-arm: terminating on signal 15 from pid 475 (timeout)
+qemu-system-arm: terminating on signal 15 from pid 497 (timeout)

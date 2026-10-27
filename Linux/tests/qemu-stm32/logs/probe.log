@@ -18,5 +18,8 @@ SPI1->CR1      写入 0x0000034C  读回 0x0000034C  有状态
 [8] DWT：CTRL 读回 0x00000000，CYCCNT 0 -> 0（差 0）
 [9] SysTick 轮询：捕获 5 次 COUNTFLAG（5 次即视为工作）
 [10] SysTick 中断：5 ms 计数到 5（≥5 说明中断通路正常）
+[11] IWDG：写 PR=4 RLR=0x0FFF，读回 PR=0 RLR=0 SR=0x00000000（读回 0 说明未建模，看门狗计时与复位不可验证）
+[12] RCC->CSR = 0x00000000：IWDGRSTF=0 PORRSTF=0 PINRSTF=0 SFTRSTF=0
+[13] USART2：接受 8/8 字节待发，SR=0x000000C0（宿主 logs/probe_usart2.bin 非空即说明第二串口可用）
 === 探针结束 ===
-qemu-system-arm: terminating on signal 15 from pid 468 (timeout)
+qemu-system-arm: terminating on signal 15 from pid 481 (timeout)

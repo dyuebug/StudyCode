@@ -24,4 +24,4 @@ beta
 [18000 ms] alive, rx=13, drop=0, ore=0
 [19000 ms] alive, rx=13, drop=0, ore=0
 [20000 ms] alive, rx=13, drop=0, ore=0
-qemu-system-arm: terminating on signal 15 from pid 488 (timeout)
+qemu-system-arm: terminating on signal 15 from pid 515 (timeout)

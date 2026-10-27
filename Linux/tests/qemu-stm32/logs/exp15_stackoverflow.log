@@ -1,0 +1,25 @@
+
+[F103_15] FreeRTOS V11.3.0 stack-overflow detection, HCLK=8000000 Hz, tick=1000 Hz
+[F103_15] configCHECK_FOR_STACK_OVERFLOW=2（2 = paint + SP 双重检查），任务栈 256 字
+
+[so] 任务栈 256 字（1024 B）
+[so] 对照 depth=12 → 最低地址 0x200004A0，余量 160 字（判据 ≥32）
+[so] 标定 depth=16 → 最低地址 0x20000460，每帧 16 B
+[so] depth=16 余量 152 字
+[so] depth=20 余量 152 字
+[so] depth=24 余量 144 字
+[so] depth=28 余量 128 字
+[so] depth=32 余量 112 字
+[so] depth=36 余量 96 字
+[so] depth=40 余量 80 字
+[so] depth=44 余量 64 字
+[so] depth=48 余量 48 字
+[so] depth=52 余量 32 字
+[so] depth=56 余量 16 字
+[so] depth=60 余量 0 字
+[so] 逐级加深：首次余量 <32 字在 depth=56，余量归零在 depth=60（按余量预测 52）
+[so] 注入完成：depth=60 时 hwm=0，即栈底 16 B 的 0xA5 已被写穿；越界量不超过一帧（16 B）
+[so] 返回后栈指针合法；vTaskDelay(1) 等待切换时的 paint 检查
+
+[STACK OVERFLOW] 任务 probe 的栈被写穿，钩子已触发
+qemu-system-arm: terminating on signal 15 from pid 480 (timeout)

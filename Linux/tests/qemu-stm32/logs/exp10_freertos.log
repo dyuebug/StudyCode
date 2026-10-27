@@ -1,0 +1,124 @@
+
+[F103_10] FreeRTOS V11.3.0 on STM32F103, HCLK=8000000 Hz, tick=1000 Hz
+任务已创建，启动调度器（初始空闲堆 1112 B）
+[consume] seq=1 tick=1
+[consume] seq=2 tick=203
+[consume] seq=3 tick=406
+[consume] seq=4 tick=609
+[consume] seq=5 tick=812
+[monitor] tick=1003 produced=5 consumed=5 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=6 tick=1016
+[consume] seq=7 tick=1218
+[consume] seq=8 tick=1420
+[consume] seq=9 tick=1622
+[consume] seq=10 tick=1825
+[monitor] tick=2012 produced=10 consumed=10 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=11 tick=2027
+[consume] seq=12 tick=2228
+[consume] seq=13 tick=2431
+[consume] seq=14 tick=2633
+[consume] seq=15 tick=2835
+[monitor] tick=3017 produced=15 consumed=15 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=16 tick=3035
+[consume] seq=17 tick=3236
+[consume] seq=18 tick=3438
+[consume] seq=19 tick=3640
+[consume] seq=20 tick=3842
+[monitor] tick=4023 produced=20 consumed=20 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=21 tick=4043
+[consume] seq=22 tick=4244
+[consume] seq=23 tick=4446
+[consume] seq=24 tick=4649
+[consume] seq=25 tick=4852
+[monitor] tick=5028 produced=25 consumed=25 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=26 tick=5054
+[consume] seq=27 tick=5255
+[consume] seq=28 tick=5457
+[consume] seq=29 tick=5659
+[consume] seq=30 tick=5861
+[monitor] tick=6035 produced=30 consumed=30 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=31 tick=6063
+[consume] seq=32 tick=6265
+[consume] seq=33 tick=6466
+[consume] seq=34 tick=6669
+[consume] seq=35 tick=6871
+[monitor] tick=7039 produced=35 consumed=35 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=36 tick=7074
+[consume] seq=37 tick=7277
+[consume] seq=38 tick=7480
+[consume] seq=39 tick=7680
+[consume] seq=40 tick=7882
+[monitor] tick=8046 produced=40 consumed=40 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=41 tick=8085
+[consume] seq=42 tick=8288
+[consume] seq=43 tick=8490
+[consume] seq=44 tick=8691
+[consume] seq=45 tick=8893
+[monitor] tick=9053 produced=45 consumed=45 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=46 tick=9095
+[consume] seq=47 tick=9298
+[consume] seq=48 tick=9500
+[consume] seq=49 tick=9703
+[consume] seq=50 tick=9906
+[monitor] tick=10059 produced=50 consumed=50 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=51 tick=10108
+[consume] seq=52 tick=10312
+[consume] seq=53 tick=10515
+[consume] seq=54 tick=10716
+[consume] seq=55 tick=10918
+[monitor] tick=11062 produced=55 consumed=55 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=56 tick=11121
+[consume] seq=57 tick=11323
+[consume] seq=58 tick=11526
+[consume] seq=59 tick=11729
+[consume] seq=60 tick=11931
+[monitor] tick=12071 produced=60 consumed=60 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=61 tick=12133
+[consume] seq=62 tick=12335
+[consume] seq=63 tick=12536
+[consume] seq=64 tick=12739
+[consume] seq=65 tick=12941
+[monitor] tick=13078 produced=65 consumed=65 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=66 tick=13143
+[consume] seq=67 tick=13345
+[consume] seq=68 tick=13548
+[consume] seq=69 tick=13750
+[consume] seq=70 tick=13953
+[monitor] tick=14087 produced=70 consumed=70 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=71 tick=14156
+[consume] seq=72 tick=14358
+[consume] seq=73 tick=14561
+[consume] seq=74 tick=14764
+[consume] seq=75 tick=14966
+[monitor] tick=15095 produced=75 consumed=75 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=76 tick=15167
+[consume] seq=77 tick=15370
+[consume] seq=78 tick=15573
+[consume] seq=79 tick=15775
+[consume] seq=80 tick=15977
+[monitor] tick=16103 produced=80 consumed=80 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=81 tick=16179
+[consume] seq=82 tick=16381
+[consume] seq=83 tick=16583
+[consume] seq=84 tick=16785
+[consume] seq=85 tick=16988
+[monitor] tick=17116 produced=85 consumed=85 dropped=0 queued=0
+[res] heap_free=496 B, stack_hwm consume=154 produce=126 monitor=90 words
+[consume] seq=86 tick=17190
+qemu-system-arm: terminating on signal 15 from pid 483 (timeout)
