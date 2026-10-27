@@ -62,6 +62,51 @@
 **不要用的判据**：目录里有没有文件（initramfs 里本来就放了程序）、`st_dev`（同一设备可挂多个
 文件系统）、`du` 出来的用量（与文件系统类型无关）。
 
+## 3.5 `pivot_root` 与 `chroot` 的对照
+
+| 维度 | `chroot(path)` | `pivot_root(new, put_old)` |
+| --- | --- | --- |
+| 作用域 | 本进程 `fs->root` | 整个挂载命名空间（所有根指向旧根的进程） |
+| 旧根去向 | 不动，仍在命名空间里（本进程看不见而已） | 挂到 `put_old` |
+| 进程**内**可观测差别 | 无 | 无 |
+| 进程**外**可观测差别 | 观察者仍见旧根（`tmpfs` + `/init`） | 观察者见新根（`ext4`，`/init` 消失） |
+
+三条门槛（`fs/namespace.c::path_pivot_root()`，违反时分别 `EINVAL(22)` / `EINVAL(22)` / `EBUSY(16)`）：
+
+1. `new_root` 必须是**挂载点**（普通目录 → 22）；
+2. `put_old` 必须可达且在 `new_root` 之下（→ 22）；
+3. `put_old` 不能与当前根在**同一个文件系统**上（→ 16）。
+
+另外 `pivot_root` **不搬挂载点**：换根成功后 `/dev`、`/proc`、`/sys` 仍是旧根里的空目录，
+设备节点全丢——`MS_MOVE` 不能省。
+
+### 旧根为什么卸不掉（实测结论）
+
+initramfs 场景下，旧根严格 `umount` **恒 `EBUSY(16)`**，`exec` 之后也一样。链条：
+
+```text
+init/noinitramfs.c:18  default_rootfs()（rootfs_initcall，obj-y）建 /dev/console (chr 5:1, 0600)
+init/main.c:1603       console_on_rootfs() 把它 dup 到 0/1/2
+execve                 只换映像，不动 fd 表 → 三个 fd 仍指向旧 rootfs
+umount2(old, 0)        do_umount → propagate_mount_busy(mnt, 2) 见引用超限 → EBUSY
+重绑 0/1/2 到新根      → 同一挂载严格卸载成功
+```
+
+实践：自己写 `switch_root` 时**重绑 stdio**，或直接用 `MNT_DETACH`；不要把"严格 `umount` 成功"
+当成切根完成的判据。
+
+### 判据用哪条读数
+
+| 问题 | 读数 |
+| --- | --- |
+| 旧根还在不在（可达时） | `/proc/self/mounts` 里的 `/oldroot rootfs` 行；`mounts_rootfs=1` |
+| 旧根有没有**子挂载** | `/proc/self/mountinfo` 的 `parent` 列（无子挂载 ⇒ `EBUSY` 来自引用计数） |
+| 旧根被**谁**钉住 | `readlink /proc/self/fd/N` |
+| 严格卸载本身可不可用 | 现挂一个 tmpfs 再严格卸载（对照组） |
+
+**反直觉**：从 `chroot` 内部读 `/proc/self/mounts`，旧根那一行被内核隐藏（`mounts_rootfs=0`），
+因为 `show_vfsmnt()` 跳过不可达的挂载。挂载表**不能**用来判断"chroot 有没有释放旧根"。
+
 ## 4. 接口卡片
 
 ### `mount(src, tgt, fstype, flags, data)`
@@ -100,15 +145,22 @@
 | 读 `/proc/cmdline` 得 absent | 读的时候 `/proc` 挂了没有 | 该行必须在 `mount|proc|ok` 之后 |
 | `root_before` 魔数与本表不符 | 命令行有没有 `root=`；`CONFIG_TMPFS` | `init_rootfs()` 的 `is_tmpfs` 条件 |
 | QEMU 卡死不退出 | PID 1 是不是停在死循环；有没有 `reboot` | 最后一行是否 `done` / `skipped` |
+| `pivot_root` 返回 `EINVAL(22)` | `new_root` 是不是挂载点；`put_old` 在不在它下面 | `pivot_root|fail|...|errno=22` |
+| `umount` 旧根恒 `EBUSY(16)` | fd 0/1/2 指向哪；旧根有没有子挂载 | `fd|N|/oldroot/...`、`mountinfo` 的 `parent` 列 |
+| 严格卸载"失败"但表里已没有旧根 | 是不是卸完又补了一次 `MNT_DETACH` | `EINVAL(22)` = 目标已不是挂载 |
 
 ## 6. 验证状态与边界
 
 - **实测**：四步切根；`ok` / `rootfs-ramfs` / `no-move` / `noroot` / `no-stage2` 五组；
   判据的 6 条负向验证（含"日志不存在"返回 2）。
+- **实测（补）**：`pivot_root` 与 `chroot` 五组对照（`chroot`/`pivot`/`pivot-late`/`pivot-nomove`/`pivot-ondir`）；
+  旧根 `EBUSY(16)` 的单变量因果实验（只重绑 0/1/2）；`/proc/self/mountinfo` 的父 id 拓扑；
+  判据的 10 条负向验证。
 - **仅源码推断**：`init_rootfs()` 的 `is_tmpfs` 条件（但已用 `rootfs-ramfs` 组落到读数上）、
-  `nullfs` 作为 VFS 真根的具体路径。
-- **未验证**：`pivot_root` 对照、busybox `switch_root` 的实现差异、真板上的启动链与时序、
-  u-boot 的 `extlinux`/`bootflow` 路径。
+  `nullfs` 作为 VFS 真根的具体路径（有启动日志 `VFS: Finished mounting rootfs on nullfs` 与
+  `mountinfo` 的 `parent=1` 佐证，但未逐函数验证）。
+- **未验证**：`MS_SHARED` 传播与 `MNT_LOCKED` 分支、只读根与 overlay、busybox `switch_root`
+  的实现差异、真板上的启动链与时序、u-boot 的 `extlinux`/`bootflow` 路径。
 - **环境绑定**：所有 `f_type` 结论绑定本内核（7.0.0 树）。换内核对 `root_before` 与 `/dev`
   的魔数都可能不同——重跑 `./run.sh` 重新标定，不要照抄。
 
@@ -116,6 +168,9 @@
 
 - [`experiments/BSP_03_SwitchRoot`](../experiments/BSP_03_SwitchRoot/README.md)：四步切根、五组对照、
   判据与负向验证、两次失败复盘（`move_mount` 符号冲突、`/proc` 读太早）。
+- [`experiments/BSP_04_PivotRoot`](../experiments/BSP_04_PivotRoot/README.md)：`pivot_root` 对照、
+  旧根 `EBUSY` 的因果实验、`mountinfo` 拓扑、10 条负向验证。
 - [`experiments/BSP_01_Boot_Chain`](../experiments/BSP_01_Boot_Chain/README.md)：zImage / DTB / initramfs 的分工。
 - [`experiments/BSP_02_UBoot_BlockRoot`](../experiments/BSP_02_UBoot_BlockRoot/README.md)：u-boot、块设备根、分区与整盘。
-- 日志：`experiments/BSP_03_SwitchRoot/logs/{ok,rootfs-ramfs,no-move,noroot,no-stage2}.log`。
+- 日志：`experiments/BSP_03_SwitchRoot/logs/{ok,rootfs-ramfs,no-move,noroot,no-stage2}.log`、
+  `experiments/BSP_04_PivotRoot/logs/{chroot,pivot,pivot-late,pivot-nomove,pivot-ondir}.log`。

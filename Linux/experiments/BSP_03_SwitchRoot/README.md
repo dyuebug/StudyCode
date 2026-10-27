@@ -399,19 +399,22 @@ stage1 与 stage2 都是 PID 1。`return` 会让内核 `panic("Attempted to kill
 
 - **用 busybox 复刻同样的流程**：本环境没装 busybox，stage1/stage2 是手写等价实现；
   装上之后可以对照 `busybox switch_root` 的行为（它会 `umount` 旧根、处理 `-c` 控制台）。
-- **`pivot_root` 对照**：`pivot_root` 会把旧根搬到指定目录再允许 `umount`，
-  与 `chroot + exec` 的取舍值得单独一组实验。
+- **`pivot_root` 对照**：已在 [`BSP_04_PivotRoot`](../BSP_04_PivotRoot/README.md) 完成
+  （命名空间级换根、`new_root` 必须是挂载点、旧根 `EBUSY` 的因果实验）。
 - **坏 bootargs 用例**（第 20 天遗留第 3 条）：需要一个"改了 `bootargs` 仍能引导"的组合，
   才能把"bootloader 参数错"与"内核配置错"分开。
 
 ## 已知限制
 
-- **不是真正的 `switch_root`**：没有 `umount` 旧根（当前是 PID 1，旧根上还有本进程的页，
-  `umount` 会 `EBUSY`）。真实 `switch_root` 靠 `exec` 之后由新进程回收，本实验只验证到 `exec` 这一步。
+- **不是真正的 `switch_root`**：本实验停在 `exec`，没有 `umount` 旧根。
+  本文早先给出的理由（"旧根上还有本进程的页"）**已被 BSP_04 的实测否证**：
+  `exec` 之后旧根依旧 `EBUSY(16)`，真正钉住它的是内核交给 PID 1 的 0/1/2
+  （指向 rootfs 里的 `/dev/console`，`init/main.c:1603`）。
+  见 [`BSP_04_PivotRoot`](../BSP_04_PivotRoot/README.md) 的"核心概念 5"与因果实验。
 - **stage1/stage2 是手写程序**，不是 busybox；因此"`switch_root` 的实际实现细节"（如控制台设备
   的重定向、`/run` 的准备）没有覆盖。
 - **无 busybox、无完整用户态**：没有 init 系统、没有 `/sbin/init`，所以只验证了内核与根切换本身。
 - **`f_type` 的结论绑定本内核**（7.0.0 树）。换内核对 `root_before` 与 `/dev` 的魔数都可能不同，
   重跑一次 `./run.sh` 就能重新标定。
-- **未测 `pivot_root`、未测只读根与叠加挂载**：留给后续实验。
+- **未测只读根与叠加挂载**：留给后续实验（`pivot_root` 部分已由 BSP_04 覆盖）。
 - **QEMU 侧无盘 I/O 时序证据**：ext4 的读写性能与中断行为不在本实验范围。

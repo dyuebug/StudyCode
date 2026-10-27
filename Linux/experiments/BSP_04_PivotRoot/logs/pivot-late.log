@@ -1,0 +1,203 @@
+Booting Linux on physical CPU 0x0
+Linux version 7.0.14 (yanc@DESKTOP-6J6CU9G) (arm-linux-gnueabihf-gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, GNU ld (GNU Binutils for Ubuntu) 2.46) #4 SMP Sun Oct 25 17:02:10 CST 2026 ()
+CPU: ARMv7 Processor [414fc0f0] revision 0 (ARMv7), cr=10c5387d
+CPU: div instructions available: patching division code
+CPU: PIPT / VIPT nonaliasing data cache, PIPT instruction cache
+OF: fdt: Machine model: linux,dummy-virt
+random: crng init done
+Memory policy: Data cache writealloc
+cma: Reserved 16 MiB at 0x5f000000
+OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+psci: probing for conduit method from DT.
+psci: PSCIv1.1 detected in firmware.
+psci: Using standard PSCI v0.2 function IDs
+psci: Trusted OS migration not required
+psci: SMC Calling Convention v1.0
+Zone ranges:
+  Normal   [mem 0x0000000040000000-0x000000005fffffff]
+Movable zone start for each node
+Early memory node ranges
+  node   0: [mem 0x0000000040000000-0x000000005fffffff]
+Initmem setup node 0 [mem 0x0000000040000000-0x000000005fffffff]
+percpu: Embedded 17 pages/cpu s39948 r8192 d21492 u69632
+Kernel command line: console=ttyAMA0 rdinit=/init panic=1 proot=pivot-late
+Unknown kernel command line parameters "proot=pivot-late", will be passed to user space.
+printk: log buffer data + meta data: 16384 + 51200 = 67584 bytes
+Dentry cache hash table entries: 65536 (order: 6, 262144 bytes, linear)
+Inode-cache hash table entries: 32768 (order: 5, 131072 bytes, linear)
+Built 1 zonelists, mobility grouping on.  Total pages: 131072
+mem auto-init: stack:all(zero), heap alloc:off, heap free:off
+SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+rcu: Hierarchical RCU implementation.
+rcu: 	RCU event tracing is enabled.
+rcu: 	RCU restricting CPUs from NR_CPUS=8 to nr_cpu_ids=1.
+rcu: RCU calculated value of scheduler-enlistment delay is 10 jiffies.
+rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+rcu: srcu_init: Setting srcu_struct sizes based on contention.
+clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+arch_timer: cp15 timer running at 62.50MHz (virt).
+clocksource: arch_sys_counter: mask: 0x1ffffffffffffff max_cycles: 0x1cd42e208c, max_idle_ns: 881590405314 ns
+sched_clock: 57 bits at 63MHz, resolution 16ns, wraps every 4398046511096ns
+Switching to timer-based delay loop, resolution 16ns
+Console: colour dummy device 80x30
+Calibrating delay loop (skipped), value calculated using timer frequency.. 125.00 BogoMIPS (lpj=625000)
+CPU: Testing write buffer coherency: ok
+CPU0: Spectre v2: firmware did not set auxiliary control register IBE bit, system vulnerable
+CPU0: Spectre BHB: enabling loop workaround for all CPUs
+pid_max: default: 32768 minimum: 301
+Mount-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+VFS: Finished mounting rootfs on nullfs
+/cpus/cpu@0 missing clock-frequency property
+CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+cacheinfo: Unable to detect cache hierarchy for CPU 0
+Setting up static identity map for 0x40100000 - 0x40100060
+rcu: Hierarchical SRCU implementation.
+rcu: 	Max phase no-delay instances is 1000.
+smp: Bringing up secondary CPUs ...
+smp: Brought up 1 node, 1 CPU
+SMP: Total of 1 processors activated (125.00 BogoMIPS).
+CPU: All CPU(s) started in SVC mode.
+Memory: 485084K/524288K available (10240K kernel code, 776K rwdata, 2284K rodata, 1024K init, 159K bss, 21188K reserved, 16384K cma-reserved)
+devtmpfs: initialized
+VFP support v0.3: implementor 41 architecture 4 part 30 variant f rev 0
+posixtimers hash table entries: 512 (order: 0, 4096 bytes, linear)
+futex hash table entries: 256 (16384 bytes on 1 NUMA nodes, total 16 KiB, linear).
+NET: Registered PF_NETLINK/PF_ROUTE protocol family
+DMA: preallocated 256 KiB pool for atomic coherent allocations
+cpuidle: using governor ladder
+hw-breakpoint: found 5 (+1 reserved) breakpoint and 4 watchpoint registers.
+hw-breakpoint: maximum watchpoint size is 8 bytes.
+Serial: AMBA PL011 UART driver
+9000000.pl011: ttyAMA0 at MMIO 0x9000000 (irq = 28, base_baud = 0) is a PL011 rev1
+printk: console [ttyAMA0] enabled
+SCSI subsystem initialized
+usbcore: registered new interface driver usbfs
+usbcore: registered new interface driver hub
+usbcore: registered new device driver usb
+pps_core: LinuxPPS API ver. 1 registered
+pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+PTP clock support registered
+Advanced Linux Sound Architecture Driver Initialized.
+clocksource: Switched to clocksource arch_sys_counter
+NET: Registered PF_INET protocol family
+IP idents hash table entries: 8192 (order: 4, 65536 bytes, linear)
+tcp_listen_portaddr_hash hash table entries: 512 (order: 0, 4096 bytes, linear)
+Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+TCP established hash table entries: 4096 (order: 2, 16384 bytes, linear)
+TCP bind hash table entries: 4096 (order: 4, 65536 bytes, linear)
+TCP: Hash tables configured (established 4096 bind 4096)
+UDP hash table entries: 256 (order: 2, 14336 bytes, linear)
+UDP-Lite hash table entries: 256 (order: 2, 14336 bytes, linear)
+NET: Registered PF_UNIX/PF_LOCAL protocol family
+RPC: Registered named UNIX socket transport module.
+RPC: Registered udp transport module.
+RPC: Registered tcp transport module.
+RPC: Registered tcp-with-tls transport module.
+RPC: Registered tcp NFSv4.1 backchannel transport module.
+Unpacking initramfs...
+workingset: timestamp_bits=30 max_order=17 bucket_order=0
+squashfs: version 4.0 (2009/01/31) Phillip Lougher
+Freeing initrd memory: 248K
+jffs2: version 2.2. (NAND) © 2001-2006 Red Hat, Inc.
+9p: Installing v9fs 9p2000 file system support
+io scheduler mq-deadline registered
+io scheduler kyber registered
+io scheduler bfq registered
+pl061_gpio 9030000.pl061: PL061 GPIO chip registered
+ledtrig-cpu: registered to indicate activity on CPUs
+virtio_blk virtio0: 1/0/0 default/read/poll queues
+virtio_blk virtio0: [vda] 16384 512-byte logical blocks (8.39 MB/8.00 MiB)
+physmap-flash 0.flash: physmap platform flash device: [mem 0x00000000-0x03ffffff]
+0.flash: Found 2 x16 devices at 0x0 in 32-bit bank. Manufacturer ID 0x000000 Chip ID 0x000000
+Intel/Sharp Extended Query Table at 0x0031
+Using buffer write method
+physmap-flash 0.flash: physmap platform flash device: [mem 0x04000000-0x07ffffff]
+0.flash: Found 2 x16 devices at 0x0 in 32-bit bank. Manufacturer ID 0x000000 Chip ID 0x000000
+Intel/Sharp Extended Query Table at 0x0031
+Using buffer write method
+Concatenating MTD devices:
+(0): "0.flash"
+(1): "0.flash"
+into device "0.flash"
+usbcore: registered new interface driver usb-storage
+rtc-pl031 9010000.pl031: registered as rtc0
+rtc-pl031 9010000.pl031: setting system clock to 2026-10-27T03:18:37 UTC (1793071117)
+usbcore: registered new interface driver usbhid
+usbhid: USB HID core driver
+NET: Registered PF_PACKET protocol family
+9pnet: Installing 9P2000 support
+Registering SWP/SWPB emulation handler
+clk: Disabling unused clocks
+ALSA device list:
+  No soundcards found.
+Freeing unused kernel image (initmem) memory: 1024K
+Run /init as init process
+PROOT|stage|1|pid=1
+PROOT|boot_console|present|mode=020600
+PROOT|mount|devtmpfs|ok
+PROOT|mount|proc|ok
+PROOT|mount|sysfs|ok
+PROOT|root_before|type=tmpfs|magic=0x1021994
+PROOT|cmdline|console=ttyAMA0 rdinit=/init panic=1 proot=pivot-late
+PROOT|mode|pivot-late
+EXT4-fs (vda): recovery complete
+EXT4-fs (vda): mounted filesystem 82ab280e-e677-4a9c-bdc2-f155f98690f0 r/w with ordered data mode. Quota mode: disabled.
+PROOT|mount|newroot|ok
+PROOT|newroot_marker|bsp04-pivot-marker
+PROOT|move|/dev|ok
+PROOT|move|/proc|ok
+PROOT|move|/sys|ok
+PROOT|pivot_root|ok|new=/mnt/newroot|put=/mnt/newroot/oldroot
+PROOT|pivot_chdir|ok
+PROOT|umount_oldroot|deferred|to=stage2
+PROOT|stage|2|pid=1
+PROOT|stage2|wait|800ms
+PROOT|mountinfo|2|20|/oldroot
+PROOT|mountinfo|17|20|/dev
+PROOT|mountinfo|18|20|/proc
+PROOT|mountinfo|19|20|/sys
+PROOT|mountinfo|20|1|/
+PROOT|fd|0|/oldroot/dev/console
+PROOT|fd|1|/oldroot/dev/console
+PROOT|fd|2|/oldroot/dev/console
+PROOT|fd|3|/proc/1/fd
+PROOT|fds_count|4
+PROOT|mounts|0|/oldroot|rootfs
+PROOT|mounts|1|/dev|devtmpfs
+PROOT|mounts|2|/proc|proc
+PROOT|mounts|3|/sys|sysfs
+PROOT|mounts|4|/|ext4
+PROOT|mounts_count|5
+PROOT|mounts_rootfs|1
+PROOT|ctrl|tmpfs|umount_ok
+PROOT|ctrl|rootfs|mount_fail|errno=19
+PROOT|late_umount_keep_stdio|busy|errno=16
+PROOT|stdio_rebind|ok
+PROOT|fd|0|/dev/console
+PROOT|fd|1|/dev/console
+PROOT|fd|2|/dev/console
+PROOT|fd|3|/proc/1/fd
+PROOT|fds_count|4
+PROOT|late_umount_after_rebind|ok
+PROOT|late_umount_detach|fail|errno=22
+PROOT|root_after|type=ext4|magic=0xef53
+PROOT|dev_type|type=tmpfs|magic=0x1021994
+PROOT|proc_type|type=proc|magic=0x9fa0
+PROOT|mounts_root|ext4
+PROOT|mounts_dev|devtmpfs
+PROOT|mounts|0|/dev|devtmpfs
+PROOT|mounts|1|/proc|proc
+PROOT|mounts|2|/sys|sysfs
+PROOT|mounts|3|/|ext4
+PROOT|mounts_count|4
+PROOT|mounts_rootfs|0
+PROOT|marker|bsp04-pivot-marker
+PROOT|cmdline_after|console=ttyAMA0 rdinit=/init panic=1 proot=pivot-late
+PROOT|old_init|gone
+PROOT|dev_vda|present
+PROOT|stage2|done
+Flash device refused suspend due to active operation (state 20)
+Flash device refused suspend due to active operation (state 20)
+reboot: Power down

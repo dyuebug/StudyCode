@@ -891,8 +891,22 @@ Claude 必须：
   **两处判据被实测推翻并改正**：本内核 rootfs 后端是 shmem（报 tmpfs 魔数，`init/do_mounts.c:init_rootfs()`
   在命令行无 `root=` 且 `CONFIG_TMPFS=y` 时如此），且 devtmpfs 的 `f_type` 与 tmpfs 相同
   （`magic.h` 已无 `DEVTMPFS_MAGIC`）——所以"搬运成功"只能由 `/proc/self/mounts` 类型串与节点存在性证明。
-  **未验证**：`pivot_root` 对照、busybox `switch_root` 的实际行为（本机未装 busybox，stage1/stage2 是手写等价实现）、
-  真板启动链与时序。
+  **未验证**（`pivot_root` 已由下一条补齐）：busybox `switch_root` 的实际行为（本机未装 busybox，
+  stage1/stage2 是手写等价实现）、真板启动链与时序。
+- [x] `pivot_root` 与 `chroot + exec` 的同口径对照 —— `experiments/BSP_04_PivotRoot/`，
+  日志同目录 `logs/`。五组对照 5/5 通过，组间差别只有命令行一个 `proot=<mode>`：
+  `chroot` 组观察者仍见 `tmpfs` + `/init`（只改进程视角）；`pivot` 组观察者见 `ext4` + `gone`
+  （命名空间一起换根）；`pivot-nomove` 证明 `pivot_root` 不搬挂载点（根已换但 `dev_vda=absent`）；
+  `pivot-ondir` 对普通目录 pivot 得 `EINVAL(22)`，且失败后观察者仍见旧根（没有半个状态）。
+  **一条假设被自己的实验否证**：旧根严格 `umount` 在 `exec` 之后仍 `EBUSY(16)`，
+  成因不是 stage1 的可执行映射，而是 `init/noinitramfs.c:18 default_rootfs()` 在 rootfs 里建的
+  `/dev/console`（探针 `boot_console|present|mode=020600`，与源码参数逐位吻合）被
+  `init/main.c:1603 console_on_rootfs()` dup 到 0/1/2；同一次运行里只重绑这三个 fd，
+  同一挂载立刻 `late_umount_after_rebind|ok`（先 `busy(16)`）——单变量因果，不是两次运行的拼接。
+  另 pin 一条反直觉事实：从 chroot 内部读 `/proc/self/mounts` 时旧根那行被内核隐藏
+  （`mounts_rootfs=0`），挂载表**不能**当证据；旧根可达时表里是 `mounts|0|/oldroot|rootfs`。
+  `--judge` 做过 10 条负向验证（7 条变异 + 缺日志 `rc=2` + 未知用例 `rc=1` + 原日志 `rc=0`）。
+  **未验证**：`MS_SHARED` 传播与 `MNT_LOCKED` 分支、只读根与 overlay、busybox `switch_root`、真板。
 - [ ] 后续：坏 `bootargs` 用例（第 20 天遗留第 3 条）需要一个"改坏参数仍能引导"的组合，
   才能把"bootloader 参数错"与"内核配置错"分开。
 

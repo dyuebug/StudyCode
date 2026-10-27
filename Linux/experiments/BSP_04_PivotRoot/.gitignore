@@ -1,0 +1,8 @@
+# 构建产物
+build/
+stage1
+stage2
+
+# 日志是取证材料，要入库：父级 .gitignore 的 *.log 在这里被重新放行
+!logs/
+!logs/*.log
