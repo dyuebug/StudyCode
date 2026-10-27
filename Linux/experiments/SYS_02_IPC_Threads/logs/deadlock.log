@@ -1,0 +1,4 @@
+SYS02|deadlock|mode=deadlock|t1_rc=110|t2_rc=110|t1_progress=1|t2_progress=1|detected=1|safe=0
+SYS02|deadlock|done|mode=deadlock
+SYS02|deadlock|mode=ordered|t1_rc=0|t2_rc=0|t1_progress=1|t2_progress=1|detected=0|safe=1
+SYS02|deadlock|done|mode=ordered

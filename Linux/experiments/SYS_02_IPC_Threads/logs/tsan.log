@@ -1,0 +1,5 @@
+TSAN|mode=plain|reports=2|rc=66
+TSAN|mode=mutex|reports=0|rc=0
+TSAN|mode=atomic|reports=0|rc=0
+TSAN|mode=rwlock|reports=0|rc=0
+TSAN|mode=rwlock-broken|reports=2|rc=66

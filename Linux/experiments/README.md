@@ -49,9 +49,14 @@ initramfs 与 `root=` 的关系已用实测钉死：`bootz` 的 initrd 参数只
 | 实验 | 主题 | 验证状态 |
 | --- | --- | --- |
 | [`SYS_01_FileIO_Proc`](SYS_01_FileIO_Proc/README.md) | 文件 I/O 与进程生命周期：`O_APPEND` 原子性 vs `lseek+write` 竞态、`O_CLOEXEC`、短读、`EINTR`、僵尸/孤儿/`PR_SET_CHILD_SUBREAPER`、`wait` 状态解码、简化 Shell | **WSL2 实测**（内核 6.6.87.2，gcc 15.2.0）：判定器 19/19 通过。`O_APPEND` 组 5/5 次 `good=1600/1600`，注入 `sched_yield` 的 `lseek` 组 4/4 次丢行（1414/1426/1067/1567，`good=1414` 对 `bytes=12726 = 1414×9` 证明确是整行丢失而非撕裂）；`lseek+natural` 5 次里 1 次丢行（1547），**只记录不断言**。孤儿 `ppid` 实测 369/497（**不是 1**，WSL 自带 subreaper），设 subreaper 后等于祖父 500。9 条负向验证：8 条 `rc=1`、缺日志 `rc=2`、原日志 `rc=0`。**`strace` 级系统调用序列、NFS/overlayfs 上的 `O_APPEND`、写入长度不一的撕裂行未验证** |
+| [`SYS_02_IPC_Threads`](SYS_02_IPC_Threads/README.md) | IPC 与线程同步：五种通道的消息边界与 EOF 语义、虚假唤醒 `if` vs `while`、有界队列、无锁/互斥/原子/读写锁不变量、`timedlock` 观测死锁、线程池优雅与立即关闭 | **WSL2 实测**（同上一组环境）：`./run.sh` 26/26 通过。`pipe`/`fifo`/`uds-stream` 的 `first_read` 均等于 `sent=3000`（`boundary=merged`），`uds-dgram` 为 `msgs=3 lens=1000,1000,1000` 且 `eof_via=sentinel`（**`SOCK_DGRAM` 没有 EOF 语义**，首版依赖对端 close 直接挂到 `timeout` rc=124）；`spurious-if` `flag_at_exit=0`/`safe=0`，`spurious-while` `flag_at_exit=1`；队列 `stale_wake=19`（"醒来时货已被别人取走"，**不是**虚假唤醒）；`plain` `final=22131`（丢 57869）且 TSan 报 2 次竞争，而 mutex/atomic/rwlock 全部 80000、零报告；`deadlock` `t1_rc=t2_rc=110`（`ETIMEDOUT`）vs `ordered` 双双 0；线程池 graceful `executed=200` / immediate `executed=1`，两组均 `joined=4/4 fd_leak=0`。**14 条负向验证**：6 份原日志 `rc=0`、12 条变异 `rc=1`、缺日志与未知用例 `rc=2`。**未验证**：线程池背压（`max_depth=200` 由一次性提交造成）、三把锁/递归锁死锁、性能未测 |
 
 一句话结论：`O_APPEND` 的原子性可以测出来，但前提是每个进程拥有**独立**的文件偏移量——
 首版让子进程共用父进程 `fork` 前打开的 fd，两组读数完全相同（都 1600），差点得出"教科书错了"的假结论。
+
+阶段 2 的一句话结论：**收尾规则跟着通道语义走，不跟着数据走**——字节流靠"关掉所有写端得到 EOF"，
+数据报没有 EOF 只能靠应用层哨兵；同一个把"醒来时条件不成立"命名为虚假唤醒的错误也在这一组被纠正，
+它恰好是"即使没有虚假唤醒也必须用 `while`"的证据。
 
 ## MCU 分支实验（STM32F103）
 

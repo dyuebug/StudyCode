@@ -1,0 +1,2 @@
+SYS02|race|mode=mutex|threads=4|iters=500|expected=2000|final=2000|lost=0
+SYS02|race|done|mode=mutex

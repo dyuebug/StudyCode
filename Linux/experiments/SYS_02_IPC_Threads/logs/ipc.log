@@ -1,0 +1,12 @@
+SYS02|ipc|pipe|sent=3000|first_read=3000|reads=1|total=3000|boundary=merged
+SYS02|ipc|done|mode=pipe
+SYS02|ipc|fifo|created=1
+SYS02|ipc|fifo|sent=3000|first_read=3000|reads=1|total=3000|boundary=merged
+SYS02|ipc|done|mode=fifo
+SYS02|ipc|shm|child_value=12345|same=1|sync_via=pipe
+SYS02|ipc|shm|after_unlink=gone|errno=2
+SYS02|ipc|done|mode=shm
+SYS02|ipc|uds-stream|sent=3000|first_read=3000|reads=1|total=3000|boundary=merged
+SYS02|ipc|done|mode=uds-stream
+SYS02|ipc|uds-dgram|sent=3000|msgs=3|lens=1000,1000,1000|first_len=1000|boundary=preserved|eof_via=sentinel
+SYS02|ipc|done|mode=uds-dgram

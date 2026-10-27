@@ -1,0 +1,2 @@
+SYS02|rwlock|mode=rwlock|readers=3|writer_updates=20000|torn=0|safe=1
+SYS02|race|done|mode=rwlock
