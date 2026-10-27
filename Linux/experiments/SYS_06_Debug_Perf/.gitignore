@@ -1,0 +1,7 @@
+# 编译产物：整个 build/ 不入库（根 .gitignore 只忽略了 Cpp/ 下的 build/）
+/build/
+
+# 取证日志是证据，必须入库；
+# 根 .gitignore 的 `*.log` 在这里放开（子目录规则优先于父目录规则）。
+# logs/*.err 是各用例的原始 stderr（sanitizer 报表原文），根规则未忽略，默认入库。
+!/logs/*.log

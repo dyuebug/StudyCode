@@ -1,0 +1,1 @@
+src/sani_ubsan.c:28:47: runtime error: division by zero

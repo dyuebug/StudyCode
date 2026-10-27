@@ -1,0 +1,1 @@
+src/sani_ubsan.c:30:17: runtime error: load of null pointer of type 'volatile int'

@@ -1,0 +1,13 @@
+
+=================================================================
+==667==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 64 byte(s) in 1 object(s) allocated from:
+    #0 0x77fd7972b60f in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:67
+    #1 0x5b36db7ac452 in leak_alloc src/sani_asan.c:31
+    #2 0x5b36db7ac656 in main src/sani_asan.c:66
+    #3 0x77fd7922a600  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a600) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
+    #4 0x77fd7922a717 in __libc_start_main (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a717) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
+    #5 0x5b36db7ac224 in _start (/mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_06_Debug_Perf/build/sani_asan+0x1224) (BuildId: 3154dfe8b997d936eeafac84d96e00e3994dd982)
+
+SUMMARY: AddressSanitizer: 64 byte(s) leaked in 1 allocation(s).
