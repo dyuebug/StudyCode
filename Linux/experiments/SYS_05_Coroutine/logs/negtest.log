@@ -1,0 +1,23 @@
+PASS baseline rc=0
+PASS caught: gen 少一个值 → S05|judge|case=gen|bucket=basics|check=cnt|actual=4|expect=5|FAIL
+PASS caught: gen 遍历后不持有帧 → S05|judge|case=gen|bucket=basics|check=alive_after_iter|actual=0|expect=1|FAIL
+PASS caught: task 多次 resume → S05|judge|case=task|bucket=basics|check=resumes|actual=2|expect=1|FAIL
+PASS caught: task 帧未释放 → S05|judge|case=task|bucket=basics|check=alive_after|actual=1|expect=0|FAIL
+PASS caught: except 异常没传到外层 → S05|judge|case=except|bucket=basics|check=caught|actual=nope|expect=boom|FAIL
+PASS caught: life 跑完不占帧 → S05|judge|case=life|bucket=basics|check=alive_after_run|actual=0|expect=1|FAIL
+PASS caught: resume-twice 没拦住 → S05|judge|case=resume-twice|bucket=basics|check=blocked|actual=0|expect=1|FAIL
+PASS caught: leak-broken 泄漏看不见 → S05|judge|case=leak-broken|bucket=basics|check=alive_after|actual=0|expect=100|FAIL
+PASS caught: sched-order 高优先级没先跑 → S05|judge|case=sched-order|bucket=basics|check=hi_first|actual=0|expect=1|FAIL
+PASS caught: greedy 退化成公平 → S05|judge|case=coro-greedy|bucket=srv|check=max_run|actual=1|expect=2|FAIL
+PASS caught: greedy 少收 20 帧 → S05|judge|case=coro-greedy|bucket=srv|check=frames|actual=140|expect=160|FAIL
+PASS caught: fair 没有轮转 → S05|judge|case=coro-fair|bucket=srv|check=max_run|actual=2|expect=1|FAIL
+PASS caught: cancel 没超时 → S05|judge|case=coro-cancel|bucket=srv|check=cancelled|actual=0|expect=2|FAIL
+PASS caught: rst 没记到复位 → S05|judge|case=coro-rst|bucket=srv|check=resets|actual=0|expect=1|FAIL
+PASS caught: halfclose 没读到 EOF → S05|judge|case=coro-halfclose|bucket=srv|check=eof|actual=0|expect=1|FAIL
+PASS caught: thread 没起线程 → S05|judge|case=thread|bucket=srv|check=threads|actual=0|expect=8|FAIL
+PASS caught: 线程版 VmSize 没差别 → S05|judge|case=thread|bucket=srv|check=vm_kb-coro|actual=0|expect=>=20000|FAIL
+PASS caught: coro-idle 丢了一帧 → S05|judge|case=coro-idle|bucket=srv|check=frames|actual=1|expect=2|FAIL
+PASS caught: eagain-as-eof 没挂断 → S05|judge|case=eagain-as-eof|bucket=srv|check=frames|actual=2|expect=0|FAIL
+PASS caught: cancel-free 不记 use-after-destroy → S05|judge|case=cancel-free|bucket=srv|check=use_after_destroy|actual=0|expect=1|FAIL
+PASS missing-log rc=2
+S05|negtest|summary|pass=22|fail=0|total=22

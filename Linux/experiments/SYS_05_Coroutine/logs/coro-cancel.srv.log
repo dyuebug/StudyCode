@@ -1,0 +1,2 @@
+S05|srv|ready|port=44959|mode=coro|batch=0|idle_ms=200|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=2|errs=0|use_after_destroy=0|max_run=0|order=0|iters=32|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=643

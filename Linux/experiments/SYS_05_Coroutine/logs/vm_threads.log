@@ -1,0 +1,5 @@
+S05|vm|conns=1|threads=1|vm0_kb=7228|vm_kb=80960|rss_kb=4352
+S05|vm|conns=2|threads=2|vm0_kb=7228|vm_kb=154692|rss_kb=4352
+S05|vm|conns=4|threads=4|vm0_kb=7228|vm_kb=171084|rss_kb=4352
+S05|vm|conns=8|threads=8|vm0_kb=7228|vm_kb=334940|rss_kb=4352
+S05|vm|mode=coro|threads=0|vm0_kb=7228|vm_kb=7228|rss_kb=4352
