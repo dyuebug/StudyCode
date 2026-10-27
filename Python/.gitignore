@@ -1,0 +1,34 @@
+# Python caches and environments
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+
+# Runtime data and local databases
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Generated backups and archives
+*.bak
+*.zip
+
+# Local configuration and secrets
+.env
+.env.*
+*.pem
+
+# OS-generated files
+.DS_Store
+Thumbs.db

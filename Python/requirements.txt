@@ -1,0 +1,15 @@
+# Web applications
+Flask
+flask-cors
+
+# Data processing and visualization
+matplotlib
+numpy
+pandas
+
+# HTTP and system utilities
+psutil
+requests
+
+# Automated testing
+pytest
