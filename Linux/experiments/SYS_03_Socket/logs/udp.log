@@ -1,0 +1,6 @@
+SYS03|udp|boundary|sent_msgs=3|lens=1000,1000,1000|recv_msgs=3|recv_lens=1000,1000,1000|preserved=1
+SYS03|udp|done|mode=boundary
+SYS03|udp|trunc|buf=1000|recv_rc=1000|real_len=2000|truncated=1
+SYS03|udp|done|mode=trunc
+SYS03|udp|toobig|payload=70000|send_rc=-1|errno=90|detected=1
+SYS03|udp|done|mode=toobig

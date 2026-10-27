@@ -1,0 +1,10 @@
+SYS03|mux|mode=select|clients=8|accepted=8|echoed=8|done=8|mismatch=0|events=16|elapsed_ms=0|stalled=0|ok=1
+SYS03|mux|done|mode=select
+SYS03|mux|mode=poll|clients=8|accepted=8|echoed=8|done=8|mismatch=0|events=16|elapsed_ms=0|stalled=0|ok=1
+SYS03|mux|done|mode=poll
+SYS03|mux|mode=epoll|clients=8|accepted=8|echoed=8|done=8|mismatch=0|events=16|elapsed_ms=0|stalled=0|ok=1
+SYS03|mux|done|mode=epoll
+SYS03|mux|mode=epoll-et|clients=8|accepted=8|echoed=8|done=8|mismatch=0|events=16|elapsed_ms=0|stalled=0|ok=1
+SYS03|mux|done|mode=epoll-et
+SYS03|mux|mode=epoll-et-broken|clients=8|accepted=8|echoed=0|done=0|mismatch=0|events=8|elapsed_ms=2003|stalled=1|ok=0
+SYS03|mux|done|mode=epoll-et-broken
