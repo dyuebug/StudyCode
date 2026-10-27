@@ -1,0 +1,4 @@
+SYS01|pipe|short|total=1000|reads=16|last_chunk=40|chunk_max=64
+SYS01|pipe|eintr|first_read|ret=-1|errno=4|usr1_hits=1
+SYS01|pipe|eintr|retry_read|ret=2|errno=0
+SYS01|pipe|done

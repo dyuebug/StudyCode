@@ -1,0 +1,9 @@
+# 编译产物（无扩展名的可执行文件，根 .gitignore 覆盖不到）
+/fileio
+/proc_life
+/pipe_read
+/minish
+
+# 取证日志是学习证据，必须入库；根 .gitignore 的 `*.log` 在这里放开。
+# 子目录规则优先于父目录规则，所以这条生效。
+!/logs/*.log

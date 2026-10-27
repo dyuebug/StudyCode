@@ -1,0 +1,6 @@
+SYS01|append|mode=O_APPEND+yield|workers=8|lines=200|expected=1600|good=1600|bad=0|bytes=14400|failed_children=0
+SYS01|append|mode=lseek+yield|workers=8|lines=200|expected=1600|good=1414|bad=0|bytes=12726|failed_children=0
+SYS01|append|mode=lseek+natural|workers=8|lines=200|expected=1600|good=1600|bad=0|bytes=14400|failed_children=0
+SYS01|cloexec|parent|keep_fd=3|cloexec_fd=4
+SYS01|cloexec|child|keep_alive=1|cloexec_alive=0|errno=9
+SYS01|done

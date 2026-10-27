@@ -41,6 +41,18 @@ initramfs 与 `root=` 的关系已用实测钉死：`bootz` 的 initrd 参数只
 而一旦 initramfs 里有 `/init`，`root=` 会被**整个跳过**——判据是日志里有没有 `EXT4-fs (xxx): mounted filesystem`，
 不是 `bootargs` 里写了什么。
 
+## 系统编程实验（Linux）
+
+对应 `CLAUDE.md` §3 阶段 1–6。与 BSP / MCU 不同，这一组跑在**真实的 Linux 内核**上（WSL2 Ubuntu），
+不依赖交叉编译，判据由 `judge.py` 机器校验。
+
+| 实验 | 主题 | 验证状态 |
+| --- | --- | --- |
+| [`SYS_01_FileIO_Proc`](SYS_01_FileIO_Proc/README.md) | 文件 I/O 与进程生命周期：`O_APPEND` 原子性 vs `lseek+write` 竞态、`O_CLOEXEC`、短读、`EINTR`、僵尸/孤儿/`PR_SET_CHILD_SUBREAPER`、`wait` 状态解码、简化 Shell | **WSL2 实测**（内核 6.6.87.2，gcc 15.2.0）：判定器 19/19 通过。`O_APPEND` 组 5/5 次 `good=1600/1600`，注入 `sched_yield` 的 `lseek` 组 4/4 次丢行（1414/1426/1067/1567，`good=1414` 对 `bytes=12726 = 1414×9` 证明确是整行丢失而非撕裂）；`lseek+natural` 5 次里 1 次丢行（1547），**只记录不断言**。孤儿 `ppid` 实测 369/497（**不是 1**，WSL 自带 subreaper），设 subreaper 后等于祖父 500。9 条负向验证：8 条 `rc=1`、缺日志 `rc=2`、原日志 `rc=0`。**`strace` 级系统调用序列、NFS/overlayfs 上的 `O_APPEND`、写入长度不一的撕裂行未验证** |
+
+一句话结论：`O_APPEND` 的原子性可以测出来，但前提是每个进程拥有**独立**的文件偏移量——
+首版让子进程共用父进程 `fork` 前打开的 fd，两组读数完全相同（都 1600），差点得出"教科书错了"的假结论。
+
 ## MCU 分支实验（STM32F103）
 
 与上面的 Linux 驱动实验并列，不共享构建系统。公共设施在 [`F103_common/`](F103_common/README.md)：

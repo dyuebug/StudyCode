@@ -1,0 +1,11 @@
+echo hello-minish
+echo abc | wc -c
+pwd
+cd /
+pwd
+echo one > /tmp/sys01_redir.txt
+cat /tmp/sys01_redir.txt
+echo two >> /tmp/sys01_redir.txt
+cat < /tmp/sys01_redir.txt
+nonexistent-xyz
+exit 0
