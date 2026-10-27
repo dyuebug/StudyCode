@@ -377,13 +377,15 @@ AAAAAAAA...(续)...
 
 ### 3.10 projects/aviation-node 航空主题节点（`logs/aviation_node.log`）
 
-构建体积：FLASH 18028 B / 128 KB（13.75%），RAM 6536 B / 8 KB（79.79%），零告警；
-`text 17928 / data 100 / bss 6436`。其中调试注入段占 288 B（同一源码 `-DAV_DEBUG_BLOCK_RX_MS=0`
-时为 17740 B）；下行 `STATUS` 通道相对加入前的 17296 B 增加 732 B。内核堆：三任务 + 队列 + 互斥量
-之后余 1048 B，稳态 432 B。源码见 `projects/aviation-node/`，协议与状态规范见该目录 `docs/protocol.md`。
+构建体积：FLASH 18256 B / 128 KB（13.93%），RAM 6552 B / 8 KB（79.98%），零告警；
+`text 18156 / data 100 / bss 6452`。其中调试注入段占 288 B（同一源码 `-DAV_DEBUG_BLOCK_RX_MS=0`
+时为 17968 B、RAM 6544 B）。内核堆：三任务 + 队列 + 互斥量之后余 736 B，稳态 120 B。
+下行通道与上行 `STATUS` 分支的历史差分（732 B / 224 B）未在本次重建中逐项复测，只保留总量。
+源码见 `projects/aviation-node/`，协议与状态规范见该目录 `docs/protocol.md`。
 
-用例：PC 侧 Python 注入器按 50 Hz 发帧，剧本 8.2 s 真实时间（14 s 超时窗口内固件时间跑到约 40 s），
-11 个阶段依次只改一个变量（含一个连丢 3 帧的 `drop` 段），另有一次固件侧的任务阻塞注入
+用例：PC 侧 Python 注入器按 50 Hz 发 `SENSOR`、10 Hz 发 `STATUS`（地面站心跳），剧本 14.3 s
+真实时间（20 s 超时窗口内固件时间跑到约 55 s），13 个阶段依次只改一个变量——含连丢 3 帧的
+`drop` 段、只发心跳的 `hb_only` 段、只发数据的 `hb_lost` 段。另有一次固件侧的任务阻塞注入
 （编译期，`AV_DEBUG_BLOCK_RX_MS=800`，落在静默段内）。同一事件跨运行会漂移且**越靠后越大**
 （两次运行逐事件对照：`t≈1100` 差 41、`t≈13000` 差 75、`t≈27000` 差 154，约 0.6% 固件时间，
 源于 QEMU 虚拟时钟与注入器墙钟的比例变化），下面片段取自 2026-10-27 的最后一次运行
@@ -392,76 +394,91 @@ AAAAAAAA...(续)...
 
 ```text
 [av-node] CRC16-CCITT-FALSE("123456789") = 0x29B1 PASS
+[av-node] 判据: 链路超时 300 ms / 数据陈旧 300 ms / CRC 连续 3 帧 / 故障保持 1000 ms
 [av-node] IWDG 路径 未启用（QEMU 未建模）；代码地址 init=0x0800010D feed=0x08000131
 [av-node] 下行 USART2 已启用：TYPE=0x81 LEN=18 baud=115200（PCLK1=8000000 Hz 假设）
-[av-node] 启动调度器，初始空闲堆 1048 B
-[fault] t=320 set=0x01 clear=0x00 (T=1 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[fault] t=1383 set=0x00 clear=0x01 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[mode] t=1483 INIT -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
-[mode] t=5667 NORMAL -> DEGRADED flags=0x04 cmd=-50 air=150 pitch=100
-[fault] t=5793 set=0x03 clear=0x00 (T=1 STALE=1 CRC=1 RNG=0 RATE=0 SRC=0)
-[fault] t=7197 set=0x00 clear=0x07 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[mode] t=11905 NORMAL -> DEGRADED flags=0x10 cmd=-50 air=150 pitch=100
-[fault] t=12151 set=0x02 clear=0x00 (T=0 STALE=1 CRC=0 RNG=0 RATE=1 SRC=0)
-[mode] t=14084 NORMAL -> DEGRADED flags=0x03 cmd=-50 air=150 pitch=100
-[gate] t=14090 feed=OFF reason=FLAGS hb=119 flags=0x03
-[debug] t=16571 rx 阻塞开始 plant=800 ms（其他任务继续运行）
-[gate] t=17012 feed=OFF reason=HB+FLAGS hb=441 flags=0x03
-[mode] t=17089 DEGRADED -> SAFE flags=0x03 cmd=-50 air=150 pitch=100
-[debug] t=17371 rx 阻塞结束 dur=800 ms
-[gate] t=17617 feed=OFF reason=FLAGS hb=43 flags=0x03
-[mode] t=19594 SAFE -> DEGRADED flags=0x00 cmd=0 air=150 pitch=100
-[mode] t=19755 DEGRADED -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
-[stat] t=35231 mode=SAFE cmd=0 flags=0x03[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0] air=150 pitch=100 age=12590 frames=252 crc=30 len=0 type=0 gap=133 dup=0 hb=190 feed=OFF(135/215) heap=432 hwm=52/106/64
+[av-node] 启动调度器，初始空闲堆 736 B
+[gate] t=306 feed=OFF reason=FLAGS hb=106 flags=0x01
+[mode] t=1130 INIT -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
+[mode] t=5274 NORMAL -> DEGRADED flags=0x04 cmd=-50 air=150 pitch=100
+[mode] t=8469 NORMAL -> DEGRADED flags=0x08 cmd=-50 air=150 pitch=100
+[mode] t=11484 NORMAL -> DEGRADED flags=0x10 cmd=-50 air=150 pitch=100
+[mode] t=13636 NORMAL -> DEGRADED flags=0x43 cmd=-50 air=150 pitch=100
+[fault] t=13636 set=0x43 clear=0x00 (T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=1)
+[debug] t=16534 rx 阻塞开始 plant=800 ms（其他任务继续运行）
+[mode] t=16641 DEGRADED -> SAFE flags=0x43 cmd=-50 air=150 pitch=100
+[gate] t=16949 feed=OFF reason=HB+FLAGS hb=415 flags=0x43
+[debug] t=17334 rx 阻塞结束 dur=800 ms
+[mode] t=19310 DEGRADED -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
+[mode] t=22510 NORMAL -> DEGRADED flags=0x02 cmd=-50 air=150 pitch=100
+[mode] t=32604 DEGRADED -> NORMAL flags=0x40 cmd=0 air=150 pitch=100
+[stat] t=35256 mode=NORMAL cmd=-50 flags=0x40[T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=1] air=150 pitch=100 age=5 frames=308 crc=30 len=0 type=0 gap=313 dup=0 hb=8 gnd=93 gage=3319 feed=ON(168/182) heap=120 hwm=100/104/88
+[mode] t=39387 NORMAL -> DEGRADED flags=0x43 cmd=-50 air=150 pitch=100
+[mode] t=42396 DEGRADED -> SAFE flags=0x43 cmd=-50 air=150 pitch=100
 ```
 
 读法：
 
-- **四类异常各有独立证据**：错帧（`CRC`，连续 3 帧）、越界（`RNG`，单帧）、突变（`RATE`，单帧）、
-  静默（`T`）。恢复都必须"连续有效帧 + 标志清零"，本轮三次 `-> NORMAL` 分别为 7300 / 11080 /
-  13723，SAFE 之后那次为 19755。
-- **安全态的进入与退出都有数字**：`DEGRADED -> SAFE` 停留 3003–3017 ms（多次运行；本轮 3005 / 3007，
-  门限 3000）；`SAFE -> DEGRADED` 用 222–246 tick（5 个有效帧，本轮 224），`-> NORMAL` 再用
-  161–185 tick（3 个），两级恢复的代价可直接对照。完整逐事件时间线见
-  `projects/aviation-node/README.md` §10.2。
-- **计数自洽**：`gap=133 = 30（CRC 错帧）+ 100（静默期 2 s × 50 Hz）+ 3（丢帧段）`，与 `crc=30`
-  交叉核对一致；`frames=252`（385 时隙 − 100 静默 − 3 丢帧 − 30 错帧）、`dup=0`。
+- **七类异常各有独立证据**：错帧（`CRC`，连续 3 帧）、越界（`RNG`，单帧）、突变（`RATE`，单帧）、
+  静默（`T`+`STALE`+`GND`）、只发心跳（`STALE` 单独）、只发数据（`GND` 单独）、任务阻塞（`hb`）。
+  恢复都必须"连续有效帧 + 标志清零"。
+- **三层活性已拆开**：`silent` 段三层全停（`t=13636 set=0x43`，三个超时**同一 tick** 到期）；
+  `hb_only` 段只停数据层（`t=22510 flags=0x02`，`T=0`）；`hb_lost` 段只停地面站层
+  （`[stat] t=35256 T=0 STALE=0 GND=1 gage=3319`，而模式仍是 `NORMAL`）。
+  后一条正是 `AV_F_GROUND` 不在 `AV_F_MODE_MASK` 里的证据：心跳已断 3.3 s，系统照常完成
+  `SAFE→DEGRADED→NORMAL` 两级恢复（`t=32438` / `t=32604`），若 `GND` 参与 `fault`，
+  `good_streak` 会被每帧清零，这条路走不通。
+- **安全态的进入与退出都有数字**：`DEGRADED -> SAFE` 停留 3003–3017 ms（多次运行；本轮
+  3005 / 3004 / 3009），`SAFE -> DEGRADED` 用 205–246 tick（5 个有效帧，本轮 224 / 222），
+  `-> NORMAL` 再用 161–185 tick（3 个）。完整逐事件时间线见 `projects/aviation-node/README.md` §10.2。
+- **计数自洽**：`gap=313 = 30（CRC 错帧）+ 280（不发 `SENSOR` 的时隙：静默 100 + 只发心跳 180）
+  + 3（丢帧段）`，与 `crc=30` 交叉核对一致；`frames=377`（690 时隙 − 280 − 3 − 30）、`dup=0`。
+  `280` 这个数容易被漏——`hb_only` 段仍在发心跳，但 `SENSOR` 序号照旧推进。
 - **丢帧只体现在 `gap` 上**：`drop` 段 7.60–7.66 s 连丢 3 帧（约 174 固件 ms，短于 300 ms 门限），
-  可机器核对的是两件事——`gap` 比"错帧 + 静默"多出恰好 3（C7），`NORMAL→DEGRADED` 仍是 5 次
+  可机器核对的是两件事——`gap` 比"错帧 + 静默时隙"多出恰好 3（C7），`NORMAL→DEGRADED` 仍是 6 次
   没有多降一次（C13）。这两条**不**证明"丢帧没有推迟任何一次恢复"：注入按墙钟排期、固件按虚拟
   时钟走，落点无法精确对准某个固件时刻，所以"恢复晚了 3 帧"与"完全没有影响"在日志里分不开。
 - **任务阻塞链可观测**：固件侧注入让 rx 空转 800 ms（`[debug]`，落在静默段，队列为空），
-  health 在 `t=17012` 读到 `hb=441 > 400` 门限，`[gate]` 首次出现 `reason=HB+FLAGS`；
-  阻塞结束后 `hb` 回落到 43、原因位退回 `FLAGS`。第一版注入写成忙等（`taskYIELD()`）时
+  health 在 `t=16949` 读到 `hb=415 > 400` 门限，`[gate]` 首次出现 `reason=HB+FLAGS`；
+  阻塞结束后 `hb` 回落到 20、原因位退回 `FLAGS`。第一版注入写成忙等（`taskYIELD()`）时
   health 在整个 800 ms 内一次都没运行——`rx 3 > health 2`，监督者被饿死，事后只能读到
   `hb=804` 的"陈旧证据"。这一反例见项目 README §6.6：**监督任务的优先级决定它能否看见忙等**。
-  注意本轮 `DEGRADED -> SAFE`（17089）落在阻塞窗口内，那是 14084 起算的停留计时到点，与阻塞无因果。
-- **停喂门控**：`feed=OFF(135/215)` 只出现在 `T`/`STALE` 或心跳超时期间，恢复后回到 `ON`；
+  注意本轮 `DEGRADED -> SAFE`（16641）落在阻塞窗口内，那是 13636 起算的停留计时到点，与阻塞无因果。
+- **停喂门控**：`feed=OFF` 只出现在 `T`/`STALE` 或心跳超时期间，恢复后回到 `ON`；
   `[gate]` 把原因拆成 `OK`/`FLAGS`/`HB`/`HB+FLAGS` 四态，`HB` 与 `FLAGS` 不再同形。
   本条只证明"该停喂时停了"，`IWDG` 计时与复位仍未建模。
-- **下行通道可独立解析**：USART2 抓到 9625 字节 / 385 帧，CRC、长度、类型错误各 0，`SEQ` 0→128
-  逐帧 +1，`uptime` 102→38748 ms 严格递增，帧间隔中位 100 ms（最大 114）；与上行日志 7 组同一
+- **下行通道可独立解析**：USART2 抓到 13600 字节 / 544 帧，CRC、长度、类型错误各 0，`SEQ` 0→31
+  逐帧 +1，`uptime` 101→54767 ms 严格递增，帧间隔中位 100 ms（最大 117）；与上行日志 10 组同一
   `t` 的记录在 mode/flags/frames/crc/gap 上全部一致。能证明的是"组帧、CRC、序号、布局与两条通道
   一致"，**不能**证明发送抖动或比特级时序（要真板 + 逻辑分析仪）。
-- **栈水位**：`rx 52/176`（注入后；注入前 116）、`ctrl 106/224`、`health 64/224`，按
-  "绝对 ≥32 字 / 相对 ≥25%"通过；`rx` 的 64 字差额来自 `[debug]` 的两条 `printf`。
-  `health` 最接近红线（首条 `[stat]` 读到 72 是因为读数先于该行 printf，此后各条均为 64），
-  `[stat]` 再加字段前应先提到 256 字。
-- **三个由实测发现的缺陷**（细节见项目 README §6.2）：DEGRADED 停留门限与故障保持窗口过近，
+- **栈水位**：`rx 100/224`（注入构建；注入前 164）、`ctrl 104/224`、`health 88/256`，按
+  "绝对 ≥32 字 / 相对 ≥25%"通过；`rx` 的差额来自 `[debug]` 的两条 `printf`。
+  `health` 是本轮唯一**触发扩容**的任务：往 `[stat]` 加 `gnd`/`gage` 两个字段后，它自己那条
+  `printf` 是最深的调用，余量从 64 掉到 `56/224 = 25.0%`——正压在判据边界上。
+  按"压线通过不算通过"把栈提到 256 字，稳态空闲堆因此从 248 B 降到 120 B。
+  这条不是文档问题而是容量问题，也印证了 README §10.5 早先写下的预测。
+- **四个由实测发现的缺陷**（细节见项目 README §6.2）：DEGRADED 停留门限与故障保持窗口过近，
   使 400 ms 越界推进到 SAFE；变化率参考"上次有效样本"使保护在连续拒收后自失效；
-  跨任务时间戳差用无符号减法导致下溢（`age=4294967292`），`hb` 走同一路径，下溢会让门控误停喂。
-- **机器判定 21/21（上行）+ 7/7（下行）**：`bash run.sh aviation-link` 跑完由 `aviation/expect.py`
-  判 21 项不变量（C1–C15：CRC 自检、各类故障位都触发、降级/恢复次数、SAFE 停留门限、`gap` 自洽、
-  堆恒定、栈判据、门控"与"语义、输出回中位、丢帧未多降级、阻塞→心跳超时→停喂、时间戳年龄无下溢），
-  由 `aviation/link.py` 判下行 7 项（L1–L7），实测全通过、两条退出码均为 0；
-  把 `gap` 改坏后返回 1 并只 FAIL C7，删掉窗口内的 `HB` 门控行返回 1 并只 FAIL C14，日志缺失
-  返回 2。它判**不变量**而不比对硬编码时刻——跨运行漂移最大实测 154 tick，任何按 `t=` 写的
-  断言都会假失败；同理它**不判** CAN/ADC/示波器/`IWDG`——那些在 QEMU 里没有模型。
-- **延迟自动汇总**：同一脚本另打印六类延迟——故障置位→降级 `0 tick`（5 次）、故障清除→恢复
-  NORMAL `103–163 tick`（不含 SAFE 之后，本轮 103/163/143）、故障清除→`SAFE→DEGRADED`
-  `222–246 tick`（两级恢复的第一级，本轮 224）、DEGRADED→SAFE `3003–3017 ms`、
-  SAFE 停留 `2505–2967 ms`（受剧本恢复时刻控制，不是固件判据）、阻塞开始→心跳判超时
-  `435–452 tick`（本轮 441，其中 400 是门限本身）。`0 tick` 量的是
+  跨任务时间戳差用无符号减法导致下溢（`age=4294967292`），`hb` 走同一路径，下溢会让门控误停喂；
+  加入地面站心跳后 health 栈压线（见上条）。此外还有一处**判定器**的语义问题：C16 的窗口右端
+  必须用 `>=`，否则 `silent` 段里 `GND` 与 `T`/`STALE` 同 tick 到期时会把那次降级错算到 `GND` 头上，
+  表现为偶发假失败。
+- **机器判定 24/24（上行）+ 7/7（下行）**：`bash run.sh aviation-link` 跑完由 `aviation/expect.py`
+  判 24 项不变量（C1–C17：CRC 自检、六类故障位都触发、降级/恢复次数、SAFE 停留门限、`gap` 自洽、
+  堆恒定、栈判据、门控"与"语义、输出回中位、丢帧未多降级、阻塞→心跳超时→停喂、时间戳年龄无下溢、
+  地面站心跳不改变模式、链路层与数据层分离），由 `aviation/link.py` 判下行 7 项（L1–L7），
+  实测全通过、两条退出码均为 0。负向验证在同一份日志的临时副本上做，12 组变异全部按预期失败：
+  改坏 `gap` 只 FAIL C7、删窗口内 `HB` 门控行只 FAIL C14、删全部 `[debug]` 行转"不适用"、
+  `age` 改成下溢值只 FAIL C15、两类 `feed` 篡改各触发 C10、抹掉 `GROUND` 位触发 C4+C16、
+  窗口内插假降级触发 C13+C16、`GROUND` 期间 `stat` 报 SAFE 只失败 C16、`hb_only` 段帧数递增只失败 C17、
+  **假降级插在 `GROUND` 同 tick 时 C16 主动弃权只失败 C13**、日志缺失返回 2。
+  它判**不变量**而不比对硬编码时刻——跨运行漂移最大实测 154 tick，任何按 `t=` 写的断言都会假失败；
+  同理它**不判** CAN/ADC/示波器/`IWDG`——那些在 QEMU 里没有模型。
+- **延迟自动汇总**：同一脚本另打印六类延迟——故障置位→降级 `0 tick`（6 次）、故障清除→恢复
+  NORMAL `82–163 tick`（不含 SAFE 之后，本轮 82/123/101）、故障清除→`SAFE→DEGRADED`
+  `205–246 tick`（两级恢复的第一级，本轮 224/222）、DEGRADED→SAFE `3003–3017 ms`、
+  SAFE 停留 `2508–6924 ms`（受剧本恢复时刻控制，不是固件判据）、阻塞开始→心跳判超时
+  `415–496 tick`（本轮 415，其中 400 是门限本身）。`0 tick` 量的是
   "标志置位→改模式"，**不是**"故障发生→检出"：后者跨端（PC 注入 vs 固件 tick）没有共同时基，
   只能上真板 + 逻辑分析仪。
 
@@ -470,9 +487,11 @@ AAAAAAAA...(续)...
 - 全部 `t=` 是固件毫秒，受 2.90 倍时基影响；检测延迟只能看比例。
 - 下行二进制帧能证明的是**组帧/CRC/序号/布局与两通道一致**；发送抖动、比特级时序与波特率精度
   没有证据（QEMU 串口不做比特级移位），仍需真板 + 逻辑分析仪。
+- 下行流的**尾部完整性不可判**：`link.py` 的 `parse()` 在残帧处直接 `break`，截掉 10 字节仍 7/7 通过
+  （QEMU 被 `timeout` 杀掉时本来就会截在帧中间，两者无法区分）。
 - `CAN`、`ADC`、示波器/逻辑分析仪时序、`IWDG` 复位与 `RCC->CSR` 复位原因**无任何证据**，
   见 `projects/aviation-node/README.md` §9。
-- 栈水位是所有路径跑过之后的最低余量，但剧本只覆盖 11 个阶段，未覆盖长稳与极端并发。
+- 栈水位是所有路径跑过之后的最低余量，但剧本只覆盖 13 个阶段，未覆盖长稳与极端并发。
 
 ### 3.11 F103_15 栈溢出检出（`logs/exp15_stackoverflow.log`）
 
@@ -630,7 +649,7 @@ BusFault with BFSR.STKERR
 8. QEMU 用背压代替 UART 溢出，环形缓冲与 RTOS 队列的丢弃路径都无法在仿真中触发。
 9. `IWDG` 未建模，看门狗复位路径无法在仿真中验证；仿真侧只能做"心跳标志 + 任务阻塞检测"。
 10. 心跳监督这一半可验证（§3.9）：心跳打点、age 超时判定、任一通道不健康即停喂、连续 STALE 后的恢复动作、以及"停喂窗口 vs IWDG 名义超时"的比较，全部是可复现数字；但这不是看门狗验证，只是看门狗**前置条件**的验证。
-11. 建立在前两者之上的完整软件数据链可验证（§3.10）：外部注入二进制帧 → RXNE 中断 → 逐字节帧解析（SOF/长度/CRC16）→ 三层有效性判定（帧/样本/时间）→ 模式状态机（INIT/NORMAL/DEGRADED/SAFE）→ 降级与两级恢复 → 停喂门控与统计 → USART2 下行二进制 `STATUS`（100 ms）。六类故障各有独立证据（错帧/越界/突变/静默/丢帧/任务阻塞），计数可交叉核对（`gap=133=30+100+3`），状态机停留时长与门限吻合（3005/3007 ms vs 3000 ms），下行 385 帧可被独立解码并与上行交叉一致。
+11. 建立在前两者之上的完整软件数据链可验证（§3.10）：外部注入二进制帧（`SENSOR` 数据 + `STATUS` 地面站心跳）→ RXNE 中断 → 逐字节帧解析（SOF/长度/CRC16）→ 三层有效性判定 + 地面站层 → 模式状态机（INIT/NORMAL/DEGRADED/SAFE）→ 降级与两级恢复 → 停喂门控与统计 → USART2 下行二进制 `STATUS`（100 ms）。七类异常各有独立证据（错帧/越界/突变/静默/只发心跳/只发数据/任务阻塞），计数可交叉核对（`gap=313=30+280+3`），状态机停留时长与门限吻合（3005/3004/3009 ms vs 3000 ms），三层活性可分别置位（`T=0 STALE=1 GND=0` 与 `T=0 STALE=0 GND=1` 两个方向都实测），下行 544 帧可被独立解码并与上行交叉一致。
 12. 栈溢出检出机制可验证（§3.11）：`configCHECK_FOR_STACK_OVERFLOW = 2` 的 paint 判据确实生效——注入到栈底 16 B 被写穿后，钩子在下一次任务切换时被调用并报出正确的任务名。因为它只用到内核自身的检查宏与任务切换，不碰未建模外设，所以这是完整的仿真证据，不是"仅构建"。
 
 不能下的结论：
@@ -645,7 +664,7 @@ BusFault with BFSR.STKERR
 - 不能说 `F103_13` 验证了看门狗——`IWDG` 未建模，复位原因与喂狗失败路径只能上板。
 - 不能把 `F103_14` 的 819 / 1424 tick 读成"真板会/不会复位"——前者是名义 998 ms 折算的推论，后者受 LSI 30~60 kHz 容差影响，只有 R2 的 1424 在两端都超门限。
 - 不能说 §3.10 验证了 CAN、ADC、`IWDG` 复位或复位原因——这四项没有任何仿真或硬件证据，`aviation_node` 的 IWDG 路径同样只做到"代码进入镜像 + 停喂条件可判定"。
-- 不能把 §3.10 的 `[stat] hwm` 读成"任意外部输入下都够用"——剧本只覆盖 11 个阶段，未做长稳与极端并发注入。
+- 不能把 §3.10 的 `[stat] hwm` 读成"任意外部输入下都够用"——剧本只覆盖 13 个阶段，未做长稳与极端并发注入。
 - 不能说 §3.11 验证了"任何栈溢出都能被发现"——只触发了 paint 那一半（栈底 16 B），SP 越过栈块的情形没构造；QEMU 也不因越界写抛总线错误，真板上"先 HardFault 还是先到钩子"在仿真里没有答案。
 - 不能把 §3.11 的 `hwm == 0` 读成"任务栈不够用"——它是**刻意**注入出来的，正是检出成立的前提。
 

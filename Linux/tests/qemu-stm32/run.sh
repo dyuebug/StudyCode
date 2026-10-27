@@ -169,9 +169,10 @@ run_exp15() {
 }
 
 # 航空主题地面仿真节点（CLAUDE.md §12 P1 的可仿真部分）：
-# PC 侧 Python 注入器按 50 Hz 发帧，固件做帧校验 → 有效性判定 → 模式状态机
-# → 降级/恢复。只依赖 USART1/SysTick/PendSV（均已建模），因此整条链路可观测。
-# 剧本真实时间约 8.2 s（固件时间约 24 s），给 14 s 余量。
+# PC 侧 Python 注入器按 50 Hz 发 SENSOR、10 Hz 发 STATUS（地面站心跳），
+# 固件做帧校验 → 有效性判定 → 模式状态机 → 降级/恢复。
+# 只依赖 USART1/SysTick/PendSV（均已建模），因此整条链路可观测。
+# 剧本真实时间约 14.3 s（固件时间约 41 s），给 20 s 余量（末段还要留收尾静默）。
 #
 # 构建侧前提：动物件需带"任务阻塞"调试注入。该项目 CMakeLists 在 -DF103_QEMU=ON
 # 下默认 AV_DEBUG_BLOCK_RX_MS=800，所以常规 QEMU 构建即可；带 -DAV_DEBUG_BLOCK_RX_MS=0
@@ -180,7 +181,7 @@ run_exp15() {
 # 随事件靠后而增大，逐字比对必然假失败）；判定失败时以非零码中止，不再需要人工读日志确认。
 run_aviation() {
   local dir="$LINUX_ROOT/projects/aviation-node"
-  run_case aviation_node "$dir/build-qemu/aviation_node.elf" 14 \
+  run_case aviation_node "$dir/build-qemu/aviation_node.elf" 20 \
     "python3 -u '$SCRIPT_DIR/aviation/inject.py'"
   python3 "$SCRIPT_DIR/aviation/expect.py" "$LOG_DIR/aviation_node.log"
 }
@@ -199,7 +200,7 @@ run_aviation_link() {
   rm -f "$bin"
   echo "=== aviation_link（USART1 → 终端，USART2 → $bin） ==="
   python3 -u "$SCRIPT_DIR/aviation/inject.py" \
-    | timeout 14 "$QEMU_BIN" "${QEMU_ARGS[@]}" -serial "file:$bin" -kernel "$elf" \
+    | timeout 20 "$QEMU_BIN" "${QEMU_ARGS[@]}" -serial "file:$bin" -kernel "$elf" \
       2>&1 | tr -d '\r' | tee "$LOG_DIR/aviation_node.log"
   echo
   echo "=== link.py ==="

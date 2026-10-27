@@ -239,7 +239,19 @@ static void rx_task( void *arg )
             }
             else if( r == AV_FRAME_OK )
             {
-                if( f.type != AV_TYPE_SENSOR )
+                if( f.type == AV_TYPE_STATUS )
+                {
+                    /* 地面站心跳。与 SENSOR 同口径：CRC 正确即算链路可用，
+                     * 载荷长度不对只说明"内容不可用"。
+                     * 它刷新链路层、不刷新数据层（见 av_health.c 的注释）。 */
+                    av_health_ground_ok();
+
+                    if( f.len != AV_STATUS_PAYLOAD_LEN )
+                    {
+                        av_health_len_error();
+                    }
+                }
+                else if( f.type != AV_TYPE_SENSOR )
                 {
                     av_health_type_error();
                 }
@@ -348,7 +360,8 @@ static void ctrl_task( void *arg )
 
         if( rising != 0U || falling != 0U )
         {
-            LOG( "[fault] t=%lu set=0x%02lX clear=0x%02lX (T=%d STALE=%d CRC=%d RNG=%d RATE=%d SRC=%d)\n",
+            LOG( "[fault] t=%lu set=0x%02lX clear=0x%02lX"
+                 " (T=%d STALE=%d CRC=%d RNG=%d RATE=%d SRC=%d GND=%d)\n",
                  ( unsigned long ) now,
                  ( unsigned long ) rising,
                  ( unsigned long ) falling,
@@ -357,7 +370,8 @@ static void ctrl_task( void *arg )
                  ( int ) ( ( flags & AV_F_CRC ) != 0U ),
                  ( int ) ( ( flags & AV_F_RANGE ) != 0U ),
                  ( int ) ( ( flags & AV_F_RATE ) != 0U ),
-                 ( int ) ( ( flags & AV_F_SOURCE ) != 0U ) );
+                 ( int ) ( ( flags & AV_F_SOURCE ) != 0U ),
+                 ( int ) ( ( flags & AV_F_GROUND ) != 0U ) );
             s_prev_flags = flags;
         }
 
@@ -500,9 +514,9 @@ static void health_task( void *arg )
 
             last_stat = now;
 
-            LOG( "[stat] t=%lu mode=%s cmd=%d flags=0x%02lX[T=%d STALE=%d CRC=%d RNG=%d RATE=%d SRC=%d] "
+            LOG( "[stat] t=%lu mode=%s cmd=%d flags=0x%02lX[T=%d STALE=%d CRC=%d RNG=%d RATE=%d SRC=%d GND=%d] "
                  "air=%d pitch=%d age=%lu frames=%lu crc=%lu len=%lu type=%lu gap=%lu dup=%lu "
-                 "hb=%lu feed=%s(%lu/%lu) heap=%u hwm=%u/%u/%u\n",
+                 "hb=%lu gnd=%lu gage=%lu feed=%s(%lu/%lu) heap=%u hwm=%u/%u/%u\n",
                  ( unsigned long ) now,
                  av_mode_name( s_mode.mode ),
                  ( int ) s_cmd,
@@ -513,6 +527,7 @@ static void health_task( void *arg )
                  ( int ) ( ( flags & AV_F_RANGE ) != 0U ),
                  ( int ) ( ( flags & AV_F_RATE ) != 0U ),
                  ( int ) ( ( flags & AV_F_SOURCE ) != 0U ),
+                 ( int ) ( ( flags & AV_F_GROUND ) != 0U ),
                  ( int ) s_sensor.last_good.airspeed_dmps,
                  ( int ) s_sensor.last_good.pitch_cdeg,
                  ( unsigned long ) av_sensor_age( &s_sensor, now ),
@@ -523,6 +538,8 @@ static void health_task( void *arg )
                  ( unsigned long ) st->seq_gaps,
                  ( unsigned long ) st->duplicates,
                  ( unsigned long ) rx_age,
+                 ( unsigned long ) st->ground_frames,
+                 ( unsigned long ) av_health_ground_age( now ),
                  ( feed_ok != 0 ) ? "ON" : "OFF",
                  ( unsigned long ) s_feeds,
                  ( unsigned long ) s_feed_blocked,
@@ -627,9 +644,17 @@ int main( void )
     av_health_init();
     av_mode_init( &s_mode, xTaskGetTickCount() );
 
-    xTaskCreate( rx_task,     "rx",     176, NULL, 3, &s_h_rx );
+    /* rx 栈 224 字（原 176）：加入 STATUS 分支后实测最坏余量从 52 字掉到 44 字，
+     * 而判据是「绝对 ≥32 字 / 相对 ≥25%」——44/176 恰好等于 25%，正压在边界上。
+     * 余量是"最坏一次"的读数，跨运行有 ±8 字波动；压在阈值上的通过不能算通过。
+     *
+     * health 栈 256 字（原 224）：同一件事在 `[stat]` 加 gnd/gage 两个字段后又发生了一次——
+     * health 自己那条 printf 是最深的一次调用，余量从 64 掉到 56/224，又正好是 25.0%。
+     * 这条是 README §10.5 早先写下的预测（"若继续加，应先把 health 栈提到 256 字"），
+     * 现在按它执行。代价是稳态空闲堆从 248 B 降到 120 B。 */
+    xTaskCreate( rx_task,     "rx",     224, NULL, 3, &s_h_rx );
     xTaskCreate( ctrl_task,   "ctrl",   224, NULL, 4, &s_h_ctrl );
-    xTaskCreate( health_task, "health", 224, NULL, 2, &s_h_health );
+    xTaskCreate( health_task, "health", 256, NULL, 2, &s_h_health );
 
     printf( "[av-node] 启动调度器，初始空闲堆 %u B\n", ( unsigned ) xPortGetFreeHeapSize() );
 

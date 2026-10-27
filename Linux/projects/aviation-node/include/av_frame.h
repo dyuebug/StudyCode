@@ -23,14 +23,22 @@
 #define AV_SOF0               0xAAU
 #define AV_SOF1               0x55U
 #define AV_TYPE_SENSOR        0x01U
+/* 上行地面站心跳。注意与下行 0x81 同名不同向：两者是**两条独立链路**，
+ * 各自维护序号与超时，不互相刷新对方的活性。 */
+#define AV_TYPE_STATUS        0x02U
 
-/* 载荷上限：当前唯一的类型只用 8 字节，留余量给后续类型，同时把
+/* 载荷上限：当前类型分别用 8 / 4 字节，留余量给后续类型，同时把
  * 解析缓冲压到可控大小（39 字节，栈上放得下）。 */
 #define AV_PAYLOAD_MAX        32U
 #define AV_FRAME_MAX          ( 5U + AV_PAYLOAD_MAX + 2U )
 
 /* SENSOR 载荷：airspeed(2) + pitch(2) + roll(2) + flags(2) */
 #define AV_SENSOR_PAYLOAD_LEN 8U
+
+/* STATUS 载荷：ground_uptime_ms(4)。用地面站的本地时间戳而不是它的序号：
+ * 序号回绕（255→0）与"地面站重启后从 0 开始"在线上长得一样，时间戳能区分
+ * "继续数"和"重新数"，也让重启这件事本身可观测。 */
+#define AV_STATUS_PAYLOAD_LEN 4U
 
 typedef struct {
     uint8_t type;

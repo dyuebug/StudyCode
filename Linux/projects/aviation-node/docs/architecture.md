@@ -14,13 +14,15 @@
 │ L4 应用 / 控制     ctrl 任务：控制律 → 限幅 → 速率限幅 → s_cmd           │  20 ms
 │                    模式输出选择（NORMAL 跟随 / DEGRADED 保持 / SAFE 中立）│
 ├──────────────────────────────────────────────────────────────────────────┤
-│ L3 业务逻辑        av_mode   状态机：只看 flags 是否非 0，不看是哪一位    │
-│                    av_health 故障位聚合、保持窗口、统计、心跳年龄         │
+│ L3 业务逻辑        av_mode   状态机：只看掩码子集是否非 0                │
+│                    av_health 故障位聚合、保持窗口、统计、心跳年龄；      │
+│                              GROUND（地面站年龄）不进状态机              │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ L2 数据判定        av_sensor 样本层：数据源 → 范围 → 变化率；last_good    │
 │                    av_frame  帧层：SOF/LEN/CRC16，逐字节状态机            │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ L1 运行支撑        rx / ctrl / health 任务、USART1 ISR、队列、互斥量       │
+│                    rx 按 TYPE 分发：SENSOR → 样本层，STATUS → 地面站心跳   │
 │                    av_downlink 下行 STATUS 帧（USART2 TX，100 ms）        │
 │                    f103_uart 驱动、FreeRTOS 内核（调度/队列/信号量）      │
 ├──────────────────────────────────────────────────────────────────────────┤
@@ -36,14 +38,19 @@
 | `av_frame` | 仅 `<stdint.h>` | `av_crc16_ccitt_false`、`av_parser_push` |
 | `av_tick` | FreeRTOS（`TickType_t`） | `av_tick_elapsed`（跨任务 tick 差值，防无符号下溢） |
 | `av_sensor` | `av_frame`、`av_tick`、FreeRTOS | `av_sensor_accept`（返回 `AV_VERDICT_OK/RANGE/RATE/SOURCE`）、`av_sensor_age` |
-| `av_health` | `av_sensor`、`av_tick`、FreeRTOS | `av_health_kick/frame_ok/crc_error/...`、`av_health_flags`、`av_health_rx_age` |
-| `av_mode` | FreeRTOS（仅 `TickType_t`/`pdMS_TO_TICKS`） | `av_mode_step`、`av_mode_name` |
+| `av_health` | `av_sensor`、`av_tick`、FreeRTOS | `av_health_kick/frame_ok/crc_error/...`、`av_health_flags`、`av_health_rx_age`、`av_health_ground_ok`、`av_health_ground_age` |
+| `av_mode` | FreeRTOS（仅 `TickType_t`/`pdMS_TO_TICKS`） | `av_mode_step`、`av_mode_name`、`AV_F_MODE_MASK` |
 | `av_downlink` | `av_frame`（CRC）、`av_health`/`av_sensor`/`av_mode` 类型、`stm32f1xx.h` | `av_downlink_init`、`av_downlink_status` |
 | `main.c` | 以上全部 + `f103_uart` | 任务、ISR、喂狗门控、日志、控制律 |
 
 `av_mode` 不认识 `AV_F_*` 位定义，是刻意的：**新增一种故障只需在 `av_health` 加一位，
 状态机一行都不用改**。反过来，状态机也不该知道"这是因为 CRC 错还是超时"——那是运维信息，
 不是控制决策。
+
+唯一需要状态机"知道"的是 `AV_F_MODE_MASK` **白名单**：`av_mode_step` 吃的是
+`flags & AV_F_MODE_MASK`，不在此表中的位对模式迁移完全不可见。这个耦合是刻意保留的——
+它把"哪些故障会影响飞行"的决定集中在一处可审查的常量上，而不是分散在各个调用点。
+代价是漏加一位只影响可观测性（图案仍然打印），而黑名单漏加会让一个无关故障悄悄改变飞行模式。
 
 ## 2. 运行时视图
 
@@ -55,20 +62,23 @@
               rx 任务（prio 3）── av_frame 解析 ── 坏帧：av_health.crc_error/len_error/type_error
                     │                    ├── CRC 正确的 SENSOR 帧：av_health.frame_ok(seq)
                     │                    │     （只证明"链路可用"，不代表内容可用 → 这是 T 先于 STALE 清除的原因）
+                    │                    ├── CRC 正确的 STATUS 帧（上行 0x02，地面站心跳）：
+                    │                    │     av_health.ground_ok() —— 只刷新链路层与 gnd 计数，
+                    │                    │     不碰 last_good、不推进 SENSOR 的序号
                     │                    └── av_sensor_accept ──> OK: last_good + good_streak
                     │                                          RANGE/RATE/SOURCE: av_health.mark
                     │  每 50 ms：av_health.kick（心跳按"每轮循环"打点，不按字节）
                     ▼
               ctrl 任务（prio 4，20 ms）── av_health_flags(now)
-                    │                        └── 只读：T/STALE/CRC/RNG/RATE/SRC
-                    ├── av_mode_step（临界区内）──> 模式 + cmd
-                    └── [mode]/[fault] 边沿上报
+                    │                        └── 只读：T/STALE/CRC/RNG/RATE/SRC/GND
+                    ├── av_mode_step(flags & AV_F_MODE_MASK) ──> 模式 + cmd
+                    └── [mode]/[fault] 边沿上报（GND 只上报，不参与迁移）
                     ▼
               health 任务（prio 2，100 ms）── rx_age + flags
                     ├── 喂狗门控：rx_live && !(T|STALE)，唯一喂狗点
                     ├── [gate] 变化时上报（原因位 OK/FLAGS/HB/HB+FLAGS）
                     ├── 下行 STATUS 帧（USART2 TX，25 B；TXE 超时只报一次）
-                    └── 每 5000 ms：[stat]（堆、栈水位、计数、hb、feed 计数）
+                    └── 每 5000 ms：[stat]（堆、栈水位、计数、hb、gnd/gage、feed 计数）
 ```
 
 下行与 `[stat]` 在同一轮 health 里先后发生，但**不是原子的**：`av_downlink_status()`
@@ -84,6 +94,7 @@
 | `s_health` 内部状态（stats / hold / kick / last_frame） | rx（`kick` 也在 rx） | ctrl、health | 32 位对齐的单字写；读侧用 `now - stamp` 无符号差值 |
 | `s_sensor.last_good` 等 | rx | ctrl、health | 同上（结构体按值赋值在 32 位总线上非原子，但只在语义上要求"旧值或新值"） |
 | `s_mode`（mode / enter_tick / good_streak） | rx 只改 `good_streak`；ctrl 改 `mode` | ctrl、health | `taskENTER_CRITICAL()` 包住自增与 `av_mode_step` |
+| `s_last_ground_tick` / `s_ground_seen`（`av_health.c` 内） | rx（`av_health_ground_ok`） | ctrl（`av_health_flags`）、health（`av_health_ground_age`） | 32 位对齐单字写；读侧用 `av_tick_elapsed` 做无符号差值 |
 | `printf` | 三个任务 | — | `s_log_mutex` |
 
 ## 3. 判定的分层顺序（为什么是这个顺序）
@@ -95,22 +106,31 @@
   ↓    （顺序固定：源不可信时没必要再判范围；范围错时变化率已无意义）
 时间层 T（无 CRC 正确帧 300 ms） / STALE（无有效样本 300 ms），两条独立计时
   ↓
-状态机 任一位置位 → DEGRADED；持续 3000 ms → SAFE；SAFE 需 5 帧才回落
+对端层 GND（无地面站心跳 500 ms）—— 与上面两层并列计时，但**不进入状态机**
+  ↓
+状态机 只看 (flags & AV_F_MODE_MASK)：任一位置位 → DEGRADED；持续 3000 ms → SAFE；
+       SAFE 需 5 帧才回落。GND 不在掩码里，只出现在日志与下行帧中
 ```
 
 把"帧坏了"和"样本坏了"分开，是为了让日志能回答**该查链路还是该查传感器**：
 `crc` 计数涨说明链路/协议；`RNG/RATE` 涨说明数据源；`T` 单独涨说明一个字节都没来。
 
+再往前一层（GND）回答的是另一个问题：**对端还在不在**。它和 `T` 共用同一条物理链路，
+但"这条线通不通"（`T`）与"对面那个设备活着吗"（`GND`）是两件事——`hb_only` 段里
+`T=0 / STALE=1 / GND=0`、`hb_lost` 段里 `T=0 / STALE=0 / GND=1` 就是这两种组合的实测
+（`test-report.md` §3.6 / §3.7）。文字与代码之间的一致性由 C16 / C17 守住。
+
 ## 4. 关键取舍（含代价）
 
 | 决定 | 收益 | 代价 / 已知边界 |
 | --- | --- | --- |
-| 状态机只吃"flags 是否为 0" | 新增故障位不动状态机 | 状态机无法区分严重程度；分级需要另加严重度字段 |
+| 状态机只吃"掩码子集是否为 0" | 新增故障位不动状态机；哪些故障影响飞行集中在一个常量 | 状态机无法区分严重程度（分级需另加严重度字段）；白名单漏加只影响可观测性，黑名单漏加会让无关故障静默改变模式（故取白名单） |
+| `GROUND` 单独一位、不进 `AV_F_MODE_MASK` | 地面站失联可观测，但不改变飞行模式 | `s_ground_seen` 门控使"从未连上"不可见；`silent` 段里 `GND` 与 `T`/`STALE` 可能同 tick 到期，判定器只能对那段窗口弃权 |
 | 单点喂狗（health 独占） | "任一通道不健康即整体停喂"可验证 | 监督任务优先级最低时看不见忙等（`task-timing.md` §3） |
 | 门控只看 `T\|STALE` 与 rx 心跳，不看 `CRC/RNG/RATE/SRC` | 单帧坏数据不会复位整机；质量类故障交给模式状态机 | 门控不是"全故障"判据——数据坏了仍在喂狗，靠降级而不靠复位兜底 |
 | 故障标志保持 1000 ms | 50 Hz 抖动不会让模式来回跳 | 单帧事件的影响被拉长；已由 3000 ms 停留门限吸收 |
 | 变化率参考"上次**收到**的样本"而非"上次**有效**样本"（窗口 200 ms） | 持续突变下突变保护不会自我关闭 | 连续拒收会推进到 `STALE`——首轮实测发现的耦合，见 `test-report.md` §3.3 |
-| 恢复需要连续 N 帧 + 无故障 | 边界数据不抖动 | 恢复慢 3–5 帧（实测 122–243 tick） |
+| 恢复需要连续 N 帧 + 无故障 | 边界数据不抖动 | 恢复慢 3–5 帧（实测 82–246 tick，含两级恢复） |
 | 速率限幅对所有模式生效（`CMD_STEP_CDEG` = 100，即 1.00°/20 ms） | 模式切换本身不产生指令阶跃 | DEGRADED→NORMAL 的收敛被按斜率限制拖慢 |
 | 心跳按"每轮循环"打点 | 卡在队列上也能被发现 | 心跳频率随负载变化，不能当周期抖动指标 |
 | 下行另开 USART2，不与 ASCII 日志共用一条流 | 日志可继续按行解析，判定器不被二进制打断 | 需要第二个串口后端（QEMU 已实测可用）；地面站要单独接一路 |
@@ -121,23 +141,29 @@
 
 | 项 | 值 | 来源 |
 | --- | --- | --- |
-| FLASH | 18028 B / 128 KB（13.75%），`text 17928 / data 100` | `size` 实测（含下行） |
-| RAM | 6536 B / 8 KB（79.79%），`bss 6436` | 同上 |
-| 内核堆 `configTOTAL_HEAP_SIZE` | 4096 B；启动后余 1048 B、稳态 432 B | 运行日志 |
-| 任务栈 | rx 176 字 / ctrl 224 / health 224；最低余量 52 / 106 / 64 | `[stat] hwm` |
+| FLASH | 18256 B / 128 KB（13.93%），`text 18156 / data 100` | `size` 实测（含下行与调试注入段） |
+| RAM | 6552 B / 8 KB（79.98%），`bss 6452`，余 1640 B | 同上 |
+| 内核堆 `configTOTAL_HEAP_SIZE` | 4096 B；启动后余 736 B、稳态 120 B | 运行日志 |
+| 任务栈 | rx 224 字 / ctrl 224 / health 256；最低余量 100 / 104 / 88 | `[stat] hwm`（注入构建） |
 | 解析缓冲 | `av_parser_t` 含 32 B 载荷缓冲，在 rx 栈上 | 源码 |
 | 下行帧缓冲 | 25 B（`AV_DL_FRAME_MAX`），在 health 栈上 | 源码 |
 | 下行通道开销 | 每 100 ms 25 B ≈ 250 B/s，115200 下占用 2.2%（理论） | 推算 |
+| 调试注入段 | 288 B FLASH / 8 B RAM | `-DAV_DEBUG_BLOCK_RX_MS=0` 构建差分 |
 
-余量判断：432 B 堆不足以再建一个 128 字的任务（栈 512 B + TCB），加任务必须先提高堆尺寸，
-而它是共享配置，会影响其他实验的实测体积；`health` 栈余量 64 字最接近红线——加入 25 B
-下行缓冲后实测水位仍是 64 字（缓冲落在已用深度之内），但再加字段前应先提到 256 字。
+余量判断：**120 B 堆**已不足以再建一个任务（128 字栈 = 512 B + TCB），加任务必须先提高
+`configTOTAL_HEAP_SIZE`，而它是共享配置，会影响其他实验的实测体积。
+
+`health` 栈是本项目最脆弱的一处：它自己那条 `[stat]` `printf` 是最深的调用，往格式里加字段
+会直接吃掉水位。加 `gnd`/`gage` 两个字段后余量从 64 掉到 **56/224 = 25.0%**，正好压在判据
+（绝对 ≥32 字 / 相对 ≥25%）的边界上——按"压线通过不算通过"提到 256 字，稳态堆因此从 248 B
+降到 120 B。往 `[stat]` 加字段是**栈风险最高的改动**，改完必须重读 `hwm`。
 
 ## 6. 变更影响矩阵
 
 | 要改的东西 | 动的层 | 必须连带确认 |
 | --- | --- | --- |
-| 新增一种故障判据 | L2 判定 + L3 `av_health` | 新位是否进入 `[stat]`/`[fault]` 打印；`expect.py` 的 C4 是否要加一项 |
+| 新增一种故障判据 | L2 判定 + L3 `av_health`（+ `av_mode.h` 的 `AV_F_MODE_MASK`） | 新位是否进掩码（决定它是否影响飞行）；`[stat]`/`[fault]` 打印列；`expect.py` 的 C4 位表；`protocol.md` §3 位表 |
+| 新增一种上行帧 | L1 rx 分发 + `protocol.md` §2.1 | 每种帧**独立**的序号计数（共用会污染 `gap`）；`inject.py` 的段定义；新增"只发/不发某类"的段要同步 `--silent-slots` 与 `--expected-down` |
 | 修改模式门限（3/5 帧、3000 ms） | L3 `av_mode.h` | 停留门限仍须明显大于 1000 ms 保持窗口；C5/C6c/C13 的计数期望 |
 | 改控制律或限幅 | L4 | 速率限幅与 ctrl 周期（20 ms）绑定；C12 的期望 `cmd` 值 |
 | 改 ctrl/health 周期 | L1 + L4 | `CMD_STEP_CDEG` 的斜率语义；`[stat]` 间隔与 `[timing]` 区间；下行的周期随 health 一起变 |
@@ -148,6 +174,8 @@
 
 - **单通道**：没有冗余表决、没有通道不一致判据；`protocol.md` §6 列了双通道需要补什么。
 - **下行单向**：USART2 只有 TX，没有命令通道、没有对 `STATUS` 的确认，也没有流控/重传。
+- **对端活性只能单向推断**：MCU 从地面站心跳推断"对端还在"，但无法反向探活；`s_ground_seen`
+  门控还使"地面站全程没连上"不可见（不是故障位，只能靠人读 `[stat] gnd=0`）。
 - **无持久化**：故障记录只在 RAM，复位即丢；掉电保持需要 Flash/备份域。
 - **无时间基准**：只有 tick，没有 RTC/时间同步；跨设备对时需要另行设计。
 - **无 BSP 抽象**：`f103_uart`、`av_downlink` 直接操作寄存器，换芯片要改驱动层。

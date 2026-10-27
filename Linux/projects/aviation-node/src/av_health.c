@@ -15,7 +15,9 @@ enum {
 
 static av_health_stats_t s_stats;
 
-static TickType_t s_last_frame_tick;     /* 最近一个 CRC 正确的帧 */
+static TickType_t s_last_frame_tick;     /* 最近一个 CRC 正确的帧（SENSOR 或 STATUS） */
+static TickType_t s_last_ground_tick;    /* 最近一帧地面站心跳（STATUS） */
+static int        s_ground_seen;         /* 是否收到过地面站心跳：从未收到不算"失联" */
 static TickType_t s_rx_kick_tick;        /* rx 任务最近一次心跳 */
 static uint32_t   s_crc_streak;          /* 连续 CRC 错帧数 */
 
@@ -38,6 +40,8 @@ void av_health_init( void )
     memset( &s_stats, 0, sizeof( s_stats ) );
     memset( s_hold_tick, 0, sizeof( s_hold_tick ) );
     s_last_frame_tick = 0U;
+    s_last_ground_tick = 0U;
+    s_ground_seen      = 0;
     s_rx_kick_tick    = 0U;
     s_crc_streak      = 0U;
     s_hold_mask       = 0U;
@@ -72,6 +76,22 @@ void av_health_frame_ok( uint8_t seq )
 
     s_stats.last_seq = seq;
     s_stats.have_seq = 1;
+}
+
+void av_health_ground_ok( void )
+{
+    TickType_t now = xTaskGetTickCount();
+
+    /* 刷新链路层：心跳到达证明这条线是通的，所以 AV_F_TIMEOUT 不该置位。
+     * 不刷新数据层：AV_F_STALE 看的是有效样本年龄，心跳不携带样本。
+     * 于是"只发心跳"表现为 STALE 单独置位——这正是要能区分的那一格。 */
+    s_last_frame_tick  = now;
+    s_last_ground_tick = now;
+    s_ground_seen      = 1;
+    s_stats.ground_frames++;
+
+    /* 不参与 s_stats.last_seq / seq_gaps：那是 SENSOR 的序号空间。
+     * 两个方向的序号各自独立（见 docs/protocol.md §2.1），混在一起算缺口没有意义。 */
 }
 
 void av_health_crc_error( void )
@@ -129,6 +149,15 @@ uint32_t av_health_flags( const av_sensor_t *sensor, TickType_t now )
         flags |= AV_F_CRC;
     }
 
+    /* 与 STALE 同构：从未收到过地面站心跳时不算"失联"——上电初期没有地面站
+     * 接入是正常过程，把它报成故障只会让启动阶段的日志充满噪声。
+     * 代价是"地面站一直没连上"不可见，这一条写在 docs/protocol.md §3 的边界里。 */
+    if( ( s_ground_seen != 0 ) &&
+        ( av_tick_elapsed( now, s_last_ground_tick ) > pdMS_TO_TICKS( AV_GROUND_TIMEOUT_MS ) ) )
+    {
+        flags |= AV_F_GROUND;
+    }
+
     for( int i = 0; i < AV_HOLD_COUNT; i++ )
     {
         if( ( s_hold_mask & ( 1UL << ( uint32_t ) i ) ) == 0U )
@@ -148,6 +177,14 @@ uint32_t av_health_flags( const av_sensor_t *sensor, TickType_t now )
 uint32_t av_health_rx_age( TickType_t now )
 {
     return av_tick_elapsed( now, s_rx_kick_tick );
+}
+
+uint32_t av_health_ground_age( TickType_t now )
+{
+    /* 从未收到时 s_last_ground_tick 为 0，返回值即"上电以来"——与 av_health_rx_age
+     * 在首次 kick 之前的口径一致（那时也是从上电起算）。不返回哨兵值：
+     * 哨兵会在日志里被读成时间戳下溢（C15 就是为这种读法设的）。 */
+    return av_tick_elapsed( now, s_last_ground_tick );
 }
 
 const av_health_stats_t *av_health_stats( void )

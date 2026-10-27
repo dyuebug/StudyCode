@@ -6,57 +6,69 @@
 [av-node] 模式: INIT→NORMAL(3 帧) / 故障→DEGRADED / 持续 3000 ms→SAFE / SAFE→DEGRADED(5 帧)
 [av-node] IWDG 路径 未启用（QEMU 未建模）；代码地址 init=0x0800010D feed=0x08000131
 [av-node] 下行 USART2 已启用：TYPE=0x81 LEN=18 baud=115200（PCLK1=8000000 Hz 假设）
-[av-node] 启动调度器，初始空闲堆 1048 B
-[gate] t=102 feed=ON reason=OK hb=102 flags=0x00
-[gate] t=309 feed=OFF reason=FLAGS hb=108 flags=0x01
-[fault] t=320 set=0x01 clear=0x00 (T=1 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[fault] t=1383 set=0x00 clear=0x01 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[gate] t=1414 feed=ON reason=OK hb=40 flags=0x00
-[mode] t=1483 INIT -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
-[stat] t=5031 mode=NORMAL cmd=-50 flags=0x00[T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0] air=150 pitch=100 age=49 frames=66 crc=0 len=0 type=0 gap=0 dup=0 hb=52 feed=ON(39/11) heap=432 hwm=116/114/72
-[mode] t=5667 NORMAL -> DEGRADED flags=0x04 cmd=-50 air=150 pitch=100
-[fault] t=5667 set=0x04 clear=0x00 (T=0 STALE=0 CRC=1 RNG=0 RATE=0 SRC=0)
-[fault] t=5793 set=0x03 clear=0x00 (T=1 STALE=1 CRC=1 RNG=0 RATE=0 SRC=0)
-[gate] t=5846 feed=OFF reason=FLAGS hb=45 flags=0x07
-[fault] t=7197 set=0x00 clear=0x07 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[gate] t=7250 feed=ON reason=OK hb=9 flags=0x00
-[mode] t=7300 DEGRADED -> NORMAL flags=0x00 cmd=-50 air=150 pitch=100
-[mode] t=8863 NORMAL -> DEGRADED flags=0x08 cmd=-50 air=150 pitch=100
-[fault] t=8863 set=0x08 clear=0x00 (T=0 STALE=0 CRC=0 RNG=1 RATE=0 SRC=0)
-[fault] t=9128 set=0x02 clear=0x00 (T=0 STALE=1 CRC=0 RNG=1 RATE=0 SRC=0)
-[gate] t=9157 feed=OFF reason=FLAGS hb=23 flags=0x0A
-[fault] t=9972 set=0x00 clear=0x02 (T=0 STALE=0 CRC=0 RNG=1 RATE=0 SRC=0)
-[gate] t=10063 feed=ON reason=OK hb=48 flags=0x08
-[stat] t=10063 mode=DEGRADED cmd=-50 flags=0x08[T=0 STALE=0 CRC=0 RNG=1 RATE=0 SRC=0] air=150 pitch=100 age=45 frames=127 crc=30 len=0 type=0 gap=30 dup=0 hb=48 feed=ON(66/34) heap=432 hwm=116/106/64
-[fault] t=10917 set=0x00 clear=0x08 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[mode] t=11080 DEGRADED -> NORMAL flags=0x00 cmd=-50 air=150 pitch=100
-[mode] t=11905 NORMAL -> DEGRADED flags=0x10 cmd=-50 air=150 pitch=100
-[fault] t=11905 set=0x10 clear=0x00 (T=0 STALE=0 CRC=0 RNG=0 RATE=1 SRC=0)
-[fault] t=12151 set=0x02 clear=0x00 (T=0 STALE=1 CRC=0 RNG=0 RATE=1 SRC=0)
-[gate] t=12178 feed=OFF reason=FLAGS hb=9 flags=0x12
-[fault] t=12616 set=0x00 clear=0x02 (T=0 STALE=0 CRC=0 RNG=0 RATE=1 SRC=0)
-[gate] t=12682 feed=ON reason=OK hb=17 flags=0x10
-[fault] t=13580 set=0x00 clear=0x10 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[mode] t=13723 DEGRADED -> NORMAL flags=0x00 cmd=-50 air=150 pitch=100
-[mode] t=14084 NORMAL -> DEGRADED flags=0x03 cmd=-50 air=150 pitch=100
-[fault] t=14084 set=0x03 clear=0x00 (T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0)
-[gate] t=14090 feed=OFF reason=FLAGS hb=119 flags=0x03
-[stat] t=15093 mode=DEGRADED cmd=-50 flags=0x03[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0] air=150 pitch=100 age=1322 frames=195 crc=30 len=0 type=0 gap=30 dup=0 hb=122 feed=OFF(100/50) heap=432 hwm=116/106/64
-[debug] t=16571 rx 阻塞开始 plant=800 ms（其他任务继续运行）
-[gate] t=17012 feed=OFF reason=HB+FLAGS hb=441 flags=0x03
-[mode] t=17089 DEGRADED -> SAFE flags=0x03 cmd=-50 air=150 pitch=100
-[debug] t=17371 rx 阻塞结束 dur=800 ms
-[gate] t=17617 feed=OFF reason=FLAGS hb=43 flags=0x03
-[fault] t=19370 set=0x00 clear=0x03 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0)
-[gate] t=19424 feed=ON reason=OK hb=9 flags=0x00
-[mode] t=19594 SAFE -> DEGRADED flags=0x00 cmd=0 air=150 pitch=100
-[mode] t=19755 DEGRADED -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
-[stat] t=20132 mode=NORMAL cmd=-50 flags=0x00[T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0] air=150 pitch=100 age=0 frames=210 crc=30 len=0 type=0 gap=130 dup=0 hb=3 feed=ON(108/92) heap=432 hwm=52/106/64
-[mode] t=22955 NORMAL -> DEGRADED flags=0x03 cmd=-50 air=150 pitch=100
-[fault] t=22955 set=0x03 clear=0x00 (T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0)
-[gate] t=22962 feed=OFF reason=FLAGS hb=121 flags=0x03
-[stat] t=25171 mode=DEGRADED cmd=-50 flags=0x03[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0] air=150 pitch=100 age=2530 frames=252 crc=30 len=0 type=0 gap=133 dup=0 hb=130 feed=OFF(135/115) heap=432 hwm=52/106/64
-[mode] t=25962 DEGRADED -> SAFE flags=0x03 cmd=-50 air=150 pitch=100
-[stat] t=30208 mode=SAFE cmd=0 flags=0x03[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0] air=150 pitch=100 age=7567 frames=252 crc=30 len=0 type=0 gap=133 dup=0 hb=167 feed=OFF(135/165) heap=432 hwm=52/106/64
-[stat] t=35231 mode=SAFE cmd=0 flags=0x03[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0] air=150 pitch=100 age=12590 frames=252 crc=30 len=0 type=0 gap=133 dup=0 hb=190 feed=OFF(135/215) heap=432 hwm=52/106/64
-qemu-system-arm: terminating on signal 15 from pid 547 (timeout)
+[av-node] 启动调度器，初始空闲堆 736 B
+[gate] t=101 feed=ON reason=OK hb=101 flags=0x00
+[gate] t=306 feed=OFF reason=FLAGS hb=106 flags=0x01
+[fault] t=320 set=0x01 clear=0x00 (T=1 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[fault] t=1028 set=0x00 clear=0x01 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[gate] t=1111 feed=ON reason=OK hb=52 flags=0x00
+[mode] t=1130 INIT -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
+[stat] t=5039 mode=NORMAL cmd=-50 flags=0x00[T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0] air=150 pitch=100 age=35 frames=73 crc=0 len=0 type=0 gap=0 dup=0 hb=39 gnd=15 gage=149 feed=ON(42/8) heap=120 hwm=164/112/96
+[mode] t=5274 NORMAL -> DEGRADED flags=0x04 cmd=-50 air=150 pitch=100
+[fault] t=5274 set=0x04 clear=0x00 (T=0 STALE=0 CRC=1 RNG=0 RATE=0 SRC=0 GND=0)
+[fault] t=5401 set=0x02 clear=0x00 (T=0 STALE=1 CRC=1 RNG=0 RATE=0 SRC=0 GND=0)
+[gate] t=5457 feed=OFF reason=FLAGS hb=40 flags=0x06
+[fault] t=6825 set=0x00 clear=0x06 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[gate] t=6862 feed=ON reason=OK hb=9 flags=0x00
+[mode] t=6907 DEGRADED -> NORMAL flags=0x00 cmd=-50 air=150 pitch=100
+[mode] t=8469 NORMAL -> DEGRADED flags=0x08 cmd=-50 air=150 pitch=100
+[fault] t=8469 set=0x08 clear=0x00 (T=0 STALE=0 CRC=0 RNG=1 RATE=0 SRC=0 GND=0)
+[fault] t=8713 set=0x02 clear=0x00 (T=0 STALE=1 CRC=0 RNG=1 RATE=0 SRC=0 GND=0)
+[gate] t=8779 feed=OFF reason=FLAGS hb=55 flags=0x0A
+[fault] t=9575 set=0x00 clear=0x02 (T=0 STALE=0 CRC=0 RNG=1 RATE=0 SRC=0 GND=0)
+[gate] t=9582 feed=ON reason=OK hb=28 flags=0x08
+[stat] t=10086 mode=DEGRADED cmd=-50 flags=0x08[T=0 STALE=0 CRC=0 RNG=1 RATE=0 SRC=0 GND=0] air=150 pitch=100 age=38 frames=135 crc=30 len=0 type=0 gap=30 dup=0 hb=42 gnd=33 gage=260 feed=ON(70/30) heap=120 hwm=164/104/88
+[fault] t=10518 set=0x00 clear=0x08 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[mode] t=10641 DEGRADED -> NORMAL flags=0x00 cmd=-50 air=150 pitch=100
+[mode] t=11484 NORMAL -> DEGRADED flags=0x10 cmd=-50 air=150 pitch=100
+[fault] t=11484 set=0x10 clear=0x00 (T=0 STALE=0 CRC=0 RNG=0 RATE=1 SRC=0 GND=0)
+[fault] t=11728 set=0x02 clear=0x00 (T=0 STALE=1 CRC=0 RNG=0 RATE=1 SRC=0 GND=0)
+[gate] t=11813 feed=OFF reason=FLAGS hb=22 flags=0x12
+[fault] t=12191 set=0x00 clear=0x02 (T=0 STALE=0 CRC=0 RNG=0 RATE=1 SRC=0 GND=0)
+[gate] t=12218 feed=ON reason=OK hb=40 flags=0x10
+[fault] t=13134 set=0x00 clear=0x10 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[mode] t=13235 DEGRADED -> NORMAL flags=0x00 cmd=-50 air=150 pitch=100
+[mode] t=13636 NORMAL -> DEGRADED flags=0x43 cmd=-50 air=150 pitch=100
+[fault] t=13636 set=0x43 clear=0x00 (T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=1)
+[gate] t=13731 feed=OFF reason=FLAGS hb=197 flags=0x43
+[stat] t=15134 mode=DEGRADED cmd=-50 flags=0x43[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=1] air=150 pitch=100 age=1800 frames=195 crc=30 len=0 type=0 gap=30 dup=0 hb=0 gnd=45 gage=2009 feed=OFF(101/49) heap=120 hwm=164/104/88
+[debug] t=16534 rx 阻塞开始 plant=800 ms（其他任务继续运行）
+[mode] t=16641 DEGRADED -> SAFE flags=0x43 cmd=-50 air=150 pitch=100
+[gate] t=16949 feed=OFF reason=HB+FLAGS hb=415 flags=0x43
+[debug] t=17334 rx 阻塞结束 dur=800 ms
+[gate] t=17556 feed=OFF reason=FLAGS hb=20 flags=0x43
+[fault] t=18925 set=0x00 clear=0x43 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[gate] t=18962 feed=ON reason=OK hb=44 flags=0x00
+[mode] t=19149 SAFE -> DEGRADED flags=0x00 cmd=0 air=150 pitch=100
+[mode] t=19310 DEGRADED -> NORMAL flags=0x00 cmd=0 air=150 pitch=100
+[stat] t=20169 mode=NORMAL cmd=-50 flags=0x00[T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0] air=150 pitch=100 age=25 frames=218 crc=30 len=0 type=0 gap=130 dup=0 hb=27 gnd=50 gage=137 feed=ON(114/86) heap=120 hwm=100/104/88
+[mode] t=22510 NORMAL -> DEGRADED flags=0x02 cmd=-50 air=150 pitch=100
+[fault] t=22510 set=0x02 clear=0x00 (T=0 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[gate] t=22582 feed=OFF reason=FLAGS hb=67 flags=0x02
+[stat] t=25196 mode=DEGRADED cmd=-50 flags=0x02[T=0 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=0] air=150 pitch=100 age=3004 frames=252 crc=30 len=0 type=0 gap=133 dup=0 hb=184 gnd=68 gage=181 feed=OFF(137/113) heap=120 hwm=100/104/88
+[mode] t=25514 DEGRADED -> SAFE flags=0x02 cmd=-50 air=150 pitch=100
+[stat] t=30215 mode=SAFE cmd=0 flags=0x02[T=0 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=0] air=150 pitch=100 age=8023 frames=252 crc=30 len=0 type=0 gap=133 dup=0 hb=14 gnd=86 gage=214 feed=OFF(137/163) heap=120 hwm=100/104/88
+[fault] t=32216 set=0x00 clear=0x02 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=0)
+[gate] t=32237 feed=ON reason=OK hb=27 flags=0x00
+[mode] t=32438 SAFE -> DEGRADED flags=0x40 cmd=0 air=150 pitch=100
+[fault] t=32438 set=0x40 clear=0x00 (T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=1)
+[mode] t=32604 DEGRADED -> NORMAL flags=0x40 cmd=0 air=150 pitch=100
+[stat] t=35256 mode=NORMAL cmd=-50 flags=0x40[T=0 STALE=0 CRC=0 RNG=0 RATE=0 SRC=0 GND=1] air=150 pitch=100 age=5 frames=308 crc=30 len=0 type=0 gap=313 dup=0 hb=8 gnd=93 gage=3319 feed=ON(168/182) heap=120 hwm=100/104/88
+[gate] t=39381 feed=OFF reason=FLAGS hb=113 flags=0x43
+[mode] t=39387 NORMAL -> DEGRADED flags=0x43 cmd=-50 air=150 pitch=100
+[fault] t=39387 set=0x03 clear=0x00 (T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=1)
+[stat] t=40287 mode=DEGRADED cmd=-50 flags=0x43[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=1] air=150 pitch=100 age=1219 frames=377 crc=30 len=0 type=0 gap=313 dup=0 hb=19 gnd=93 gage=8350 feed=OFF(208/192) heap=120 hwm=100/104/88
+[mode] t=42396 DEGRADED -> SAFE flags=0x43 cmd=-50 air=150 pitch=100
+[stat] t=45307 mode=SAFE cmd=0 flags=0x43[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=1] air=150 pitch=100 age=6239 frames=377 crc=30 len=0 type=0 gap=313 dup=0 hb=39 gnd=93 gage=13370 feed=OFF(208/242) heap=120 hwm=100/104/88
+[stat] t=50334 mode=SAFE cmd=0 flags=0x43[T=1 STALE=1 CRC=0 RNG=0 RATE=0 SRC=0 GND=1] air=150 pitch=100 age=11266 frames=377 crc=30 len=0 type=0 gap=313 dup=0 hb=66 gnd=93 gage=18397 feed=OFF(208/292) heap=120 hwm=100/104/88
+qemu-system-arm: terminating on signal 15 from pid 484 (timeout)

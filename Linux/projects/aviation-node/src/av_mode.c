@@ -1,4 +1,5 @@
 #include "av_mode.h"
+#include "av_health.h"     /* AV_F_MODE_MASK：哪些位参与模式判定 */
 
 void av_mode_init( av_mode_ctx_t *ctx, TickType_t now )
 {
@@ -22,7 +23,9 @@ const char *av_mode_name( av_mode_t mode )
 av_mode_t av_mode_step( av_mode_ctx_t *ctx, uint32_t flags, TickType_t now )
 {
     uint32_t  dwell = ( uint32_t ) ( now - ctx->enter_tick );
-    int       fault = ( flags != 0U ) ? 1 : 0;
+    /* 只把"数据能不能用"这一类位算作故障。AV_F_GROUND 不在此列：地面站失联
+     * 不改变飞行模式。掩码是白名单，新位默认不参与（见 av_health.h）。 */
+    int       fault = ( ( flags & AV_F_MODE_MASK ) != 0U ) ? 1 : 0;
     av_mode_t next  = ctx->mode;
 
     /* 判据统一用"无符号差值 + 阈值"，与其他超时判定保持同一套写法 */

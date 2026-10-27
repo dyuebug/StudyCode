@@ -802,52 +802,70 @@ Claude 必须：
 
 ### P1：启动航空主题项目的可仿真部分（路线图第 7–8 周）
 
-- [x] 传感器模拟输入（PC 经 UART 注入）—— `tests/qemu-stm32/aviation/inject.py`，50 Hz 十一段剧本
-  （含连丢 3 帧的 `drop` 段）；实测 `frames=252`、`crc=30`、`gap=133`（`logs/aviation_node.log`）。
-- [x] 数据有效性判断与模式状态机 —— 三层判据（帧/样本/时间）+ INIT/NORMAL/DEGRADED/SAFE；
-  四类异常各有独立标志位，`DEGRADED→SAFE` 停留 3005/3007 ms（门限 3000，多次运行 3003–3017）。
+- [x] 传感器模拟输入（PC 经 UART 注入）—— `tests/qemu-stm32/aviation/inject.py`，50 Hz `SENSOR`
+  + 10 Hz `STATUS`、十三段剧本（含连丢 3 帧的 `drop` 段、只发心跳的 `hb_only`、只发数据的 `hb_lost`）；
+  实测 `frames=377`、`crc=30`、`gap=313`（`logs/aviation_node.log`）。
+- [x] 数据有效性判断与模式状态机 —— 四层判据（帧/样本/时间/对端地面站）+ INIT/NORMAL/DEGRADED/SAFE；
+  各类异常各有独立标志位，`DEGRADED→SAFE` 停留 3005/3004/3009 ms（门限 3000，多次运行 3003–3017）。
 - [x] 周期任务 + 健康监控 + 降级路径 —— rx/ctrl/health 三任务、喂狗"与"语义、两级恢复
-  （`SAFE→DEGRADED` 222–246 tick、`→NORMAL` 161–185 tick）、栈水位 52/106/64 字（注入构建；
-  `rx` 注入前 116，差额 64 字是 `[debug]` 的两条 `printf`）。
+  （`SAFE→DEGRADED` 205–246 tick、`→NORMAL` 161–185 tick）、栈水位 100/104/88 字（注入构建；
+  `rx` 注入前 164，差额是 `[debug]` 的两条 `printf`）。
 - [x] 任务阻塞注入（第 9–10 周"每类故障都有用例"）—— 编译期 `AV_DEBUG_BLOCK_RX_MS`（QEMU 构建
   默认 800 ms，真板默认 0 不参与编译），在静默段内让 rx 空转；实测 `[debug]` 阻塞 `dur=800`，
-  health 随后读到 `hb > 400`（本轮 441）并打出 `[gate] reason=HB+FLAGS`，
+  health 随后读到 `hb > 400`（本轮 415）并打出 `[gate] reason=HB+FLAGS`，
   阻塞结束回落 `FLAGS`。首版写成忙等时 health 被饿死（`rx 3 > health 2`）——这条反例写进
   项目 README §6.6：监督任务的优先级决定它能否看见忙等。
 - [x] 硬件依赖项（CAN、ADC、示波器/逻辑分析仪）单列，标注"待真板" —— 项目 README §9，
   另含 `IWDG` 复位与复位原因、故障记录掉电保持。
 - [x] 后续之一（不属本条，第 9–10 周起步）：**机器判定已落地** —— `tests/qemu-stm32/aviation/expect.py`
-  从日志抽 21 项不变量（C1–C15），已接入 `run.sh aviation-link`，判定失败即以非零码中止；实测全通过，
-  改坏 `gap` 返回 1 且只 FAIL C7、删掉 `HB` 门控行返回 1 且只 FAIL C14、日志缺失返回 2。
+  从日志抽 24 项不变量（C1–C17），已接入 `run.sh aviation-link`，判定失败即以非零码中止；实测全通过。
+  负向验证在同一份日志的临时副本上做（不重跑 QEMU）：改坏 `gap` 只 FAIL C7、删 `HB` 门控行只 FAIL C14、
+  删全部 `[debug]` 转"不适用"、`age` 下溢只 FAIL C15、两类 `feed` 篡改各触发 C10、抹掉 `GROUND` 位
+  触发 C4+C16、`GROUND` 窗口内插假降级触发 C13+C16、`GROUND` 期间 `stat` 报 SAFE 只失败 C16、
+  `hb_only` 段帧数递增只失败 C17、**假降级插在 `GROUND` 同 tick 时 C16 主动弃权只失败 C13**、
+  日志缺失返回 2。
   判的是不变量而非常量时刻——跨运行漂移随时长
   累积（逐事件对照：t≈1100 差 41、t≈13000 差 75、t≈27000 差 154），按 `t=` 写的断言必然假失败；
   另自动汇总六类延迟（置位→降级 0 tick、清除→恢复 NORMAL
-  103–163 tick、清除→`SAFE→DEGRADED` 222–246 tick、`DEGRADED→SAFE` 3003–3017 ms、
-  SAFE 停留 2505–2967 ms、阻塞开始→心跳判超时 435–452 tick）——`0 tick`
-  只表示"标志置位→改模式"，不是"故障发生→检出"（后者跨端无共同时基，需真板 + 逻辑分析仪）；
-  **不覆盖** CAN/ADC/示波器/`IWDG`（无模型）；六类故障已全部有用例（错帧/越界/突变/静默/丢帧/
-  任务阻塞），**还缺**复位原因（`RCC->CSR` 未建模，须真板）。
+  82–163 tick、清除→`SAFE→DEGRADED` 205–246 tick、`DEGRADED→SAFE` 3003–3017 ms、
+  SAFE 停留 2508–6924 ms、阻塞开始→心跳判超时 415–496 tick）——`0 tick`
+  只表示"标志位被置上→改模式"，不是"故障发生→检出"（后者跨端无共同时基，需真板 + 逻辑分析仪）；
+  **不覆盖** CAN/ADC/示波器/`IWDG`（无模型）；八类异常已全部有用例（错帧/越界/突变/静默/丢帧/
+  只发心跳/只发数据/任务阻塞），**还缺**复位原因（`RCC->CSR` 未建模，须真板）。
 - [x] 第 11 周之一：**任务时序图**（`projects/aviation-node/docs/task-timing.md`）与**故障注入报告**
   （`projects/aviation-node/docs/test-report.md`）—— 前者含一个控制周期的时序图、优先级取舍
-  （监督任务优先级最低 ⇒ 看不见忙等）、实测周期证据（`[stat]` 5023–5039 ms、帧间隔 ≈58 tick）
-  与"无证据"清单（抖动/WCET/中断延迟只能上真板）；后者含六类故障的注入手段/预期/实测/判定，
-  以及判定器的负向验证（改坏 `gap` → 只 FAIL C7、删 `HB` 门控行 → 只 FAIL C14、删 `[debug]` →
-  C14 标注不适用、缺日志 → 退出码 2）。
+  （监督任务优先级最低 ⇒ 看不见忙等）、实测周期证据（`[stat]` 5019–5048 ms、帧间隔 ≈58 tick）
+  与"无证据"清单（抖动/WCET/中断延迟只能上真板）；后者含九类用例的注入手段/预期/实测/判定
+  （错帧/越界/突变/静默/丢帧/只发心跳/只发数据/任务阻塞/时间戳下溢），以及 16 组负向验证
+  （12 组上行 + 4 组下行，含"截断尾部 10 字节仍 7/7 通过"这一判定盲区的如实记录）。
 - [x] 第 11 周之二：**分层架构图**（`projects/aviation-node/docs/architecture.md`）—— L4 应用/控制 →
   L3 业务逻辑 → L2 数据判定 → L1 运行支撑 → L0 硬件五层视图，附模块依赖表（`av_frame` 仅依赖
   `stdint`、`av_mode` 不认识 `AV_F_*` 位定义 ⇒ 新增故障位不动状态机）、运行时视图（ISR→队列→rx→
-  health 喂狗的数据流与共享数据保护表）、判定分层顺序（帧→样本→时间）、含代价的关键取舍、资源预算
-  （FLASH 18028 B/13.75%、RAM 6536 B/79.79%、稳态堆 432 B、栈 52/106/64 字）、变更影响矩阵，
+  health 喂狗的数据流与共享数据保护表）、判定分层顺序（帧→样本→时间→地面站）、含代价的关键取舍、资源预算
+  （FLASH 18256 B/13.93%、RAM 6552 B/79.98%、稳态堆 120 B、栈 100/104/88 字）、变更影响矩阵，
   以及「与真实航电系统的差距」（单通道/下行单向/无持久化/无时间基准/无 BSP 抽象/无 WCET 证据）。
 - [x] 第 11 周之三：**下行二进制状态帧**（`av_downlink.c/h` + `tests/qemu-stm32/aviation/link.py`）——
   USART2 单向 `STATUS` 帧（TYPE `0x81`、LEN 18、25 B、100 ms，独立 `SEQ`，CRC16-CCITT-FALSE 与上行同参），
   不与 ASCII 日志共用物理通道（先用探针 `[13]` 证明 USART2 可用再写驱动）；发送只等 `TXE`、超时弃帧不重试，
   以免唯一喂狗者卡在串口上。`run.sh aviation-link` 同一次运行产出 `logs/aviation_node.log` +
   `logs/aviation_downlink.bin`，`link.py` 判 L1–L7（含与 `[stat]` 同一 `t` 的交叉核对，计数器按"只增 + 增量 ≤3"
-  判、mode 差异须有同 `t` 的 `[mode]` 行解释）——实测 9625 B / 385 帧、CRC 全通过、`SEQ` 0→128 连续、
-  帧间隔中位 100 ms（最大 114），上行 21/21 + 下行 7/7 双绿。代价 +732 B FLASH / +8 B RAM。
+  判、mode 差异须有同 `t` 的 `[mode]` 行解释）——实测 13600 B / 544 帧、CRC 全通过、`SEQ` 0→31 连续、
+  帧间隔中位 100 ms（最大 117），上行 24/24 + 下行 7/7 双绿。代价 +732 B FLASH / +8 B RAM
+  （历史差分，本轮未逐项复测）。
   同时修掉一个实测缺陷：跨任务 tick 差用无符号减法会下溢（`[stat] age=4294967292`），
   改为 `av_tick.h::av_tick_elapsed`，并以 C15 作回归判据（`hb` 走同一路径，下溢会误停喂）。
+- [x] 第 11 周之四：**地面站心跳（第三层活性：链路 `T` / 数据 `STALE` / 对端 `GND`）**—— 上行新增 `STATUS`（TYPE `0x02`、LEN 4、
+  `ground_uptime_ms`、10 Hz），rx 按 TYPE 分发：`ground_ok()` 只刷新链路层与 `gnd` 计数，
+  **不碰** `last_good`、不推进 `SENSOR` 序号；`AV_F_GROUND` 门限 500 ms（= 5 个心跳周期），
+  **不在** `AV_F_MODE_MASK` 里 ⇒ 地面站失联可观测但不改变飞行模式；`s_ground_seen` 门控使
+  "从未连上"不误报（代价：全程没连上也看不见）。判定器加 C16（GROUND 上升沿窗口内无迁移 +
+  置位期间有 `stat` 处于 NORMAL）与 C17（帧数不变且 `T=0 GND=0 gage≤500` 的相邻对里
+  `STALE=1`），`inject.py` 增至 13 段（`--silent-slots 280` = silent 100 + hb_only 180）。
+  实测两个方向互为对照：`hb_only` 段 `t=25196 T=0 STALE=1 GND=0 gage=181`（链路通、数据不可用），
+  `hb_lost` 段末帧心跳 `t≈31937` → `t=32438 set=0x40`（相差 501 ms ≈ 500 门限），
+  `t=32604` 仍完成 `DEGRADED→NORMAL`、`t=35256 mode=NORMAL gage=3319` —— 地面站断 3.3 s，
+  模式不变。证据：`tests/qemu-stm32/logs/aviation_node.log`、`docs/protocol.md` §2.1/§3、
+  `docs/test-report.md` §3.6/§3.7、README §10.8。
 - [ ] 后续其余（不属本条）：R13–R16 追踪项（须先有真板证据，不得先写进矩阵）。
 
 ### P2：真板到手后的闭环

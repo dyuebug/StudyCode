@@ -8,12 +8,12 @@ QEMU 虚拟时钟相对注入器墙钟的比例随主机负载变化，同一事
 
 判定项分两类：
   * 通用不变量（C1–C11、C15）：与剧本的具体数值无关，改剧本不受影响。
-  * 剧本相关（C7 的时隙数、C12 的投放值、C13 的降级次数）：改 inject.py 时必须同步，
-    否则会失败。
+  * 剧本相关（C7 的时隙数、C12 的投放值、C13 的降级次数、C16 的 hb_lost 段、
+    C17 的 hb_only 段）：改 inject.py 时必须同步，否则会失败。
 
 用法：
     python3 expect.py logs/aviation_node.log
-    python3 expect.py --silent-slots 100 --dropped-frames 3 --expected-down 5 logs/aviation_node.log
+    python3 expect.py --silent-slots 280 --dropped-frames 3 --expected-down 6 logs/aviation_node.log
 
 退出码：0 全通过；1 有失败项；2 日志不可读或关键行缺失到无法判定。
 """
@@ -28,6 +28,7 @@ BIT_CRC = 1 << 2
 BIT_RANGE = 1 << 3
 BIT_RATE = 1 << 4
 BIT_SOURCE = 1 << 5
+BIT_GROUND = 1 << 6          # 地面站心跳超时（AV_F_GROUND）
 
 # 与 main.c 的 RX_HB_TIMEOUT_MS 保持一致：心跳超时本身就是"停喂"的合法原因，
 # 而且这种情况下 flags 可能全是 0（任务卡住，数据本身没坏）。
@@ -38,6 +39,7 @@ RE_FAULT = re.compile(r"^\[fault\] t=(\d+) set=0x([0-9A-Fa-f]+) clear=0x([0-9A-F
 RE_STAT = re.compile(
     r"^\[stat\] t=(\d+) mode=(\w+) cmd=(-?\d+) flags=0x([0-9A-Fa-f]+)"
     r".*age=(\d+) frames=(\d+) crc=(\d+) len=(\d+) type=(\d+) gap=(\d+) dup=(\d+) hb=(\d+)"
+    r" gnd=(\d+) gage=(\d+)"
     r".*feed=(ON|OFF)\((\d+)/(\d+)\) heap=(\d+) hwm=(\d+)/(\d+)/(\d+)"
 )
 
@@ -58,16 +60,17 @@ def parse_stat(line: str):
         "frames": int(m.group(6)), "crc": int(m.group(7)), "len": int(m.group(8)),
         "type": int(m.group(9)), "gap": int(m.group(10)), "dup": int(m.group(11)),
         "hb": int(m.group(12)),
-        "feed": m.group(13), "feeds": int(m.group(14)), "skips": int(m.group(15)),
-        "heap": int(m.group(16)),
-        "hwm": (int(m.group(17)), int(m.group(18)), int(m.group(19))),
+        "gnd": int(m.group(13)), "gage": int(m.group(14)),
+        "feed": m.group(15), "feeds": int(m.group(16)), "skips": int(m.group(17)),
+        "heap": int(m.group(18)),
+        "hwm": (int(m.group(19)), int(m.group(20)), int(m.group(21))),
     }
 # 阻塞注入（编译期，见 main.c 的 AV_DEBUG_BLOCK_RX_MS）与停喂门控的边沿日志
 RE_DEBUG_START = re.compile(r"^\[debug\] t=(\d+) rx 阻塞开始 plant=(\d+) ms")
 RE_DEBUG_END = re.compile(r"^\[debug\] t=(\d+) rx 阻塞结束 dur=(\d+) ms")
 RE_GATE = re.compile(r"^\[gate\] t=(\d+) feed=(ON|OFF) reason=([A-Z+]+) hb=(\d+)")
 
-STACKS = (("rx", 176), ("ctrl", 224), ("health", 224))  # 与 main.c 的 xTaskCreate 一致
+STACKS = (("rx", 224), ("ctrl", 224), ("health", 256))  # 与 main.c 的 xTaskCreate 一致
 RX_HB_TIMEOUT_MS = 400                                  # 与 main.c 的 RX_HB_TIMEOUT_MS 一致
 
 
@@ -130,7 +133,7 @@ def judge(log: Log, silent_slots: int, dropped_frames: int, expected_down: int):
     for _, set_mask, _ in log.faults:
         seen |= set_mask
     for bit, name in ((BIT_TIMEOUT, "T"), (BIT_STALE, "STALE"), (BIT_CRC, "CRC"),
-                      (BIT_RANGE, "RNG"), (BIT_RATE, "RATE")):
+                      (BIT_RANGE, "RNG"), (BIT_RATE, "RATE"), (BIT_GROUND, "GND")):
         add("C4", f"故障位 {name} 至少置位一次", (seen & bit) != 0,
             "该位从未置位：剧本未覆盖，或判定逻辑未触发", "已观测")
 
@@ -165,6 +168,8 @@ def judge(log: Log, silent_slots: int, dropped_frames: int, expected_down: int):
         last = log.stats[-1]
         # 三个来源相加：crc 错帧（序号没被"看到"）、静默时隙、剧本里主动丢掉的帧。
         # 漏掉任何一项都会让这条不变量变成噪声。
+        # --silent-slots 是**所有不发 SENSOR 的时隙总数**：默认 280 = silent 100 + hb_only 180。
+        # hb_only 段虽然还在发地面站心跳，但 SENSOR 序号照旧在推进，缺口必须计入。
         expect_gap = last["crc"] + silent_slots + dropped_frames
         add("C7", "序号缺口自洽（gap = crc + 静默时隙 + 丢帧）",
             last["gap"] == expect_gap,
@@ -216,15 +221,17 @@ def judge(log: Log, silent_slots: int, dropped_frames: int, expected_down: int):
     # NORMAL→DEGRADED。降级次数严格相等而不是 ≥，正是"没有多降一次"的判据；
     # 把丢帧段拉长到超过门限，本条会失败——这是它的用途，不是它的脆弱。
     #
-    # 期望的 5 次分别是：badcrc、range、rate、silent，以及**剧本放完后**的静默
-    # （注入器 8.2 s 退出、QEMU 继续跑到超时，链路无字节 → T/STALE → 降级）。
-    # 最后一次不是剧本里的故障段，而是收尾静默；把预期写成 4 会让"丢帧多降一次"
-    # 与"少一次收尾降级"互相抵消，判据就失去意义——所以宁可显式列出五项。
+    # 期望的 6 次分别是：badcrc、range、rate、silent、hb_only，以及**剧本放完后**的
+    # 静默（注入器 14.3 s 退出、QEMU 继续跑到超时，链路无字节 → T/STALE → 降级）。
+    # 最后一次不是剧本里的故障段，而是收尾静默；把预期写成 5 会让"丢帧多降一次"
+    # 与"少一次收尾降级"互相抵消，判据就失去意义——所以宁可显式列出六项。
+    # hb_only 段必须计入：SENSOR 停发 → STALE → 正常降级一次；若判定逻辑把
+    # "心跳还在"误当成"数据可用"，这一次就不会发生，本条正是抓它。
     # 每段之间必须先恢复成 NORMAL 才会产生新的一次，这正是 inject.py 里那几段
     # "valid" 窗口的宽度要求（见其 PHASES 注释）。
     add("C13", "短时丢帧未触发额外降级（剧本相关）", down == expected_down,
         f"NORMAL→DEGRADED 出现 {down} 次，期望 {expected_down} 次"
-        f"（badcrc/range/rate/silent/收尾静默各 1 次）：丢帧段可能超过了超时门限",
+        f"（badcrc/range/rate/silent/hb_only/收尾静默各 1 次）：丢帧段可能超过了超时门限",
         f"NORMAL→DEGRADED {down} 次，与剧本一致")
 
     # 任务阻塞：只在编译期开了注入的构建里判定（CMakeLists 在 F103_QEMU 下默认 800 ms）。
@@ -262,6 +269,57 @@ def judge(log: Log, silent_slots: int, dropped_frames: int, expected_down: int):
         f"{len(overflow)} 条 stat 的 age/hb 为下溢值："
         + "；".join(f"t={s['t']} age={s['age']} hb={s['hb']}" for s in overflow),
         "全部在合理区间")
+
+    # 地面站心跳与模式判定解耦。若忘记把 GROUND 排除在 AV_F_MODE_MASK 之外，
+    # GROUND 上升沿那一拍就会触发 NORMAL→DEGRADED；若当时在 DEGRADED，
+    # 3 s 后还会进 SAFE——两条都要抓。
+    #
+    # 窗口右端用"下一次 T/STALE 上升沿"界定，而不是固定时长：剧本结束时注入器退出、
+    # 链路真的断了，那次降级是应该发生的，不能算进本条。
+    # 右端用 `>=` 而不是 `>`：silent 段里 GROUND 可能与 T/STALE 落在同一 tick
+    # （最后一次 SENSOR 与 STATUS 同时停发时，两个超时的到期点会重合）。此时窗口为空，
+    # 那次上升沿无法归因，不提供信息——而不是让它一路延伸到剧本末尾去抓 silent 的降级。
+    # 实测两轮就分别命中了这两种形状（set=0x43 与 set=0x40），用 `>` 会偶发 FAIL。
+    gnd_rises = [t for t, set_m, _ in log.faults if set_m & BIT_GROUND]
+    link_rises = [t for t, set_m, _ in log.faults if set_m & (BIT_TIMEOUT | BIT_STALE)]
+    bad_gnd = []
+    for tg in gnd_rises:
+        nxt = min([t for t in link_rises if t >= tg], default=None)
+        win = [t for t, s, d, _ in log.modes
+               if tg <= t and (nxt is None or t < nxt)
+               and ((s == "NORMAL" and d == "DEGRADED") or (s == "DEGRADED" and d == "SAFE"))]
+        if win:
+            bad_gnd.append(f"t={tg} 之后（到 {nxt}）仍有 {len(win)} 次降级/进 SAFE")
+
+    # 第二条子判据不依赖窗口：地面站失联期间必须有一条 stat 处于 NORMAL。
+    # 它抓的是另一种错误的后果——若 GROUND 参与 fault，SAFE 里的 good_streak
+    # 会被反复清零，系统永远恢复不出来，于是整段 GROUND 都不会出现 NORMAL。
+    # 采样边界：GROUND 在 hb_lost 起点 +500 ms 固件才置位，而 SAFE→NORMAL 恢复
+    # 只需约 160 ms 固件，因此置位那一刻系统已经在 NORMAL；且置位期间约 7 s 固件
+    # 长于 5 s 的 [stat] 周期，至少有 1 条 stat 落进来。
+    gnd_in_normal = [s for s in log.stats if (s["flags"] & BIT_GROUND) and s["mode"] == "NORMAL"]
+    add("C16", "地面站心跳丢失不改变飞行模式（GROUND 不参与模式判定）",
+        bool(gnd_rises) and not bad_gnd and bool(gnd_in_normal),
+        ("GROUND 从未置位：剧本未覆盖，或心跳超时判定未生效" if not gnd_rises
+         else "；".join(bad_gnd) if bad_gnd
+         else f"GROUND 置位期间没有一条 stat 处于 NORMAL（系统卡在恢复中？）"),
+        f"{len(gnd_rises)} 次 GROUND 上升沿未触发降级，"
+        f"其中 {len(gnd_in_normal)} 条 stat 处于 NORMAL")
+
+    # 链路层与数据层分离：hb_only 段内 SENSOR 停发但 STATUS 继续。
+    # 用相邻两条 [stat] 判：SENSOR 帧数不变（至少 5 s 固件没有一帧数据），
+    # 而 T 不置位（链路被判为通）、GND 不置位且 gage ≤ 500（心跳新鲜）。
+    # 段长按"至少 2 条 stat"设为 10.6 s 固件，消掉"stat 恰好落在段内只有 1 条"的边界。
+    sep = [(a, b) for a, b in zip(log.stats, log.stats[1:])
+           if b["frames"] == a["frames"] and b["t"] > a["t"]
+           and not (b["flags"] & BIT_TIMEOUT) and not (b["flags"] & BIT_GROUND)
+           and b["gage"] <= 500]
+    with_stale = [p for p in sep if p[1]["flags"] & BIT_STALE]
+    add("C17", "只发心跳时数据层报 STALE、链路层不报 T（两层计时已分离）",
+        bool(with_stale),
+        f"没有找到「SENSOR 帧数不变 + T=0 + 心跳新鲜 + STALE=1」的 stat 对"
+        f"（帧数不变的相邻对 {len(sep)} 个，其中 STALE 置位 {len(with_stale)} 个）",
+        f"{len(with_stale)} 对相邻 stat：帧数不变、T=0、gage≤500、STALE=1")
 
     return res
 
@@ -333,7 +391,7 @@ def report_timings(log: Log):
 
 def main() -> int:
     args = sys.argv[1:]
-    silent_slots, dropped_frames, expected_down = 100, 3, 5
+    silent_slots, dropped_frames, expected_down = 280, 3, 6
     for flag, cast in (("--silent-slots", int), ("--dropped-frames", int), ("--expected-down", int)):
         if flag in args:
             i = args.index(flag)
