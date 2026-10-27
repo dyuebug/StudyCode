@@ -21,5 +21,10 @@ SPI1->CR1      写入 0x0000034C  读回 0x0000034C  有状态
 [11] IWDG：写 PR=4 RLR=0x0FFF，读回 PR=0 RLR=0 SR=0x00000000（读回 0 说明未建模，看门狗计时与复位不可验证）
 [12] RCC->CSR = 0x00000000：IWDGRSTF=0 PORRSTF=0 PINRSTF=0 SFTRSTF=0
 [13] USART2：接受 8/8 字节待发，SR=0x000000C0（宿主 logs/probe_usart2.bin 非空即说明第二串口可用）
-=== 探针结束 ===
-qemu-system-arm: terminating on signal 15 from pid 481 (timeout)
+[14] ADC1：ADON 读回 清零，SWSTART 后 EOC 未置位，SR=0x00000000 DR=0（EOC 不来说明 ADC 未建模）
+[15] DMA1：TCIF1 未置位，CNDTR=0，dst[0]=0x00000000 dst[7]=0x00000000（源应为 0xDEAD0000 / 0xDEAD0007）
+[16] CAN1：开始访问 0x40006400…
+
+[FAULT] HardFault: CFSR=0x00008200 HFSR=0x40000000 BFAR=0x40006400
+[FAULT] 该外设地址在本机器上不可访问，按未建模处理并停机
+qemu-system-arm: terminating on signal 15 from pid 475 (timeout)

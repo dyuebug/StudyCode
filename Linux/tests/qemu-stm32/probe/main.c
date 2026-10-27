@@ -27,6 +27,30 @@ static void report_reg(const char *name, uint32_t wrote, uint32_t read)
            (read == wrote) ? "有状态" : "未建模/只读");
 }
 
+/* 故障钩子：未映射的外设访问在 QEMU 里会升级成 BusFault → HardFault，
+ * 默认 Handler 是死循环，日志会停在半截且看不到原因。
+ * 这里只做取证 + 停机：从 fault 里恢复要改返回地址，超出探针的范围。 */
+static void fault_report(const char *name)
+{
+    printf("\r\n[FAULT] %s: CFSR=0x%08lX HFSR=0x%08lX BFAR=0x%08lX\r\n",
+           name, (unsigned long)SCB->CFSR, (unsigned long)SCB->HFSR,
+           (unsigned long)SCB->BFAR);
+    printf("[FAULT] 该外设地址在本机器上不可访问，按未建模处理并停机\r\n");
+    for (;;) {
+        __asm volatile("nop");
+    }
+}
+
+void BusFault_Handler(void)
+{
+    fault_report("BusFault");
+}
+
+void HardFault_Handler(void)
+{
+    fault_report("HardFault");
+}
+
 int main(void)
 {
     SystemCoreClockUpdate();
@@ -191,6 +215,80 @@ int main(void)
                "（宿主 logs/probe_usart2.bin 非空即说明第二串口可用）\r\n",
                (unsigned long)written, (unsigned long)USART2->SR);
     }
+
+    /* ---- 14. ADC1：单通道规则转换 ----
+     * 先开时钟再开 ADON（上电），然后软件触发一次转换并等 EOC。
+     * 所有等待都有上限：未建模时 EOC 永远不来，没有上限就挂死。 */
+    RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+    ADC1->CR2 |= ADC_CR2_ADON;
+    uint32_t adc_cr2 = ADC1->CR2 & ADC_CR2_ADON;
+    ADC1->SQR1 = 0U;                      /* L=0：序列长度 1 */
+    ADC1->SQR3 = 0U;                      /* SQ1 = 通道 0（PA0） */
+    ADC1->CR2 |= ADC_CR2_SWSTART;
+    uint32_t adc_eoc = 0U;
+    for (uint32_t i = 0U; i < 20000U; i++) {
+        if ((ADC1->SR & ADC_SR_EOC) != 0U) {
+            adc_eoc = 1U;
+            break;
+        }
+    }
+    printf("[14] ADC1：ADON 读回 %s，SWSTART 后 EOC %s，SR=0x%08lX DR=%lu"
+           "（EOC 不来说明 ADC 未建模）\r\n",
+           adc_cr2 ? "置位" : "清零", adc_eoc ? "置位" : "未置位",
+           (unsigned long)ADC1->SR, (unsigned long)ADC1->DR);
+
+    /* ---- 16. DMA1 通道 1：内存到内存搬运 ----
+     * 这是唯一不依赖任何外设的 DMA 用法，真板上也能独立验证。
+     * 未建模时目标缓冲区保持原值，TCIF1 也不会置位。 */
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    DMA1->IFCR = 0x0000000FU;             /* 清通道 1 的全部标志 */
+    {
+        static uint32_t dma_src[8];
+        static uint32_t dma_dst[8];
+
+        for (uint32_t i = 0U; i < 8U; i++) {
+            dma_src[i] = 0xDEAD0000U + i;
+            dma_dst[i] = 0U;
+        }
+        DMA1_Channel1->CPAR  = (uint32_t)(uintptr_t)dma_src;
+        DMA1_Channel1->CMAR  = (uint32_t)(uintptr_t)dma_dst;
+        DMA1_Channel1->CNDTR = 8U;
+        DMA1_Channel1->CCR   = DMA_CCR_MEM2MEM | DMA_CCR_PINC | DMA_CCR_MINC |
+                               DMA_CCR_DIR | DMA_CCR_EN;
+
+        uint32_t dma_tc = 0U;
+        for (uint32_t i = 0U; i < 20000U; i++) {
+            if ((DMA1->ISR & DMA_ISR_TCIF1) != 0U) {
+                dma_tc = 1U;
+                break;
+            }
+        }
+        printf("[15] DMA1：TCIF1 %s，CNDTR=%lu，dst[0]=0x%08lX dst[7]=0x%08lX"
+               "（源应为 0xDEAD0000 / 0xDEAD0007）\r\n",
+               dma_tc ? "置位" : "未置位",
+               (unsigned long)DMA1_Channel1->CNDTR,
+               (unsigned long)dma_dst[0], (unsigned long)dma_dst[7]);
+    }
+
+    /* ---- 15. CAN1：进入初始化模式并读回，再试回环模式发一帧 ---- */
+    printf("[16] CAN1：开始访问 0x40006400…\r\n");
+    RCC->APB1ENR |= RCC_APB1ENR_CAN1EN;
+    CAN1->MCR = CAN_MCR_INRQ;             /* 请求初始化（首次配置必须先做这一步） */
+    uint32_t can_inak = 0U;
+    for (uint32_t i = 0U; i < 20000U; i++) {
+        if ((CAN1->MSR & CAN_MSR_INAK) != 0U) {
+            can_inak = 1U;
+            break;
+        }
+    }
+    CAN1->BTR = CAN_BTR_LBKM | 0x00000003U;   /* 回环模式 + 任意位时序，只为看寄存器是否有状态 */
+    uint32_t can_btr = CAN1->BTR;
+    CAN1->MCR = 0U;                       /* 退出初始化 */
+    printf("[16] CAN1：INRQ 后 INAK %s，BTR 写 0x%08lX 读回 0x%08lX，MSR=0x%08lX"
+           "（INAK 不来说明 CAN 未建模）\r\n",
+           can_inak ? "置位" : "未置位",
+           (unsigned long)(CAN_BTR_LBKM | 0x00000003U), (unsigned long)can_btr,
+           (unsigned long)CAN1->MSR);
 
     printf("=== 探针结束 ===\r\n");
 

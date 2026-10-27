@@ -24,7 +24,7 @@ tests/qemu-stm32/
 ├── README.md           # 本文件：怎么用、边界在哪
 ├── RESULT.md           # 实测记录：探针矩阵、实验输出、时基校准
 ├── run.sh              # 正向用例：探针 + 04/05 + 10–15 + aviation + 时基校准，日志落到 logs/
-├── run_negative.sh     # 反向用例：01/02/03/06/07/08/09 在 QEMU 里的真实表现
+├── run_negative.sh     # 反向用例：01/02/03/06/07/08/09/17/18/19 在 QEMU 里的真实表现
 ├── aviation/           # 航空节点的 PC 侧工具
 │   ├── inject.py       # 帧注入器（纯标准库，写 stdout 由管道喂给 QEMU）
 │   ├── expect.py       # 上行不变量判定器：读日志 → 24 项 PASS/FAIL → 退出码
@@ -69,7 +69,7 @@ bash run.sh exp16-judge [日志]   # 只判定不跑 QEMU：对日志做变异�
 bash run.sh aviation   # projects/aviation-node：PC 注入二进制帧 → 帧校验 → 模式状态机 → 自动判定（仅上行）
 bash run.sh aviation-link  # 同上，另抓 USART2 下行二进制 → link.py 判定 → 两条通道一起判
 bash run.sh tickrate   # 量化时基偏差
-bash run_negative.sh   # 反向用例：01/02/03/06/07/08/09
+bash run_negative.sh   # 反向用例：01/02/03/06/07/08/09/17/18/19
 ```
 
 `aviation` / `aviation-link` 是带**机器判定**的用例：跑完 QEMU 后由 `aviation/expect.py` 读上行日志，
@@ -104,6 +104,9 @@ bash run_negative.sh   # 反向用例：01/02/03/06/07/08/09
 | TIM2–TIM7 | **未建模** | — | PWM、输入捕获、定时器延时全部无效 |
 | I2C1/2 | **未建模** | — | — |
 | SPI1/2 | 半建模 | `CR1` 有状态，写 `DR` 会置 `RXNE` | 无片选、无真实移位，W25Q 协议不可信 |
+| ADC1 | **未建模** | 只能验证"超时分支是否按要求收敛" | `ADON`/`RSTCAL`/`CAL` 读回 0，`EOC` 不置位，`DR` 恒 0；`F103_17` 因此打印"校准流程不可判定" |
+| DMA1 | **未建模** | 同上；`CCR` 读回 0 可区分"未建模"与"配置写错" | `TCIF` 不置位、`CNDTR` 恒 0、目标缓冲区保持原值；`F103_19` 三个用例全落超时分支 |
+| CAN1 | **地址未映射** | 只能取到故障解码（`CFSR`/`HFSR`/`BFAR`） | 访问 `0x40006400` 直接 `BusFault → HardFault`（`BFAR=0x40006400`），任何 CAN 功能都无法验证 |
 | IWDG | **未建模** | 写入不报错、可对照寄存器定义做构建级检查 | `PR`/`RLR`/`SR` 读回 0，不计时、不复位 |
 | `RCC->CSR` 复位标志 | **未建模** | — | 各 `*RSTF` 读回 0，复位原因不可读 |
 
@@ -112,6 +115,9 @@ bash run_negative.sh   # 反向用例：01/02/03/06/07/08/09
 - **可以在 QEMU 里验证**：`F103_04_UART_Echo`、`F103_05_UART_IRQ_Ring`、`F103_10_FreeRTOS_Tasks`、`F103_11_FreeRTOS_ISR_Queue`、`F103_12_FreeRTOS_Sync`、`F103_13_FreeRTOS_Timers`、`F103_14_FreeRTOS_Watchdog`（仅监督逻辑）、`F103_15_FreeRTOS_StackOverflow`（仅 paint 判据）、`F103_16_FreeRTOS_PriorityInversion`（优先级继承与等待时长比例），以及任何只用到"串口 + SysTick + NVIC"的代码。FreeRTOS 的调度器正建立在 SysTick/PendSV/SVCall 之上，中断→任务的交接又只用到 USART1 RXNE，软件定时器只用到 SysTick，心跳监督只用 SysTick + 信号量，栈溢出检出只用内核自己的检查宏与任务切换，所以任务切换、队列交接、`xQueueSendFromISR`/`portYIELD_FROM_ISR` 的效果、信号量/事件组语义、定时器守护任务与到期调度、心跳超时判定与停喂/恢复、堆与栈指标、栈底 paint 被写穿后的钩子调用都可实测——**只有绝对时间、真机中断延迟、`IWDG` 与复位原因不可信**。栈溢出检出另一难点是 QEMU 不会因越界写抛总线错误，所以真板上"先撞 HardFault 还是先到钩子"的顺序在仿真里得不到答案。
 - **综合项目同样可以验证**：`projects/aviation-node`（`bash run.sh aviation-link`）把上面这些能力串成一条链——外部注入二进制帧（`SENSOR` 数据 + `STATUS` 地面站心跳）→ RXNE 中断 → 帧解析与 CRC16 → 三层有效性判定 → 模式状态机与降级/恢复 → 停喂门控与统计 → USART2 下行二进制帧。它能验证的是**软件数据链与判定逻辑**（上行 24 项 + 下行 7 项不变量），其中包括"链路层 / 数据层 / 地面站层各自独立计时"这件事——`hb_only` 段（只发心跳）`T=0 STALE=1 GND=0`、`hb_lost` 段（只发数据）`T=0 STALE=0 GND=1` 两个方向都有实测。CAN、ADC、示波器时序、`IWDG` 复位、下行发送抖动仍不可验证（`RESULT.md` §3.10）。
 - **能跑起来、但结果不可信**：`F103_07`（I2C 永远无应答，只验证到超时分支；`CCR`/`TRISE` 读回 0 说明配置根本没生效）、`F103_08`（JEDEC ID 读出 `00 00 00`，擦写"成功"、回读全 0，自检停在 FAIL）。
+- **能跑起来、但结果不可信（二）**：`F103_17`（`ADON`/`RSTCAL`/`CAL` 读回全 0，两路采样超时，`code` 保留 0）、`F103_19`（`CCR` 读回 0，`TCIF1` 不置位，`dst` 保持原值）。
+  这两组都特意加了"读回自检"：**未建模的外设恒读 0，会让"等待清零/等待置位"的判据假通过**，先读回配置才算把"没响应"与"做完了"分开。
+- **直接故障停机**：`F103_18`——CAN1 基址 `0x40006400` 这一段未映射，第一次访问即 BusFault 升级为 HardFault；固件里的故障钩子打印 `CFSR=0x00008200 HFSR=0x40000000 BFAR=0x40006400` 后停机，这条日志本身就是本机能力边界的证据。
 - **跑起来但拿不到任何证据**：`F103_01/02/03/06`——它们只操作 GPIO/TIM，且不初始化串口，QEMU 里既无输出也无波形，等于空转。
 - **会挂死**：`F103_09`——DWT 未使能（读回 0）、TIM4 计数恒 0，延时循环永不退出，打印到 TIM4 第一档就停住。
 - **共同前提**：所有时间相关结论都不能从 QEMU 得出（时基偏差 2.90 倍，见 RESULT.md）。

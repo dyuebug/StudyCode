@@ -1,0 +1,14 @@
+
+=== F103_19 DMA1 ch1 内存到内存 ===
+用例1 轮询：TCIF1=0 CNDTR=0 用时 76 ms，拷贝 有错
+      首个不一致下标 0：src=0xA5A50000 dst=0x00000000
+      CCR 读回 0x00000000（期望含 EN|DIR|PINC|MINC|PSIZE|MSIZE|MEM2MEM），CNDTR 读回 0
+      CCR 恒为 0：本机未建模 DMA1，下面两个用例也只能看超时分支
+用例2 中断：TCIF1=0 CNDTR=0 用时 2 ms，拷贝 有错
+      首个不一致下标 0：src=0xA5A50000 dst=0x00000000
+      中断进入 0 次（应为 1；>1 说明标志没清干净导致重复进中断）
+用例3 假完成：复用前 TCIF1=0，启动后立刻读 TCIF1=0 CNDTR=0
+      本机 TCIF 从未置位，这一条无从对照（未建模）
+      清标志后重启：TCIF1=0 CNDTR=0（应为 0 与 256）
+=== 结束（QEMU 未建模 DMA 时三条都是超时/原值；真板需重跑本节）===
+qemu-system-arm: terminating on signal 15 from pid 535 (timeout)

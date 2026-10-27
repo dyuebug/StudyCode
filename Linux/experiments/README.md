@@ -119,12 +119,22 @@ accept、读、分帧、写三形态共用同一份代码，差别只在 `deploy
 | [`F103_14_FreeRTOS_Watchdog`](F103_14_FreeRTOS_Watchdog/README.md) | 任务心跳监督、超时判定、"与"语义停喂、连续 STALE 后的恢复动作、IWDG 代码路径 | 构建实测 + **QEMU 实测监督逻辑**（注入→首次 STALE 409/410 tick、两轮停喂窗口 819/1424 tick 跨过 IWDG 名义 998 ms、`stale_total=blocked=9`、`feeds=26−9`、三任务水位 132/106/108 字）；**IWDG 计时与复位、`RCC->CSR` 复位原因未验证（QEMU 未建模）** |
 | [`F103_15_FreeRTOS_StackOverflow`](F103_15_FreeRTOS_StackOverflow/README.md) | 栈溢出检出：让 `vApplicationStackOverflowHook` 真的触发；检查时机（切换时、查被换出任务）、`hwm == 0` 作为 paint 被写穿的判据、越界量由步长控制 | 构建实测 + **QEMU 实测钩子触发**（`[STACK OVERFLOW] 任务 probe`）：对照 depth=12 余量 160 字、标定 16 B/帧、逐级加深在 depth=60 归零、稳态段每 4 帧减 16 字；`run.sh exp15` 判定通过并做过三条负向验证；**只覆盖 paint 那一半（栈底 16 B），SP 越过栈块与 MPU 隔离未验证** |
 | [`F103_16_FreeRTOS_PriorityInversion`](F103_16_FreeRTOS_PriorityInversion/README.md) | 优先级反转与继承：低持锁 → 中忙等抢占 → 高阻塞；只换锁类型（二值信号量 / 互斥量）做对照；继承只提升持锁者、不能缩短它自己的 delay | 构建实测 + **QEMU 实测两轮对照**：`binary-sem` H 等锁 405 / L 持锁 404 / L 阶段一 354 / L 阻塞期 prio 恒 1；`mutex` 105 / 105 / 52 / prio 1→3→give 后回 1（另一次运行为 412·410·358 与 103·104·53，比值 3.86–4.0）；栈水位 82/192、58/160、64/160、54~62/160 全部过"≥32 字且 ≥25%"；`run.sh exp16` 判定通过（`binary > 2×mutex`），4 条负向验证全部按预期失败。**死锁、继承链、中断延迟、临界区长度未验证** |
+| [`F103_17_ADC_Polling`](F103_17_ADC_Polling/README.md) | ADC1 轮询：内部温度传感器（ch16）与 Vrefint（ch17）、`ADCCLK` 与采样时间换算、`RSTCAL`/`CAL` 校准顺序、"等硬件清零"判据的假阳性 | 构建实测 + **QEMU 实测超时分支**：`ADON`/`RSTCAL`/`CAL` 读回全 0、两路 `EOC` 不置位；校准判据主动判"不可判定"而非"校准完成"（首版正是假阳性，已改正）。**真板 `code` 读数、`Vdda` 反推、出厂标定值未验证** |
+| [`F103_18_CAN_Loopback`](F103_18_CAN_Loopback/README.md) | bxCAN 回环自测：`INRQ`/`INAK`、500 kbps 位时序（`BTR=0x401C0000`）、32 位掩码过滤器、邮箱发送与 FIFO0 接收、`RFOM0` 释放 | 构建实测 + **寄存器路径核对**（反汇编 2 处 `0x40006400` 字面量）+ **QEMU 实测访问即 HardFault**（`CFSR=0x00008200`、`HFSR=0x40000000`、`BFAR=0x40006400`，该段未映射）。**功能零验证：收发、过滤器、位时序全部待真板** |
+| [`F103_19_DMA_Mem2Mem`](F103_19_DMA_Mem2Mem/README.md) | DMA1 ch1 内存到内存：轮询 `TCIF`、TC 中断、"不清标志直接复用"造成的假完成、`CNDTR` 重装前必须关 `EN`、mem2mem 的 `PINC` 陷阱 | 构建实测 + **QEMU 实测超时分支**：`CCR` 读回 0、`TCIF1` 不置位、`dst` 保持原值，三个用例全部落在超时/原值分支。**真板数据比对、中断次数、真实耗时未验证** |
 
 QEMU 验证的完整能力边界、原始串口日志与复现命令见 [`../tests/qemu-stm32/`](../tests/qemu-stm32/README.md)。
 一句话小结：能仿真验证的链路是"串口 + SysTick + NVIC"以及**建立在它们之上的 FreeRTOS 调度器、
 中断→任务交接、同步原语、软件定时器与心跳监督**；
-GPIO/TIM/I2C/DWT/IWDG 全部未建模（`RCC->CSR` 复位标志同样读回 0），且 QEMU 的 SYSCLK 是 24 MHz（固件按 8 MHz 假设），
+GPIO/TIM/I2C/DWT/IWDG/ADC/DMA 全部未建模（`RCC->CSR` 复位标志同样读回 0），
+CAN1 更进一步：`0x40006400` 这一段**根本没有映射**，第一次访问就 `BusFault → HardFault`。
+且 QEMU 的 SYSCLK 是 24 MHz（固件按 8 MHz 假设），
 时间相关结论只可用于比较比例，不得用于绝对毫秒。
+
+这三组"未建模"外设的失败形态值得单独记一句：**它们都会让"等待清零"类判据假通过**。
+`F103_17` 首版把 `RSTCAL`/`CAL` 的"清零 ok"当成校准成功，直到加上"写入后读回是否置位"
+才看出 ADC 从未响应；`F103_19` 因此把 `CCR` 读回值当作第一判据，`F103_18` 则用故障钩子把
+`BFAR` 直接打成证据。**判据要么能区分"没响应"与"做完了"，要么就是在制造假信号。**
 
 > 综合项目不放 `experiments/`。航空主题节点在 [`../projects/aviation-node/`](../projects/aviation-node/README.md)：
 > 它复用本目录的 `F103_common` 构建设施与 FreeRTOS vendor 子集，但包含协议、状态机与多任务协同，

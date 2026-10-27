@@ -1,0 +1,9 @@
+
+=== F103_18 bxCAN 回环自测 ===
+[1] GPIOA 时钟与 CAN1 时钟已开，PA11=浮空输入 PA12=复用推挽
+[2] 写 CAN1->MCR.INRQ（第一次访问 0x40006400）…
+
+[FAULT] HardFault: CFSR=0x00008200 HFSR=0x40000000 BFAR=0x40006400
+[FAULT] BFAR 即出错地址。0x40006400 是 CAN1 基址：本机未建模且未映射，
+[FAULT] 所以 QEMU 里无法验证 CAN 功能，只能作构建级 + 寄存器路径证据。
+qemu-system-arm: terminating on signal 15 from pid 529 (timeout)

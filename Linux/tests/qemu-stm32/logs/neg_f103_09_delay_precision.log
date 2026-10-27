@@ -14,4 +14,4 @@ DWT 未使能，下表的周期列将恒为 0，请先排查 DEMCR/CTRL 写入
   1000  SysTick            0      0.0  -1000.0
  10000  SysTick            0      0.0  -10000.0
      0  TIM4               0      0.0  +0.0
-qemu-system-arm: terminating on signal 15 from pid 524 (timeout)
+qemu-system-arm: terminating on signal 15 from pid 514 (timeout)

@@ -71,7 +71,7 @@ fi
 # 4. README 里的相对链接必须存在（只查实验与项目，外链与锚点跳过）
 broken=()
 checked=0
-for md in experiments/*/README.md projects/*/README.md; do
+for md in experiments/*/README.md projects/*/README.md knowledge_base/*.md; do
         [ -f "$md" ] || continue
         d=$(dirname "$md")
         while IFS= read -r target; do

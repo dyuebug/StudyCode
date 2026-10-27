@@ -10,7 +10,7 @@ JEDEC ID = 00 00 00
 原始字节 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
 结果     : FAIL（内容不一致）
 
-[3030 ms] ID = 00 00 00
-[6030 ms] ID = 00 00 00
-[9031 ms] ID = 00 00 00
-qemu-system-arm: terminating on signal 15 from pid 518 (timeout)
+[3029 ms] ID = 00 00 00
+[6029 ms] ID = 00 00 00
+[9029 ms] ID = 00 00 00
+qemu-system-arm: terminating on signal 15 from pid 508 (timeout)

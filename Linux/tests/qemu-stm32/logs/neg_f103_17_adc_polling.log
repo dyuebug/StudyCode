@@ -1,0 +1,10 @@
+
+=== F103_17 ADC1 轮询采样 ===
+ADON 读回：仍为 0（ADC 没上电，或本机未建模）
+RSTCAL：写入后读回 仍为 0（该位没有状态），清零 ok
+CAL   ：写入后读回 仍为 0（该位没有状态），清零 ok
+校准流程不可判定：CR2 的可写状态位读不回，后面的 code 不能当校准后的读数
+温度通道 ch16：超时（EOC 未置位） code=0
+参考通道 ch17：超时（EOC 未置位） code=0
+Vrefint 无有效读数：本机无法反推 Vdda，也就无法把码值换成电压
+qemu-system-arm: terminating on signal 15 from pid 520 (timeout)

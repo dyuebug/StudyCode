@@ -77,7 +77,7 @@ run_probe() {
   need_elf "$elf"
   rm -f "$bin"
   echo "=== probe ==="
-  timeout 5 "$QEMU_BIN" "${QEMU_ARGS[@]}" -serial "file:$bin" -kernel "$elf" </dev/null \
+  timeout 10 "$QEMU_BIN" "${QEMU_ARGS[@]}" -serial "file:$bin" -kernel "$elf" </dev/null \
     2>&1 | tr -d '\r' | tee "$LOG_DIR/probe.log"
   if [ -s "$bin" ]; then
     echo "USART2 回传 $(wc -c < "$bin") 字节：$(od -An -tx1 -N16 "$bin" | tr -s ' ')"

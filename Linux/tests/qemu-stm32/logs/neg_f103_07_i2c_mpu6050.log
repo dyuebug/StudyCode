@@ -13,4 +13,4 @@ WHO_AM_I 读取失败：timeout。检查 J2/J4 是否接了模块、上拉与供
 [9000 ms] accel 读取失败：timeout
 [10000 ms] accel 读取失败：timeout
 [11000 ms] accel 读取失败：timeout
-qemu-system-arm: terminating on signal 15 from pid 512 (timeout)
+qemu-system-arm: terminating on signal 15 from pid 502 (timeout)
