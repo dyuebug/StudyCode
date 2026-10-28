@@ -1,2 +1,2 @@
-SYS04|srv|ready|port=41793|mode=master|flags=lt|delay_us=2000|workers=4|subs=2
-SYS04|srv|done|mode=master|flags=lt|delay_us=2000|accepted=0|handoff=8|frames=160|iters=6|peak=0|buf_drops=0|q_drops=0|serve_ms=560|sub0_frames=80|sub1_frames=80|subs=2
+SYS04|srv|ready|port=44211|mode=master|flags=lt|delay_us=2000|workers=4|subs=2
+SYS04|srv|done|mode=master|flags=lt|delay_us=2000|accepted=0|handoff=8|frames=160|iters=7|peak=0|buf_drops=0|q_drops=0|serve_ms=560|sub0_frames=80|sub1_frames=80|subs=2

@@ -1,4 +1,4 @@
-SYS02|race|mode=plain|threads=4|iters=20000|expected=80000|final=21658|lost=58342
+SYS02|race|mode=plain|threads=4|iters=20000|expected=80000|final=21756|lost=58244
 SYS02|race|done|mode=plain
 SYS02|race|mode=mutex|threads=4|iters=20000|expected=80000|final=80000|lost=0
 SYS02|race|done|mode=mutex
@@ -6,5 +6,5 @@ SYS02|race|mode=atomic|threads=4|iters=20000|expected=80000|final=80000|lost=0
 SYS02|race|done|mode=atomic
 SYS02|rwlock|mode=rwlock|readers=3|writer_updates=20000|torn=0|safe=1
 SYS02|race|done|mode=rwlock
-SYS02|rwlock|mode=rwlock-broken|readers=3|writer_updates=20000|torn=28482|safe=0
+SYS02|rwlock|mode=rwlock-broken|readers=3|writer_updates=20000|torn=28161|safe=0
 SYS02|race|done|mode=rwlock-broken

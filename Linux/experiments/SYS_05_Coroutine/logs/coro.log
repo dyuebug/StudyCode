@@ -22,53 +22,53 @@ S05|case|name=leak-broken|rc=0
 S05|case|name=sched-order
 S05|basics|resumed=5|order=01234|hi_first=1|lo_after=1|iters=2|alive=0
 S05|case|name=sched-order|rc=0
-S05|case|name=coro-greedy|port=37079|client=pipeline/8/20/200/0|srv=--mode coro --batch 0
-S05|srv|ready|port=37079|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=20|order=160|iters=24|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=443
-S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=31|max_conn_ms=31
+S05|case|name=coro-greedy|port=34111|client=pipeline/8/20/200/0|srv=--mode coro --batch 0
+S05|srv|ready|port=34111|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=20|order=160|iters=25|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=463
+S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=32|max_conn_ms=32
 S05|case|name=coro-greedy|client_rc=0
-S05|case|name=coro-fair|port=42671|client=pipeline/8/20/200/0|srv=--mode coro --batch 1
-S05|srv|ready|port=42671|mode=coro|batch=1|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=coro|batch=1|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=160|iters=42|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=850
-S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=420|max_conn_ms=420
+S05|case|name=coro-fair|port=45855|client=pipeline/8/20/200/0|srv=--mode coro --batch 1
+S05|srv|ready|port=45855|mode=coro|batch=1|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=1|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=160|iters=43|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=869
+S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=417|max_conn_ms=417
 S05|case|name=coro-fair|client_rc=0
-S05|case|name=coro-rr|port=36749|client=rr/8/20/200/0|srv=--mode coro
-S05|srv|ready|port=36749|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=160|iters=46|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=3840|rss_kb=4352|alive_frames=0|serve_ms=467
-S05|gen|done|mode=rr|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=35|max_conn_ms=35
+S05|case|name=coro-rr|port=36745|client=rr/8/20/200/0|srv=--mode coro
+S05|srv|ready|port=36745|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=160|iters=47|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=446
+S05|gen|done|mode=rr|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=37|max_conn_ms=37
 S05|case|name=coro-rr|client_rc=0
-S05|case|name=coro-cancel|port=44959|client=silent/2/1/1/600|srv=--mode coro --idle-ms 200
-S05|srv|ready|port=44959|mode=coro|batch=0|idle_ms=200|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=2|errs=0|use_after_destroy=0|max_run=0|order=0|iters=32|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=643
+S05|case|name=coro-cancel|port=38591|client=silent/2/1/1/600|srv=--mode coro --idle-ms 200
+S05|srv|ready|port=38591|mode=coro|batch=0|idle_ms=200|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=2|errs=0|use_after_destroy=0|max_run=0|order=0|iters=33|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=663
 S05|gen|done|mode=silent|clients=2|frames=1|size=1|verified=0|expect=0|mismatch=0|timeouts=0|eof_seen=2|send_fail=0|total_ms=601|max_conn_ms=601
 S05|case|name=coro-cancel|client_rc=0
-S05|case|name=coro-rst|port=45509|client=rst/4/5/200/0|srv=--mode coro
-S05|srv|ready|port=45509|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=4|conns=4|frames=20|eof=0|resets=4|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=20|iters=29|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=444
-S05|gen|done|mode=rst|clients=4|frames=5|size=200|verified=20|expect=20|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=29|max_conn_ms=29
+S05|case|name=coro-rst|port=38407|client=rst/4/5/200/0|srv=--mode coro
+S05|srv|ready|port=38407|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=4|conns=4|frames=20|eof=0|resets=4|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=20|iters=31|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=463
+S05|gen|done|mode=rst|clients=4|frames=5|size=200|verified=20|expect=20|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=31|max_conn_ms=30
 S05|case|name=coro-rst|client_rc=0
-S05|case|name=coro-halfclose|port=45231|client=halfclose/4/5/200/0|srv=--mode coro
-S05|srv|ready|port=45231|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=4|conns=4|frames=20|eof=4|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=20|iters=29|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=3840|rss_kb=4352|alive_frames=0|serve_ms=463
-S05|gen|done|mode=halfclose|clients=4|frames=5|size=200|verified=20|expect=20|mismatch=0|timeouts=0|eof_seen=4|send_fail=0|total_ms=28|max_conn_ms=28
+S05|case|name=coro-halfclose|port=43059|client=halfclose/4/5/200/0|srv=--mode coro
+S05|srv|ready|port=43059|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=4|conns=4|frames=20|eof=4|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=20|iters=29|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=464
+S05|gen|done|mode=halfclose|clients=4|frames=5|size=200|verified=20|expect=20|mismatch=0|timeouts=0|eof_seen=4|send_fail=0|total_ms=31|max_conn_ms=31
 S05|case|name=coro-halfclose|client_rc=0
-S05|case|name=thread|port=39245|client=pipeline/8/20/200/0|srv=--mode thread
-S05|srv|ready|port=39245|mode=thread|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=thread|batch=0|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=18|order=160|iters=0|threads=8|vm0_kb=7228|vm_kb=269404|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=443
-S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=9|max_conn_ms=9
+S05|case|name=thread|port=42239|client=pipeline/8/20/200/0|srv=--mode thread
+S05|srv|ready|port=42239|mode=thread|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=thread|batch=0|accepted=8|conns=8|frames=160|eof=8|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=20|order=160|iters=0|threads=8|vm0_kb=7228|vm_kb=203868|rss0_kb=3840|rss_kb=4352|alive_frames=0|serve_ms=443
+S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=10|max_conn_ms=10
 S05|case|name=thread|client_rc=0
-S05|case|name=coro-idle|port=38769|client=idle-then-send/2/1/200/400|srv=--mode coro
-S05|srv|ready|port=38769|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=2|eof=0|resets=2|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=2|iters=42|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=811
+S05|case|name=coro-idle|port=41215|client=idle-then-send/2/1/200/400|srv=--mode coro
+S05|srv|ready|port=41215|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=0|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=2|eof=0|resets=2|cancelled=0|errs=0|use_after_destroy=0|max_run=1|order=2|iters=43|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=832
 S05|gen|done|mode=idle-then-send|clients=2|frames=1|size=200|verified=2|expect=2|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=400|max_conn_ms=400
 S05|case|name=coro-idle|client_rc=0
-S05|case|name=eagain-as-eof|port=41271|client=idle-then-send/2/1/200/400|srv=--mode coro --eagain-as-eof
-S05|srv|ready|port=41271|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=1|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=0|order=0|iters=23|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=3840|rss_kb=4352|alive_frames=0|serve_ms=462
+S05|case|name=eagain-as-eof|port=38397|client=idle-then-send/2/1/200/400|srv=--mode coro --eagain-as-eof
+S05|srv|ready|port=38397|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=1|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=0|order=0|iters=23|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=462
 S05|gen|done|mode=idle-then-send|clients=2|frames=1|size=200|verified=0|expect=2|mismatch=0|timeouts=2|eof_seen=0|send_fail=0|total_ms=400|max_conn_ms=400
 S05|case|name=eagain-as-eof|client_rc=0
-S05|case|name=cancel-free|port=46821|client=idle-then-send/2/1/200/400|srv=--mode coro --idle-ms 200 --cancel-free --max-run 4000
-S05|srv|ready|port=46821|mode=coro|batch=0|idle_ms=200|delay_us=0|eagain_as_eof=0|cancel_free=1
+S05|case|name=cancel-free|port=46251|client=idle-then-send/2/1/200/400|srv=--mode coro --idle-ms 200 --cancel-free --max-run 4000
+S05|srv|ready|port=46251|mode=coro|batch=0|idle_ms=200|delay_us=0|eagain_as_eof=0|cancel_free=1
 S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=2|errs=0|use_after_destroy=2|max_run=0|order=0|iters=200|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=4009
-S05|gen|done|mode=idle-then-send|clients=2|frames=1|size=200|verified=0|expect=2|mismatch=0|timeouts=2|eof_seen=0|send_fail=0|total_ms=2416|max_conn_ms=2416
+S05|gen|done|mode=idle-then-send|clients=2|frames=1|size=200|verified=0|expect=2|mismatch=0|timeouts=2|eof_seen=0|send_fail=0|total_ms=2420|max_conn_ms=2420
 S05|case|name=cancel-free|client_rc=0

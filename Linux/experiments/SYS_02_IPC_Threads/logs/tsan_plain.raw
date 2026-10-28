@@ -1,5 +1,5 @@
 ==================
-WARNING: ThreadSanitizer: data race (pid=1309)
+WARNING: ThreadSanitizer: data race (pid=644)
   Read of size 8 at 0x5555555580f0 by thread T2:
     #0 plain_worker /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:68 (race_detect_tsan+0x1597) (BuildId: 087be075071a3f37c69950fb9cfc5deaa5935bcc)
 
@@ -8,12 +8,12 @@ WARNING: ThreadSanitizer: data race (pid=1309)
 
   Location is global 'counter_plain' of size 8 at 0x5555555580f0 (race_detect_tsan+0x40f0)
 
-  Thread T2 (tid=1312, running) created by main thread at:
+  Thread T2 (tid=647, running) created by main thread at:
     #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1078 (libtsan.so.2+0x5cb02) (BuildId: 66d37dc704b813df6c813b77217284deb43a0042)
     #1 case_counter /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:107 (race_detect_tsan+0x1ba7) (BuildId: 087be075071a3f37c69950fb9cfc5deaa5935bcc)
     #2 main /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:213 (race_detect_tsan+0x1ba7)
 
-  Thread T1 (tid=1311, finished) created by main thread at:
+  Thread T1 (tid=646, finished) created by main thread at:
     #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1078 (libtsan.so.2+0x5cb02) (BuildId: 66d37dc704b813df6c813b77217284deb43a0042)
     #1 case_counter /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:107 (race_detect_tsan+0x1ba7) (BuildId: 087be075071a3f37c69950fb9cfc5deaa5935bcc)
     #2 main /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:213 (race_detect_tsan+0x1ba7)
@@ -21,7 +21,7 @@ WARNING: ThreadSanitizer: data race (pid=1309)
 SUMMARY: ThreadSanitizer: data race /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:68 in plain_worker
 ==================
 ==================
-WARNING: ThreadSanitizer: data race (pid=1309)
+WARNING: ThreadSanitizer: data race (pid=644)
   Write of size 8 at 0x5555555580f0 by thread T3:
     #0 plain_worker /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:71 (race_detect_tsan+0x15ab) (BuildId: 087be075071a3f37c69950fb9cfc5deaa5935bcc)
 
@@ -30,12 +30,12 @@ WARNING: ThreadSanitizer: data race (pid=1309)
 
   Location is global 'counter_plain' of size 8 at 0x5555555580f0 (race_detect_tsan+0x40f0)
 
-  Thread T3 (tid=1313, running) created by main thread at:
+  Thread T3 (tid=648, running) created by main thread at:
     #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1078 (libtsan.so.2+0x5cb02) (BuildId: 66d37dc704b813df6c813b77217284deb43a0042)
     #1 case_counter /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:107 (race_detect_tsan+0x1ba7) (BuildId: 087be075071a3f37c69950fb9cfc5deaa5935bcc)
     #2 main /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:213 (race_detect_tsan+0x1ba7)
 
-  Thread T2 (tid=1312, finished) created by main thread at:
+  Thread T2 (tid=647, finished) created by main thread at:
     #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1078 (libtsan.so.2+0x5cb02) (BuildId: 66d37dc704b813df6c813b77217284deb43a0042)
     #1 case_counter /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:107 (race_detect_tsan+0x1ba7) (BuildId: 087be075071a3f37c69950fb9cfc5deaa5935bcc)
     #2 main /mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_02_IPC_Threads/race_detect.c:213 (race_detect_tsan+0x1ba7)

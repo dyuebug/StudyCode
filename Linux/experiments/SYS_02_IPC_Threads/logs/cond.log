@@ -1,6 +1,6 @@
-SYS02|cond|spurious|check=if|rounds=208|hits=1|flag_at_exit=0|safe=0
+SYS02|cond|spurious|check=if|rounds=204|hits=1|flag_at_exit=0|safe=0
 SYS02|cond|done|mode=spurious-if
-SYS02|cond|spurious|check=while|rounds=169|hits=1|flag_at_exit=1|safe=1
+SYS02|cond|spurious|check=while|rounds=176|hits=1|flag_at_exit=1|safe=1
 SYS02|cond|done|mode=spurious-while
-SYS02|cond|queue|producers=2|consumers=2|cap=8|produced=1000|consumed=1000|max_depth=8|stale_wake=18|missing=0|dup=0|ok=1
+SYS02|cond|queue|producers=2|consumers=2|cap=8|produced=1000|consumed=1000|max_depth=8|stale_wake=17|missing=0|dup=0|ok=1
 SYS02|cond|done|mode=queue

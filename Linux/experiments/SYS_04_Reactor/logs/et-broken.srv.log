@@ -1,2 +1,2 @@
-SYS04|srv|ready|port=44511|mode=single|flags=et-broken|delay_us=0|workers=4|subs=0
-SYS04|srv|done|mode=single|flags=et-broken|delay_us=0|accepted=8|handoff=0|frames=8|iters=10|peak=8|buf_drops=0|q_drops=0|serve_ms=6042|subs=0
+SYS04|srv|ready|port=41427|mode=single|flags=et-broken|delay_us=0|workers=4|subs=0
+SYS04|srv|done|mode=single|flags=et-broken|delay_us=0|accepted=8|handoff=0|frames=8|iters=13|peak=8|buf_drops=0|q_drops=0|serve_ms=6036|subs=0

@@ -1,5 +1,5 @@
 ==================
-WARNING: ThreadSanitizer: data race (pid=741)
+WARNING: ThreadSanitizer: data race (pid=1410)
   Read of size 8 at 0x555555558090 by thread T2:
     #0 worker_plain src/sani_tsan.c:27 (sani_tsan+0x1331) (BuildId: d0e81e8524a2226fe6227215b44b78e469ac4722)
 
@@ -8,11 +8,11 @@ WARNING: ThreadSanitizer: data race (pid=741)
 
   Location is global 'g_plain' of size 8 at 0x555555558090 (sani_tsan+0x4090)
 
-  Thread T2 (tid=744, running) created by main thread at:
+  Thread T2 (tid=1413, running) created by main thread at:
     #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1078 (libtsan.so.2+0x5cb02) (BuildId: 66d37dc704b813df6c813b77217284deb43a0042)
     #1 main src/sani_tsan.c:63 (sani_tsan+0x1546) (BuildId: d0e81e8524a2226fe6227215b44b78e469ac4722)
 
-  Thread T1 (tid=743, finished) created by main thread at:
+  Thread T1 (tid=1412, finished) created by main thread at:
     #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1078 (libtsan.so.2+0x5cb02) (BuildId: 66d37dc704b813df6c813b77217284deb43a0042)
     #1 main src/sani_tsan.c:62 (sani_tsan+0x1523) (BuildId: d0e81e8524a2226fe6227215b44b78e469ac4722)
 

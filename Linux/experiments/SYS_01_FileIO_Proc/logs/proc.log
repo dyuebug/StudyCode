@@ -1,11 +1,11 @@
-SYS01|proc|start|pid=500|ppid=468
-SYS01|zombie|before_wait|pid=501|state=Z
+SYS01|proc|start|pid=525|ppid=483
+SYS01|zombie|before_wait|pid=526|state=Z
 SYS01|zombie|reaped|exited=1|code=0
 SYS01|zombie|after_wait|gone
-SYS01|orphan|grand|subreaper=0|grand_pid=503|ppid=369|grandparent_pid=500
+SYS01|orphan|grand|subreaper=0|grand_pid=528|ppid=375|grandparent_pid=525
 SYS01|orphan|no_subreaper|not_reaped_here
-SYS01|orphan|grand|subreaper=1|grand_pid=505|ppid=500|grandparent_pid=500
-SYS01|orphan|subreaper_reaped|child=505|ok
+SYS01|orphan|grand|subreaper=1|grand_pid=530|ppid=525|grandparent_pid=525
+SYS01|orphan|subreaper_reaped|child=530|ok
 SYS01|wait|normal_exit|exited=1|code=42
 SYS01|wait|signal_exit|signaled=1|sig=15
 SYS01|proc|done

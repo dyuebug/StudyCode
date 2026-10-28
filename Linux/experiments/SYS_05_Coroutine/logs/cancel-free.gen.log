@@ -1,1 +1,1 @@
-S05|gen|done|mode=idle-then-send|clients=2|frames=1|size=200|verified=0|expect=2|mismatch=0|timeouts=2|eof_seen=0|send_fail=0|total_ms=2416|max_conn_ms=2416
+S05|gen|done|mode=idle-then-send|clients=2|frames=1|size=200|verified=0|expect=2|mismatch=0|timeouts=2|eof_seen=0|send_fail=0|total_ms=2420|max_conn_ms=2420

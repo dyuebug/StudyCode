@@ -1,1 +1,1 @@
-S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=420|max_conn_ms=420
+S05|gen|done|mode=pipeline|clients=8|frames=20|size=200|verified=160|expect=160|mismatch=0|timeouts=0|eof_seen=0|send_fail=0|total_ms=417|max_conn_ms=417

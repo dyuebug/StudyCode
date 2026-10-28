@@ -6,7 +6,7 @@ SYS03|tcp|reset|recv_rc=-1|errno=104|detected=1
 SYS03|tcp|done|mode=reset
 SYS03|tcp|sigpipe|default_would_kill=1|ignore_writes=1|ignore_errno=32|handler_writes=1|handler_errno=32|handler_hits=1
 SYS03|tcp|done|mode=sigpipe
-SYS03|tcp|timeout|rcvtimeo_ms=200|recv_rc=-1|errno=11|elapsed_ms=202|timed_out=1
+SYS03|tcp|timeout|rcvtimeo_ms=200|recv_rc=-1|errno=11|elapsed_ms=203|timed_out=1
 SYS03|tcp|done|mode=timeout
 SYS03|tcp|shortwrite|payload=1048576|sent=1048576|recv=1048576|short_writes=17|mismatch=0|ok=1
 SYS03|tcp|done|mode=shortwrite

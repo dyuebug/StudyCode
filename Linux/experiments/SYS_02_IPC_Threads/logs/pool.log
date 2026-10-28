@@ -1,4 +1,4 @@
-SYS02|pool|mode=graceful|workers=4|submitted=200|executed=200|missing=0|dup=0|joined=4|max_depth=200|fd_before=5|fd_after=5|fd_leak=0|ok=1
+SYS02|pool|mode=graceful|workers=4|submitted=200|executed=200|missing=0|dup=0|joined=4|max_depth=200|fd_before=4|fd_after=4|fd_leak=0|ok=1
 SYS02|pool|done|mode=graceful
-SYS02|pool|mode=immediate|workers=4|submitted=200|executed=1|missing=199|dup=0|joined=4|max_depth=200|fd_before=5|fd_after=5|fd_leak=0|ok=1
+SYS02|pool|mode=immediate|workers=4|submitted=200|executed=2|missing=198|dup=0|joined=4|max_depth=200|fd_before=4|fd_after=4|fd_leak=0|ok=1
 SYS02|pool|done|mode=immediate

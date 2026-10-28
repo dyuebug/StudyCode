@@ -1,1 +1,1 @@
-SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=5|verified=8|expect=160|mismatch=0|total_ms=4053|max_conn_ms=4053|timeouts=8
+SYS04|gen|done|clients=8|msgs=20|size=200|gap_ms=5|verified=8|expect=160|mismatch=0|total_ms=4032|max_conn_ms=4032|timeouts=8

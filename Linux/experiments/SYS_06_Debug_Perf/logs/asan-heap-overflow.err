@@ -1,32 +1,32 @@
 =================================================================
-==634==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x73a0a32e0018 at pc 0x5f2a56d9a574 bp 0x7ffd50a240e0 sp 0x7ffd50a240d0
-WRITE of size 1 at 0x73a0a32e0018 thread T0
-    #0 0x5f2a56d9a573 in main src/sani_asan.c:59
-    #1 0x7780a3e2a600  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a600) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
-    #2 0x7780a3e2a717 in __libc_start_main (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a717) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
-    #3 0x5f2a56d9a224 in _start (/mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_06_Debug_Perf/build/sani_asan+0x1224) (BuildId: 3154dfe8b997d936eeafac84d96e00e3994dd982)
+==1277==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7413fcce0018 at pc 0x615394d6e574 bp 0x7ffd06587d00 sp 0x7ffd06587cf0
+WRITE of size 1 at 0x7413fcce0018 thread T0
+    #0 0x615394d6e573 in main src/sani_asan.c:59
+    #1 0x77f3fd82a600  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a600) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
+    #2 0x77f3fd82a717 in __libc_start_main (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a717) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
+    #3 0x615394d6e224 in _start (/mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_06_Debug_Perf/build/sani_asan+0x1224) (BuildId: 3154dfe8b997d936eeafac84d96e00e3994dd982)
 
-0x73a0a32e0018 is located 0 bytes after 8-byte region [0x73a0a32e0010,0x73a0a32e0018)
+0x7413fcce0018 is located 0 bytes after 8-byte region [0x7413fcce0010,0x7413fcce0018)
 allocated by thread T0 here:
-    #0 0x7780a432b60f in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:67
-    #1 0x5f2a56d9a515 in main src/sani_asan.c:57
-    #2 0x7780a3e2a600  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a600) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
-    #3 0x7780a3e2a717 in __libc_start_main (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a717) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
-    #4 0x5f2a56d9a224 in _start (/mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_06_Debug_Perf/build/sani_asan+0x1224) (BuildId: 3154dfe8b997d936eeafac84d96e00e3994dd982)
+    #0 0x77f3fdd2b60f in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:67
+    #1 0x615394d6e515 in main src/sani_asan.c:57
+    #2 0x77f3fd82a600  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a600) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
+    #3 0x77f3fd82a717 in __libc_start_main (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a717) (BuildId: 066527e430a32768d82741e00b81eebb1a872294)
+    #4 0x615394d6e224 in _start (/mnt/e/Code/ProjectsCode/WorkSpace/ClaudeCode/StudyCode/Linux/experiments/SYS_06_Debug_Perf/build/sani_asan+0x1224) (BuildId: 3154dfe8b997d936eeafac84d96e00e3994dd982)
 
 SUMMARY: AddressSanitizer: heap-buffer-overflow src/sani_asan.c:59 in main
 Shadow bytes around the buggy address:
-  0x73a0a32dfd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x73a0a32dfe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x73a0a32dfe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x73a0a32dff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x73a0a32dff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-=>0x73a0a32e0000: fa fa 00[fa]fa fa fa fa fa fa fa fa fa fa fa fa
-  0x73a0a32e0080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
-  0x73a0a32e0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
-  0x73a0a32e0180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
-  0x73a0a32e0200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
-  0x73a0a32e0280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7413fccdfd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7413fccdfe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7413fccdfe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7413fccdff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7413fccdff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7413fcce0000: fa fa 00[fa]fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7413fcce0080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7413fcce0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7413fcce0180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7413fcce0200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7413fcce0280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
 Shadow byte legend (one shadow byte represents 8 application bytes):
   Addressable:           00
   Partially addressable: 01 02 03 04 05 06 07 
@@ -46,4 +46,4 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
   ASan internal:           fe
   Left alloca redzone:     ca
   Right alloca redzone:    cb
-==634==ABORTING
+==1277==ABORTING

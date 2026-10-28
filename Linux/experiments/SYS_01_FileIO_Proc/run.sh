@@ -4,7 +4,7 @@
 # 用法：
 #   ./run.sh                          全部跑一遍并判定，全通过时退出码 0
 #   ./run.sh fileio                   只跑一组
-#   ./run.sh --judge pipe logs/pipe.log   只判定不跑（0 通过 / 1 失败 / 2 日志不存在）
+#   ./run.sh --judge [<组> <日志> [stdout]]  只判定不跑；不带组名时判定 logs/ 下全部已有日志
 set -uo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -25,8 +25,19 @@ judge_case() {
 }
 
 if [ "${1:-}" = "--judge" ]; then
+    if [ $# -eq 1 ]; then
+        # 裸 --judge：只判定已有日志，不重新编译运行。
+        # 供 scripts/run_stage.sh 1 --judge 使用，和其他阶段的接口对齐。
+        RC=0
+        judge_case fileio "$LOGS/fileio.log" || RC=1
+        judge_case proc "$LOGS/proc.log" || RC=1
+        judge_case pipe "$LOGS/pipe.log" || RC=1
+        judge_case shell "$LOGS/shell.log" "$LOGS/minish.stdout" || RC=1
+        if [ "$RC" -eq 0 ]; then echo "全部通过"; else echo "有失败项" >&2; fi
+        exit "$RC"
+    fi
     if [ $# -lt 3 ]; then
-        echo "用法: $0 --judge <fileio|proc|pipe|shell> <日志> [stdout]" >&2
+        echo "用法: $0 --judge [<fileio|proc|pipe|shell> <日志> [stdout]]" >&2
         exit 2
     fi
     judge_case "$2" "$3" "${4:-}"

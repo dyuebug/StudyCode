@@ -1,2 +1,2 @@
-S05|srv|ready|port=41271|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=1|cancel_free=0
-S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=0|order=0|iters=23|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=3840|rss_kb=4352|alive_frames=0|serve_ms=462
+S05|srv|ready|port=38397|mode=coro|batch=0|idle_ms=0|delay_us=0|eagain_as_eof=1|cancel_free=0
+S05|srv|done|mode=coro|batch=0|accepted=2|conns=2|frames=0|eof=0|resets=0|cancelled=0|errs=0|use_after_destroy=0|max_run=0|order=0|iters=23|threads=0|vm0_kb=7228|vm_kb=7228|rss0_kb=4096|rss_kb=4352|alive_frames=0|serve_ms=462

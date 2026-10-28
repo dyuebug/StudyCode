@@ -4,7 +4,7 @@
 # 用法：
 #   ./run.sh                                 全部跑一遍并判定，全通过时退出码 0
 #   ./run.sh ipc                             只跑一组（ipc|cond|race|deadlock|pool|tsan）
-#   ./run.sh --judge <组> <日志>             只判定不跑（0 通过 / 1 失败 / 2 日志不存在）
+#   ./run.sh --judge [<组> <日志>]      只判定不跑；不带组名时判定 logs/ 下全部已有日志
 #
 # 每个用例都套 timeout：并发程序写错时宁可失败也不要挂住整个脚本。
 set -uo pipefail
@@ -17,8 +17,17 @@ mkdir -p "$LOGS"
 TIMEOUT_S=120
 
 if [ "${1:-}" = "--judge" ]; then
+    if [ $# -eq 1 ]; then
+        # 裸 --judge：只判定已有日志（scripts/run_stage.sh 2 --judge 走这条路）
+        RC=0
+        for c in ipc cond race deadlock pool tsan; do
+            python3 judge.py "$c" "$LOGS/$c.log" || RC=1
+        done
+        if [ "$RC" -eq 0 ]; then echo "全部通过"; else echo "有失败项" >&2; fi
+        exit "$RC"
+    fi
     if [ $# -lt 3 ]; then
-        echo "用法: $0 --judge <ipc|cond|race|deadlock|pool|tsan> <日志>" >&2
+        echo "用法: $0 --judge [<ipc|cond|race|deadlock|pool|tsan> <日志>]" >&2
         exit 2
     fi
     python3 judge.py "$2" "$3"
