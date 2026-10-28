@@ -98,17 +98,56 @@ accept、读、分帧、写四步在三者中完全共用。
 | 协程帧泄漏 | `final_suspend` 用 `suspend_always` 且忘了 `destroy` | 用存活计数（`alive_after`）而不是猜 |
 | 用 `RSS` 比较线程/协程内存 | 预留页不占 `RSS` | 改看 `VmSize` |
 
-## 7. 当前验证状态
+## 7. 工程化落地（项目级）：`reactor-server`
+
+实验证明"理解模型"，项目证明"能交付"。两件事的差别集中在下面七条——它们都是
+`projects/reactor-server/` 里**跑出来**的结论，不是从实验直接搬过来的。
+
+| 要点 | 规则 | 踩坑记录 |
+| --- | --- | --- |
+| 读缓冲满 | ET 下"满"只是"先消费再读"：本轮有进展（未解析字节数下降）就续读，无进展等下一次事件 | 首版把 `rlen >= CAP` 当错误，**12.8 MB 管道化灌入让 16 条连接全 `read_err`**、`rx=65536` 恰等于缓冲上限 |
+| 信号屏蔽 | `pthread_sigmask` 必须早于**任何**线程创建，之后才 `signal(SIGPIPE, SIG_IGN)` | worker 继承创建时刻的掩码；`SIGINT` 投给未屏蔽的 worker 会按默认动作杀进程，优雅退出路径永远走不到 |
+| `SIGPIPE` | 忽略它，让 `write` 返回 `EPIPE` | 不忽略时对端关闭先触发信号，`conn_flush()` 的 `EPIPE` 分支执行不到 |
+| 背压 | 写缓冲满 → 断开并记 `reason=wbuf_full`，不无限排队 | 判据必须二分：`(客户端失败数>0) == (wbuf_full>0)`，否则"服务端悄悄丢"也能全绿 |
+| 世代号 | 连接 id = `(slot << 32) \| generation`，迟到结果按世代丢弃；`dropped` 再拆出 `stale_gen` 子集专指"槽位换人" | `conn_by_id()` 返回 NULL 有两种成因（槽位空 / 换了人），在 `dropped` 上完全一样，但**只有后者出错时旧载荷会被写进新连接**。`gen_reuse` 用例（半关闭 → 同槽位新连接 → 旧 job 迟到）：实测 `dropped=1 stale_gen=1`、`stale_received=0`；源码变异删掉世代比较后 `stale_received=1`、C13+C15 失败 |
+| 在飞期间不读 socket | 在飞 job 期间不重挂 `EPOLLIN`（避免主线程与 worker 同时处理同一连接）；代价是对端保活不被消费、`last_active` 不刷新 | 因此 `--idle-ms` 必须大于最慢 job 时长，否则正在等结果的正常连接会被空闲清扫断开。`gen_reuse` 首版靠保活帧维持 B 连接，实测 `reason=idle_timeout rx=10` 失败 |
+| 退出排空 | 先停"产生新 job"，再等"已有 job 收尾"（`tp_pending()==0` **且**完成队列空），关闭后再 drain 一次 | 只看 `tp_pending()` 会漏掉已完成未取走的结果（`jobs=4` 但 `tx=0`，`dropped`/`leftover` 都是 0）；不停新 job 则管道化输入让排空发散到 2000 ms 门限 |
+| 跨线程计数 | 完成队列的 `g_res_queued` 必须经持锁访问器读（`res_pending()`） | 两处"要不要排空"直接读全局变量 = 数据竞争，TSan 报 `post_result` 写 / 主线程读；实际后果是偶发跳过一轮排空，读代码和"连跑 5 次全绿"都发现不了 |
+
+优雅退出顺序（实测 `signo=2 exit=0 leftover_jobs=0`）：
+`DEL listen` → `close(listen)` → 置 `draining`（不再提交新 job）→ 等 `tp_pending()==0 && 完成队列为空`
+（上限 2000 ms）→ flush 并关闭所有连接 → `tp_shutdown(1)` → 再 drain 一次（迟到结果计入 `dropped`）
+→ 打印 summary。
+
+**判据不得假绿**：`backpressure` 首跑 75 条判据全过，但 `wbuf_full=0`——内核缓冲吸收了 32 MB，
+被测分支根本没执行。给客户端加 `--read-delay-ms 400` 后才稳定触发。
+凡能二分的地方（触发 / 未触发）都要判一次，这与"工具没报 ≠ 缺陷不存在"是同一个坑的两种形态。
+
+**工具也要先证明它开着**：接 ASan/TSan/UBSan 时先跑探针（故意写 use-after-free / 数据竞争 /
+有符号溢出，目标必须失败）。探针首版写 `free(p); free(p);`，`-O1` 下 gcc 把第二次 `free` 优化掉，
+探针"未报错"——差点被读成"ASan 没装"。探针自己也得先证明没被优化掉。
+UBSan 默认是"报告后继续"，那会让退出码失去意义，需加 `-fno-sanitize-recover=all` 才与另外两个同口径。
+
+## 8. 当前验证状态
 
 - **实测**：三种 Reactor 形态、`EPOLLONESHOT` 重挂、两个必然失效的破坏版、协程帧生命周期、
-  对称转移、取消/超时/RST/半关闭、`VmSize` vs `RSS`。
+  对称转移、取消/超时/RST/半关闭、`VmSize` vs `RSS`；项目侧 8 用例 / 105 条判据，
+  默认、ASan（含泄漏检测）、TSan、UBSan 四个构建各自 105/105 `rc=0`；
+  退出路径 20 轮（`make stress` 两种在飞形态）+ `dropped` 确定性用例（`jobs=2 dropped=2 tx=0`）
+  + `gen_reuse` 槽位复用用例（`dropped=1 stale_gen=1`，含一次源码变异的反向验证）。
 - **未验证**：真网络与连接数/吞吐扫描、`SO_REUSEPORT`/`EPOLLEXCLUSIVE` 惊群、`accept4`、
-  写缓冲背压（`buf_drops` 全程 0，路径未触发）、TSan 竞争检测、`io_uring`、跨线程协程调度、长稳压测。
+  `valgrind` / MSan / `clang`、`io_uring`、跨线程协程调度、长稳压测、世代号 `uint32` 回绕；
+  `reactor-server` **无吞吐基线**，64 KB 写缓冲与 1024 队列长度**无压测依据**；
+  600 s 挂起**未复现也未定位**。
 
 ## 证据来源
 
 - [`experiments/SYS_04_Reactor/`](../experiments/SYS_04_Reactor/README.md)、
   [`experiments/SYS_05_Coroutine/`](../experiments/SYS_05_Coroutine/README.md)
 - 基准：[`benchmarks/SYS_04_Reactor_2026-10-27.md`](../benchmarks/SYS_04_Reactor_2026-10-27.md)、
-  [`benchmarks/SYS_05_Coroutine_2026-10-27.md`](../benchmarks/SYS_05_Coroutine_2026-10-27.md)
-- 日志：[`第26天`](../daily_logs/2026-10-27_第26天_日志.md)、[`第27天`](../daily_logs/2026-10-27_第27天_日志.md)
+  [`benchmarks/SYS_05_Coroutine_2026-10-27.md`](../benchmarks/SYS_05_Coroutine_2026-10-27.md)、
+  [`benchmarks/reactor-server_2026-10-27.md`](../benchmarks/reactor-server_2026-10-27.md)
+- 项目：[`projects/reactor-server/README.md`](../projects/reactor-server/README.md)
+  （§5 架构与取舍、§6 五个实测缺陷、§8 已知限制）
+- 日志：[`第26天`](../daily_logs/2026-10-27_第26天_日志.md)、[`第27天`](../daily_logs/2026-10-27_第27天_日志.md)、
+  [`第31天`](../daily_logs/2026-10-27_第31天_日志.md)

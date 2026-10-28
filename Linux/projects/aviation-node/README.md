@@ -15,9 +15,10 @@
 配套文档：
 
 - [`docs/protocol.md`](docs/protocol.md)：帧格式、CRC 参数、故障位与模式迁移、需求追踪矩阵。
-- [`docs/test-report.md`](docs/test-report.md)：六类故障的注入用例、预期、实测证据与机器判定。
+- [`docs/test-report.md`](docs/test-report.md)：**八类**异常（错帧/越界/突变/静默/丢帧/只发心跳/只发数据/任务阻塞）的注入用例、预期、实测证据与机器判定，另含下行通道与时间戳年龄下溢两条记录。
 - [`docs/task-timing.md`](docs/task-timing.md)：任务时序图、优先级取舍、有证据/无证据的时序结论。
 - [`docs/architecture.md`](docs/architecture.md)：分层视图、模块依赖、运行时交互、资源预算与变更影响矩阵。
+- [`docs/resource-review.md`](docs/resource-review.md)：RAM 三个口径（链接器尾部 / FreeRTOS 堆 / MSP 主栈）的实测分解，双通道冗余的成本估算与 8 KB 目标下的可行性结论。
 
 ## 1. 项目定位与边界
 
@@ -430,7 +431,7 @@ python3 aviation/link.py logs/aviation_downlink.bin --ascii logs/aviation_node.l
 | 项 | 值 |
 | --- | --- |
 | FLASH | 18256 B（128 KB 的 13.93%） |
-| RAM | 6552 B（8 KB 的 79.98%，余 1640 B），含 `configTOTAL_HEAP_SIZE = 4096` |
+| RAM | 6552 B（8 KB 的 79.98%），含 `configTOTAL_HEAP_SIZE = 4096`；链接器尾部余 1640 B **是 MSP 主栈缓冲，不是可分配内存**，三个口径的分解见 `docs/resource-review.md` |
 | `text` / `data` / `bss` | 18156 / 100 / 6452 B |
 | 编译警告 | 0（`--clean-first` 全量重建，`grep -c` 统计为 0） |
 | 启动时空闲堆 | 736 B（三个任务 + 队列 + 互斥量之后，idle 尚未创建） |
@@ -452,6 +453,8 @@ RAM 总量——任务栈来自 `ucHeap`，而 `ucHeap` 是 `.bss` 里固定大�
 
 120 B 余量已不足以再建一个 128 字的任务（栈 512 B + TCB），"再加一个任务"必须先提高
 `configTOTAL_HEAP_SIZE`，这属于共享配置，会影响其他实验的实测体积。
+双通道冗余的 RAM 成本与"8 KB 下能否链接"的结论见 `docs/resource-review.md` §4：
+独立任务方案约 +1164 B，在 `stm32vldiscovery` 布局下**直接链接失败**。
 
 ### 10.2 模式时间线
 

@@ -100,6 +100,23 @@
   ↓
 阶段9  嵌入式Linux、驱动或高性能服务器深入方向
 
+**编号口径（重要）**：上面的图为阶段 0–9，下方正文只展开到阶段 7，两套编号不同。
+本文件其余部分（§4.2、§12、日志、周报、实验 README）**一律使用正文编号**。
+对照关系如下，引用阶段时以本表为准：
+
+| 图编号 | 图内容 | 正文编号 | 对应实验 |
+| --- | --- | --- | --- |
+| 0 | Linux 环境与工具 | 0 | — |
+| 1 | Shell、文件系统、权限和进程基础 | 1 | `SYS_01` |
+| 2 | 系统调用、文件 I/O、信号和进程间通信 | 1（文件与进程）+ 2（IPC） | `SYS_01`、`SYS_02` |
+| 3 | pthread、多线程同步和线程池 | 2 | `SYS_02` |
+| 4 | Socket、TCP/UDP 和网络调试 | 3 | `SYS_03` |
+| 5 | select/poll/epoll 与非阻塞 I/O | 3 | `SYS_03` |
+| 6 | Reactor、线程池和主从 Reactor | 4 | `SYS_04` |
+| 7 | 协程、异步 I/O、调度和生命周期 | 5 | `SYS_05` |
+| 8 | 调试、性能分析、测试和工程化 | 6 | `SYS_06` |
+| 9 | 嵌入式 Linux、驱动或服务器深入 | 7 | `F103_*`、`BSP_*`、`aviation-node` |
+
 嵌入式 Linux 分支（按依赖顺序）：
 Linux 应用与系统编程 → STM32F103 外设现实感 → FreeRTOS 并发 → Linux 字符设备
 → platform/Device Tree → I2C/SPI/Input → BSP/镜像/启动链 → STM32MP157 A7/M4
@@ -355,7 +372,7 @@ Linux 用户态与系统编程
 | 阶段 4（高性能服务器模型 / Reactor） | **已补齐（实测）** | `experiments/SYS_04_Reactor/`（26/26 断言，14 次负向验证）、`daily_logs/2026-10-27_第26天_日志.md`、`benchmarks/SYS_04_Reactor_2026-10-27.md` |
 | 阶段 5（协程与异步 I/O） | **已补齐（实测）** | `experiments/SYS_05_Coroutine/`（18 用例，58/58 断言，22 次负向验证）、`daily_logs/2026-10-27_第27天_日志.md`、`benchmarks/SYS_05_Coroutine_2026-10-27.md` |
 | 阶段 6（调试、性能与工程化） | **已补齐（实测）** | `experiments/SYS_06_Debug_Perf/`（24 用例，101/101 断言，23 次负向验证）、`daily_logs/2026-10-27_第28天_日志.md`、`benchmarks/SYS_06_Debug_Perf_2026-10-27.md` |
-| 高性能服务器工程化 | **暂停**（原 P0/P1） | `projects/` 无服务器项目；`benchmarks/` 只有形态与基准对照（`SYS_04`/`SYS_05`/`SYS_06`），非吞吐基线；见 §12「P4：暂停项」 |
+| 高性能服务器工程化 | **部分恢复**（2026-10-27） | `projects/reactor-server/`：epoll ET + `EPOLLONESHOT` + 线程池，8 用例 / 105 判据，默认、ASan、TSan、UBSan 四个构建各自 105/105 `rc=0`；退出路径 `make stress` 20 轮无挂起/无静默丢弃；`make bench` 有固定亲和性 + 5 次分位的本机 loopback 读数（`benchmarks/…` §9），**不是 QPS 基线**，见 §12「P4」 |
 
 当前真正要做的事（不再以"收尾服务器工程化"为纲）：
 
@@ -785,7 +802,7 @@ Claude 必须：
 ## 12. 当前优先级
 
 优先级以 `notes/航空转嵌入式路线图.md` 的 12 周计划为准（2026-10-26 对齐）。
-原 P0/P1（高性能服务器工程化）已整体暂停，见 §12「P4：暂停项」。
+原 P0/P1（高性能服务器工程化）2026-10-25 暂停，2026-10-27 按"恢复第一步"部分恢复，见 §12「P4」。
 
 ### P0：补完 FreeRTOS（路线图第 5–6 周）
 
@@ -954,8 +971,22 @@ Claude 必须：
   （`mounts_rootfs=0`），挂载表**不能**当证据；旧根可达时表里是 `mounts|0|/oldroot|rootfs`。
   `--judge` 做过 10 条负向验证（7 条变异 + 缺日志 `rc=2` + 未知用例 `rc=1` + 原日志 `rc=0`）。
   **未验证**：`MS_SHARED` 传播与 `MNT_LOCKED` 分支、只读根与 overlay、busybox `switch_root`、真板。
-- [ ] 后续：坏 `bootargs` 用例（第 20 天遗留第 3 条）需要一个"改坏参数仍能引导"的组合，
-  才能把"bootloader 参数错"与"内核配置错"分开。
+- [x] 坏 `bootargs` 用例（第 20 天遗留第 3 条）—— `experiments/BSP_05_BadBootargs/`，六组对照
+  只改命令行一个参数：`ok` / `ok-fixed` 完整启动（`root_fs magic=0xef53`）；`bad-root` 得
+  `VFS: Cannot open root device "/dev/vdz" or unknown-block(0,0): error -6`；`bad-type` 得
+  `EXT2-fs (vda): error: ... unsupported optional features (22c4)` + `No filesystem could mount root, tried:`；
+  `bad-init` 得 `EXT4-fs (vda): mounted filesystem` + `VFS: Mounted root (ext4 filesystem)` +
+  `Requested init /nope failed (error -2)` ——**根挂上了、只差 init**，是六组里内核最健康的一组失败；
+  `bad-console` 的坏 `ttyS9` 被静默忽略、`ttyAMA0` 生效且系统完整启动。两个 `Unable to mount root fs`
+  靠 panic 文案里的设备字段区分（`unknown-block(0,0)` = 没找到设备 vs `"/dev/vda" or unknown-block(254,0)`
+  = 找到了、挂在文件系统层）。六份日志的 `Linux version` 行逐字一致，是"同一内核"的证据（6/6 通过）；
+  判据 7 条负向验证（含"用成功日志冒充 bad-root"）全部按预期拒绝。
+  **必须不带 initramfs**——带了内核先跑 `rdinit`，`root=` 根本不参与（`BSP_02` 的 `uboot-initrd-vs-root`
+  已实测）。两处被实测纠正的预设：QEMU panic 后加 `-no-reboot` 只阻止重启、不阻止挂住，退出码是
+  `timeout` 给的 **124**（不是 harness 缺陷，也不是非零错误码）；`console=` 是**候选**控制台，
+  写错没有失败模式，只能正向确认 `printk: console [ttyAMA0] enabled` 哪个赢了。
+  方法论见 `notes/BSP启动参数_排查方法论.md`，速查表 §3.6，实验行在 `experiments/README.md`。
+  **真板启动链、`rootwait`、BootROM/SPL 仍待板**。
 
 ### P1.6：系统编程阶段 1–6 补齐（2026-10-27 完成）
 
@@ -989,26 +1020,84 @@ Claude 必须：
 - 每篇日志的「记录性质」必须写清：哪些是实测、哪些是源码推论、哪些未验证。
 - 文档不得出现"已覆盖"而无证据的表述；`benchmarks/`、`scripts/` 为空时不得引用其中的成果；`projects/` 只可引用目录中实际存在的项目。
 
-### P4：暂停项（高性能服务器工程化）
+### P4：服务器工程化（2026-10-27 部分恢复）
 
 原 P0/P1 的六项（统一 CMake、生命周期清单、超时与优雅关闭、断连/半关闭测试、Sanitizer、压测基线）
-与四项目标（选主项目、架构图、文档完善、设计取舍）**整体暂停**。
+与四项目标（选主项目、架构图、文档完善、设计取舍）曾在 2026-10-25 整体暂停。
+2026-10-27 按"恢复时的第一步"重建了一个可运行的最小项目，**解除只到这一步**。
 
-- 暂停原因：2026-10-25 依据 §3 确定阶段 7 嵌入式主线；切换后 `benchmarks/` 与 `scripts/` 一直为空，
-  `projects/` 直到 2026-10-26 才出现 `aviation-node`（嵌入式主线项目，与服务器线无关），
-  相关能力仅存在于 §4.1 的历史记录中。
-  2026-10-27 更新：阶段 1–6 已按 §3 逐条重做（`experiments/SYS_0*`，判定器 + 负向验证齐备），
-  `benchmarks/` 现有三条记录 `SYS_04_Reactor_2026-10-27.md`（Reactor 三形态时延对比）、
-  `SYS_05_Coroutine_2026-10-27.md`（公平性配额与协程/线程地址空间对比）、
-  `SYS_06_Debug_Perf_2026-10-27.md`（vDSO/系统调用、缺页、上下文切换、`perf_event_open` 权限边界），
-  三条都明确标注"不是吞吐压测、不产生 QPS 结论"；`scripts/` 已有 `run_stage.sh`（阶段统一入口）
-  与 `check_repo.sh`（§13 可机器校验部分），但服务器线**仍无**可复现项目，
-  因此本条暂停状态不变——阶段 4–6 的实验不构成"服务器工程化"的恢复证据。
-- 恢复条件（满足任一即可重启）：
-  1. 嵌入式主线完成路线图第 7–8 周，且本节新 P0/P1 无未决项；
-  2. 出现以 Linux 服务器或后端为目标岗位的面试需求；
-  3. 需要并发/网络证据支撑简历或项目介绍。
-- 恢复时的第一步：重建一个**可运行的最小项目**（源码 + CMake + 一份实测日志），不得从文档计划重新开始。
+已完成：
+
+- [x] 最小可运行项目 `projects/reactor-server/`：epoll ET + `EPOLLONESHOT` + 线程池 + 长度前缀回显
+      + 空闲超时 + 背压断开（`wbuf_full`）+ 优雅退出（先排空在飞 job 再断连）。
+      `make` 零警告；`make check` 八类用例、**105 条机器判据**，日志入库 `tests/logs/`。
+- [x] 判据自证：20 组日志变异（改 exit code、删 summary、破坏 `accepted==closed`、篡改关闭原因、
+      伪造 `leftover_jobs`、缺客户端日志、日志目录缺失、`gen_reuse` 的六处改写等）全部按预期判失败，
+      原样判通过；其中"删掉纯诊断的 shutdown phase 行"是**预期不失败**的对照。
+      另做一次**源码变异**：删掉 `conn_by_id()` 的世代比较后重编译，`gen_reuse` 得
+      `stale_received=1`、`stale_gen=0`，C13 + C15 失败——证明判据抓得住真实故障而非只是计数变化。
+- [x] 观测记录 `benchmarks/reactor-server_2026-10-27.md`：环境、方法、5 次读数与派生量，
+      明确标注"不是吞吐基线"；尾段追加 §9 吞吐观测（见下方吞吐条目）。
+- [x] 写用例/接工具过程中实测出并被判据锁住**五个**缺陷：读缓冲满被误判为 `read_err`（已改为 `conn_service` 续读，
+      回归用例 `pipeline`）、信号屏蔽晚于线程创建、`SIGPIPE` 未忽略、退出排空漏判完成队列
+      （在飞 job 的结果静默丢弃：`jobs=4` 但 `tx=0`，`leftover_jobs`/`dropped` 均为 0；已加 `g_draining`
+      两段式排空，回归判据 `tests/sigint_stress.sh` 的 `silent_drop`，旧二进制 3/3 判失败、修复后 0/20 误报）、
+      完成队列计数 `g_res_queued` 的无锁读（TSan 报告，已改为 `res_pending()` 访问器）。
+- [x] 退出路径重复尝试 `make stress`：两种在飞形态共 20 轮（12 + 8）全部在时限内退出；
+      600 s 挂起仍记"未复现"，**不**据此写成已修复。
+- [x] **ASan / TSan / UBSan 已接入并跑通**（2026-10-27 晚段）：`make check-asan` / `check-tsan` / `check-ubsan`，
+      各自独立构建目录，默认、ASan、TSan、UBSan 四个构建**各自 105/105、`rc=0`**；
+      三个目标先跑 `probe-asan` / `probe-tsan` / `probe-ubsan` 生效性探针（故意写缺陷，**目标必须失败**，
+      否则"没报告"无法区分"代码干净"与"没插桩"）。UBSan 用 `-fno-sanitize-recover=all`，
+      避免"报告后继续"让退出码失去意义。
+- [x] **`gen_reuse` 确定性用例**（槽位复用 + 迟到结果）：`SRV_JOB_US=600000` + `--idle-ms 5000`，
+      A 发 1 帧后半关闭 → 服务端主动 close（客户端读到 EOF 作前提证据）→ B 复用同槽位（世代 +1）
+      → A 的结果迟到，必须按世代丢弃。实测 `dropped=1 stale_gen=1`、
+      客户端 `stale_received=0 echo_b=1`；判据 C10–C16 先判前提（同槽位 / 世代递增 / 见到 EOF）再判结果。
+      新增 `st_stale` 计数把"槽位空着"与"槽位换人"分开——两者在 `dropped` 上完全相同，
+      但只有后者出错时旧载荷会被写进新连接。
+      写用例时实测出一条设计事实：在飞 job 期间服务端不读该连接 socket（§5.2 第 3 条），
+      保活帧不会被消费、`last_active` 不刷新，因此 `--idle-ms` 必须大于最慢 job 时长。
+- [x] **TSan 抓到并修掉第 5 个实测缺陷**：`g_res_queued` 在事件循环尾与退出排空循环里被主线程
+      **无锁读**（写方在 `post_result()` 持锁）。修复为统一的 `res_pending()` 访问器；
+      证伪方式是把修复回退再编译——同一负载下旧版 1 条 data race、`rc=66`，新版 0 条、`rc=0`。
+- [x] **`dropped` 确定性用例**：`SRV_JOB_US=1000000` + `--idle-ms 200`，连接必然先于 job 完成被关闭，
+      结果为 `jobs=2 dropped=2 tx=0`，说明这批结果是在退出排空阶段被记账的
+      （四条 `SRV|shutdown|phase=` 同在 `at=706`）。判据 C10–C14。
+- [x] 退出路径可诊断性：五个 `SRV|shutdown|phase=` 时间戳（`begin`/`drained`/`conns_closed`/
+      `tp_joined`/`final_drain`），`hung` 时连同 `/proc/<pid>/task/*` 现场一起入库。
+      **只降低诊断成本，不是修复**。
+
+未完成（**不得**写成已完成）：
+
+- [ ] 统一 CMake：本机 WSL2 无 cmake，现用 Makefile 并在 README 说明，不假装用 CMake。
+- [ ] `valgrind`、MSan、`clang`：本机没有，未跑；ASan 的泄漏检测只在正常退出时生效。
+- [ ] 600 s 挂起根因：20 轮未复现，但没有 `gdb` 抓不到栈，**仍是未关闭项**。
+- [x] 吞吐观测（2026-10-27 尾段）：`tests/bench.sh` + `make bench`，固定 CPU 亲和性
+      （服务端 `0-1` = 一个物理核、客户端 `4` = 另一个物理核）、预热 1 次 + 5 次分位，
+      每次运行先过功能判据（`mismatch==0`、`leftover_jobs==0`、失败须有 `wbuf_full` 依据）。
+      读数：`roundtrip` 8×2000×256 → 中位 200 ms / 80 000 帧/s；`pipeline` 8×1000×4096 →
+      323 ms / 96.75 MiB/s；`single-conn` 1×8000×256 → 983 ms / 8 138 帧/s。
+      **两条必须一起说**：① `THREADS=4` 与 `1` 的差异不可测（200 vs 188、323 vs 315 ms），
+      job 只是一次 `memcpy`，跨线程唤醒成本 ≥ 拷贝收益；② 服务端给两个物理核（`0-3`）+
+      4 worker 时 roundtrip 变 531 ms，同亲和性下 1 worker 为 197 ms —— 现象稳定（494/523/531），
+      **机制未定位**（本机无 `perf`），只作环境注意事项，不写成"多核更慢"的普遍结论。
+      记录：`benchmarks/reactor-server_2026-10-27.md` §9，原始读数
+      `projects/reactor-server/tests/bench_logs/<TAG>/`。
+- [ ] 吞吐的剩余缺口：本机没有 `perf`，无法定位上述机制的 IPI/缓存迁移来源；
+      未把服务端压到 CPU 饱和，故**没有饱和点与 QPS**；未与 `SYS_04` 三形态同口径对照。
+- [ ] 连接生命周期清单、跨机/跨内核对照、世代号 `uint32` 回绕（2^32 次连接）未验证。
+
+恢复条件（满足任一即可继续推进；本次按第 3 条起步）：
+
+1. 嵌入式主线完成路线图第 7–8 周，且新 P0/P1 无未决项；
+2. 出现以 Linux 服务器或后端为目标岗位的面试需求；
+3. 需要并发/网络证据支撑简历或项目介绍。
+
+历史说明（2026-10-25 ～ 10-27 早）：切换阶段 7 主线后 `benchmarks/` 与 `scripts/` 曾长期为空，
+`projects/` 只有 `aviation-node`。阶段 1–6 的实验（`experiments/SYS_0*`）与三条形态类基准记录
+当时**不构成**"服务器工程化"的恢复证据，理由是它们没有可复现项目；这一点在
+`reactor-server` 落地后才改变。
 
 ---
 

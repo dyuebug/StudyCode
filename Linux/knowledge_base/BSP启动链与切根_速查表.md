@@ -2,7 +2,8 @@
 
 **学习目标**：把"内核启动到执行真实根上的 init"拆成可分别验证的环节，并知道每个环节错了会留下什么证据。  
 **适用范围**：ARMv7 + initramfs + 块设备真实根；实测环境 QEMU `-M virt` + Linux 7.0.0 树。  
-**验证状态**：切根四步与三条失败路径**实测**；u-boot `extlinux`/`bootflow`、`pivot_root`、真板启动链为**未验证**。
+**验证状态**：切根四步与三条失败路径**实测**；坏 `bootargs` 四类参数的分层判据**实测**；
+u-boot `extlinux`/`bootflow`、`pivot_root`、真板启动链为**未验证**。
 
 ## 1. 三件套各自负责什么
 
@@ -107,6 +108,45 @@ umount2(old, 0)        do_umount → propagate_mount_busy(mnt, 2) 见引用超�
 **反直觉**：从 `chroot` 内部读 `/proc/self/mounts`，旧根那一行被内核隐藏（`mounts_rootfs=0`），
 因为 `show_vfsmnt()` 跳过不可达的挂载。挂载表**不能**用来判断"chroot 有没有释放旧根"。
 
+## 3.6 命令行参数（bootargs）各自在哪一步生效
+
+无 initramfs 时的顺序：
+
+```text
+内核解压 → 串口/console= 初始化 → prepare_namespace()
+  → 按 root= 找设备 → 按 rootfstype= 挂载 → 挂上则 VFS: Mounted root
+  → 按 init= exec → 失败则 panic
+```
+
+| 参数 | 生效点 | 错了的实测表现 | 系统状态 |
+| --- | --- | --- | --- |
+| `console=` | 串口初始化（最早） | 坏设备名被**静默忽略**，回落可用串口 | 完全正常 |
+| `root=` | `prepare_namespace()` 找设备 | `VFS: Cannot open root device "/dev/vdz" or unknown-block(0,0): error -6` | 未挂根，panic |
+| `rootfstype=` | 设备找到之后挂载 | `EXT2-fs (vda): error: ... unsupported optional features (22c4)` + `No filesystem could mount root, tried:` | 设备在、挂不上，panic |
+| `init=` | 根挂上之后 `exec` | `EXT4-fs (vda): mounted filesystem` … `Run /nope as init process` + `Requested init /nope failed (error -2)` | **根与 VFS 全好，只差用户态** |
+
+四条判据的关键差别（都出自 `BSP_05` 六份日志）：
+
+- `root=` 错 ⇒ 日志里**没有** `VFS: Mounted root`，panic 文案是 `unknown-block(0,0)`。
+- `rootfstype=` 错 ⇒ 日志里**有** `EXT2-fs (vda)` 的挂载失败行，panic 文案带**具体设备** `"/dev/vda"`。
+  两者都叫 `VFS: Unable to mount root fs`，**只能靠"设备找到了没有"区分**。
+- `init=` 错 ⇒ 日志里**有** `VFS: Mounted root (ext4 filesystem)` 与 `VFS: Pivoted into new rootfs`。
+  这两行出现即证明块设备驱动、ext4 驱动、VFS 挂根链全部可用。
+- `console=` 错 ⇒ 没有任何失败迹象；只有 `printk: console [ttyAMA0] enabled` 能说明"哪个赢了"。
+  它是**候选**控制台，名字对不上就跳过，因此不存在失败模式。
+
+**为什么这类实验不能带 initramfs**：有 initramfs 时内核先执行 `rdinit`，真实根由 initramfs 里的程序去挂，
+内核自己的 `prepare_namespace()` 与 `root=` 不参与。此时写坏 `root=` 什么都不会发生
+（`BSP_02` 实测：命令行含 `root=/dev/vda` 却没有任何 `EXT4-fs (vda)` 行）。
+
+**把"参数错"与"内核配置错"分开的方法**：所有用例共用同一内核、同一镜像，只有命令行不同。
+任何一组能跑到 `BADARGS|init|done`，就证明内核侧（块设备、ext4、VFS、init 查找）全都编进去了；
+其余用例的失败只能归因到命令行。这一步必须显式做，否则"启动不了"永远有两种解释。
+六份日志的 `Linux version` 行逐字一致，就是"同一内核"的证据。
+
+**panic 后的退出码是 124**：QEMU 加 `-no-reboot` 后 panic 不重启，但也**不退出**，进程挂住；
+`timeout` 到期返回 124。所以 124 是**预期的失败形态**，不是 harness 缺陷。
+
 ## 4. 接口卡片
 
 ### `mount(src, tgt, fstype, flags, data)`
@@ -156,6 +196,8 @@ umount2(old, 0)        do_umount → propagate_mount_busy(mnt, 2) 见引用超�
 - **实测（补）**：`pivot_root` 与 `chroot` 五组对照（`chroot`/`pivot`/`pivot-late`/`pivot-nomove`/`pivot-ondir`）；
   旧根 `EBUSY(16)` 的单变量因果实验（只重绑 0/1/2）；`/proc/self/mountinfo` 的父 id 拓扑；
   判据的 10 条负向验证。
+- **实测（补二）**：坏 `bootargs` 六组对照（`ok`/`bad-root`/`bad-type`/`bad-init`/`bad-console`/`ok-fixed`），
+  四类参数各自的 panic 措辞位置、`console=` 无失败模式、panic 后退出码 124；判据 7 条负向验证。
 - **仅源码推断**：`init_rootfs()` 的 `is_tmpfs` 条件（但已用 `rootfs-ramfs` 组落到读数上）、
   `nullfs` 作为 VFS 真根的具体路径（有启动日志 `VFS: Finished mounting rootfs on nullfs` 与
   `mountinfo` 的 `parent=1` 佐证，但未逐函数验证）。
@@ -170,7 +212,10 @@ umount2(old, 0)        do_umount → propagate_mount_busy(mnt, 2) 见引用超�
   判据与负向验证、两次失败复盘（`move_mount` 符号冲突、`/proc` 读太早）。
 - [`experiments/BSP_04_PivotRoot`](../experiments/BSP_04_PivotRoot/README.md)：`pivot_root` 对照、
   旧根 `EBUSY` 的因果实验、`mountinfo` 拓扑、10 条负向验证。
+- [`experiments/BSP_05_BadBootargs`](../experiments/BSP_05_BadBootargs/README.md)：`root=`/`rootfstype=`/
+  `init=`/`console=` 四类坏参数的分层判据、7 条负向验证。
 - [`experiments/BSP_01_Boot_Chain`](../experiments/BSP_01_Boot_Chain/README.md)：zImage / DTB / initramfs 的分工。
 - [`experiments/BSP_02_UBoot_BlockRoot`](../experiments/BSP_02_UBoot_BlockRoot/README.md)：u-boot、块设备根、分区与整盘。
 - 日志：`experiments/BSP_03_SwitchRoot/logs/{ok,rootfs-ramfs,no-move,noroot,no-stage2}.log`、
-  `experiments/BSP_04_PivotRoot/logs/{chroot,pivot,pivot-late,pivot-nomove,pivot-ondir}.log`。
+  `experiments/BSP_04_PivotRoot/logs/{chroot,pivot,pivot-late,pivot-nomove,pivot-ondir}.log`、
+  `experiments/BSP_05_BadBootargs/logs/{ok,bad-root,bad-type,bad-init,bad-console,ok-fixed}.log`。
