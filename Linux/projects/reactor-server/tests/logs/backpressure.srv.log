@@ -1,0 +1,14 @@
+SRV|listen|port=37671|threads=4|idle_ms=0
+SRV|ready|pid=609
+SRV|accept|id=1|active=1
+SRV|accept|id=4294967298|active=2
+SRV|close|id=1|reason=wbuf_full|rx=2826226|tx=2718174
+SRV|close|id=4294967298|reason=wbuf_full|rx=2826226|tx=2710172
+SRV|signal|signo=2
+SRV|shutdown|phase=begin|at=0
+SRV|shutdown|phase=drained|at=0
+SRV|shutdown|phase=conns_closed|at=0
+SRV|shutdown|phase=tp_joined|at=1
+SRV|shutdown|phase=final_drain|at=1
+SRV|summary|accepted=2|closed=2|active=0|rx=5652452|tx=5428346|jobs=695|timeouts=0|errors=0|dropped=0|stale_gen=0|leftover_jobs=0
+SRV|exit|code=0

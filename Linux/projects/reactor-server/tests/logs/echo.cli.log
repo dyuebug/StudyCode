@@ -1,0 +1,9 @@
+CLI|conn|idx=0|state=0|sent=4000|recv=4000|mismatch=0
+CLI|conn|idx=1|state=0|sent=4000|recv=4000|mismatch=0
+CLI|conn|idx=2|state=0|sent=4000|recv=4000|mismatch=0
+CLI|conn|idx=3|state=0|sent=4000|recv=4000|mismatch=0
+CLI|conn|idx=4|state=0|sent=4000|recv=4000|mismatch=0
+CLI|conn|idx=5|state=0|sent=4000|recv=4000|mismatch=0
+CLI|conn|idx=6|state=0|sent=4000|recv=4000|mismatch=0
+CLI|conn|idx=7|state=0|sent=4000|recv=4000|mismatch=0
+CLI|done|clients=8|frames=20|size=200|sent=32000|recv=32000|fail=0|mismatch=0|idle_closed=0|timeout_missed=0|ms=13

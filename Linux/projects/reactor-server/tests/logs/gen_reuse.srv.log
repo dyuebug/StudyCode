@@ -1,0 +1,15 @@
+SRV|listen|port=41323|threads=2|idle_ms=5000
+SRV|ready|pid=653
+SRV|accept|id=1|active=1
+SRV|close|id=1|reason=peer_eof|rx=402|tx=0
+SRV|accept|id=2|active=1
+SRV|stale|id=1
+SRV|close|id=2|reason=peer_eof|rx=10|tx=10
+SRV|signal|signo=2
+SRV|shutdown|phase=begin|at=0
+SRV|shutdown|phase=drained|at=0
+SRV|shutdown|phase=conns_closed|at=0
+SRV|shutdown|phase=tp_joined|at=1
+SRV|shutdown|phase=final_drain|at=1
+SRV|summary|accepted=2|closed=2|active=0|rx=412|tx=10|jobs=2|timeouts=0|errors=0|dropped=1|stale_gen=1|leftover_jobs=0
+SRV|exit|code=0

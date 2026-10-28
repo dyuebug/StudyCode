@@ -1,0 +1,5 @@
+CLI|conn|idx=0|state=4|sent=200|recv=200|mismatch=0
+CLI|conn|idx=1|state=4|sent=200|recv=200|mismatch=0
+CLI|conn|idx=2|state=4|sent=200|recv=200|mismatch=0
+CLI|conn|idx=3|state=4|sent=200|recv=200|mismatch=0
+CLI|done|clients=4|frames=1|size=200|sent=800|recv=800|fail=0|mismatch=0|idle_closed=4|timeout_missed=0|ms=1502
