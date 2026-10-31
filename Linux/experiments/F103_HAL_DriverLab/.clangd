@@ -1,0 +1,20 @@
+# clangd 配置（Cursor / VS Code 通用）
+#
+# 为什么用 clangd 而不是 ms-vscode.cpptools：
+# Cursor 走 Open VSX 注册表，微软的 C/C++ 扩展没有发布在那里；
+# clangd 在 Open VSX 上有官方发布，且直接消费 compile_commands.json。
+#
+# 关键点：CMake 在 Windows 上会把带空格的路径压成 8.3 短名
+# （build/compile_commands.json 里是 C:\PROGRA~2\ARMGNU~1\...\AR19DD~1.EXE），
+# 名字里没有 "arm-none-eabi"，clangd 无法据此推断目标三元组和系统头路径。
+# 因此这里显式声明 Compiler，并在 .vscode/settings.json 里用 --query-driver
+# 放行同一个可执行文件——两者必须匹配，缺一条就会报 <stdint.h> 找不到。
+#
+# 升级或移动工具链后要同步改这一行，以及 settings.json 里的 glob。
+CompileFlags:
+  CompilationDatabase: build
+  Compiler: "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gcc.exe"
+
+Diagnostics:
+  # HAL 的断言宏在未定义 USE_FULL_ASSERT 时展开为空，clangd 的 unused 提示会刷屏
+  UnusedIncludes: None

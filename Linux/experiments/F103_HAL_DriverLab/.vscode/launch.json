@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug (ST-Link V2 + OpenOCD)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/build/f103_hal_driverlab.elf",
+      "servertype": "openocd",
+      "configFiles": [
+        "${workspaceFolder}/../F103_common/openocd/stlink_f103.cfg"
+      ],
+      "device": "STM32F103C8",
+      "runToEntryPoint": "main",
+      "armToolchainPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin",
+      "preLaunchTask": "F103: build",
+      "showDevDebugOutput": "none"
+    }
+  ]
+}

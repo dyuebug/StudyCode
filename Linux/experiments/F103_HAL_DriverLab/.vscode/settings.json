@@ -1,0 +1,18 @@
+{
+  "clangd.arguments": [
+    "--query-driver=C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/*/bin/arm-none-eabi-*",
+    "--background-index",
+    "--header-insertion=never"
+  ],
+  "clangd.onConfigChanged": "restart",
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "cmake.configureOnOpen": false,
+  "files.associations": {
+    "*.h": "c",
+    "*.ld": "ld",
+    "stm32f1xx_hal_conf.h": "c"
+  },
+  "search.exclude": {
+    "build/": true
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "options": {
+    "cwd": "${workspaceFolder}"
+  },
+  "tasks": [
+    {
+      "label": "F103: configure",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "-S", ".",
+        "-B", "build",
+        "-G", "Ninja",
+        "-DCMAKE_TOOLCHAIN_FILE=../F103_common/cmake/arm-none-eabi.cmake",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "F103: build",
+      "type": "process",
+      "command": "cmake",
+      "args": ["--build", "build"],
+      "dependsOn": "F103: configure",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "F103: clean",
+      "type": "process",
+      "command": "cmake",
+      "args": ["--build", "build", "--target", "clean"],
+      "problemMatcher": []
+    },
+    {
+      "label": "F103: flash",
+      "type": "process",
+      "command": "cmake",
+      "args": ["--build", "build", "--target", "flash"],
+      "dependsOn": "F103: build",
+      "problemMatcher": []
+    }
+  ]
+}

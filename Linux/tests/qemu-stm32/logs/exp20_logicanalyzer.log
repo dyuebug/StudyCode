@@ -1,0 +1,42 @@
+
+[la] F103_20 logic analyzer, ch=8, mask=0x00FF
+[la] src=synthetic (LA_SYNTHETIC=1)
+[probe] TIM2 PSC=0 ARR=0 CR1=0x0000 DIER=0x0000
+[probe] CNT|stuck|a=0 b=0|定时器未推进
+[la] mode=sw need=256 got=256 dropped=0 isr=0
+[la] decode n=3 bytes=4C 41 21 
+[la] verdict=PASS
+[la] s=0,2B
+[la] s=1,2B
+[la] s=2,2B
+[la] s=3,2B
+[la] s=4,2B
+[la] s=5,2B
+[la] s=6,2B
+[la] s=7,2B
+[la] s=8,2B
+[la] s=9,2B
+[la] s=10,2B
+[la] s=11,2B
+[la] s=12,2B
+[la] s=13,2B
+[la] s=14,2B
+[la] s=15,2B
+[la] s=16,2A
+[la] s=17,2A
+[la] s=18,2A
+[la] s=19,2A
+[la] s=20,2A
+[la] s=21,2A
+[la] s=22,2A
+[la] s=23,2A
+[la] s=24,2A
+[la] s=25,2A
+[la] s=26,2A
+[la] s=27,2A
+[la] s=28,2A
+[la] s=29,2A
+[la] s=30,2A
+[la] s=31,2A
+[la] done
+qemu-system-arm: terminating on signal 15 from pid 3233 (timeout)
