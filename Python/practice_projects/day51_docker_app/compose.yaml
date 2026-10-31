@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: day51-practice:1.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18081:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?请在 .env 中设置 SECRET_KEY}
+    volumes:
+      - app-data:/data
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  app-data:

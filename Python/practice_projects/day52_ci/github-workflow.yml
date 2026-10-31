@@ -1,0 +1,62 @@
+# 第 52 天练习参考：带前端测试的 CI 配置。
+# 本文件位于练习目录，不会被 GitHub Actions 执行。
+# 若要启用，复制到仓库根目录的 .github/workflows/ci.yml，并与现有配置合并。
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 语法编译
+        run: python -m compileall -q tests scripts
+
+      - name: 运行测试
+        run: python -m pytest -q
+
+      - name: 依赖审计（不阻塞）
+        continue-on-error: true
+        run: |
+          pip install pip-audit
+          pip-audit
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web_projects/todo_app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web_projects/todo_app/package-lock.json
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 运行测试
+        run: npm test

@@ -1,0 +1,4 @@
+/* 仅用于验证 /static/ 的 alias 映射。 */
+body {
+    font-family: system-ui, sans-serif;
+}

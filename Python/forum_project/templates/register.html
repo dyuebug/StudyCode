@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}注册 · 学习论坛{% endblock %}
+
+{% block content %}
+<h1>注册</h1>
+<form action="{{ url_for('register') }}" method="post" class="stacked-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="username">用户名</label>
+    <input id="username" name="username" type="text" minlength="3" maxlength="20"
+           pattern="[A-Za-z0-9_一-龥]{3,20}" autocomplete="username" required>
+    <small>3～20 位中文、字母、数字或下划线</small>
+
+    <label for="password">密码</label>
+    <input id="password" name="password" type="password" minlength="8" maxlength="128"
+           autocomplete="new-password" required>
+    <small>至少 8 位</small>
+
+    <button type="submit" class="button">注册</button>
+</form>
+<p>已有账号？<a href="{{ url_for('login') }}">去登录</a></p>
+{% endblock %}

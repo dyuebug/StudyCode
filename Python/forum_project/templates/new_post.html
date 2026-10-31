@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}发布帖子 · 学习论坛{% endblock %}
+
+{% block content %}
+<h1>发布帖子</h1>
+<form action="{{ url_for('create_post') }}" method="post" class="stacked-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="category">分类</label>
+    <select id="category" name="category" required>
+        {% for category in categories %}
+            <option value="{{ category['slug'] }}">{{ category['name'] }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="title">标题</label>
+    <input id="title" name="title" type="text" minlength="3" maxlength="100" required>
+
+    <label for="content">正文</label>
+    <textarea id="content" name="content" rows="10" maxlength="5000" required></textarea>
+
+    <button type="submit" class="button">发布</button>
+</form>
+{% endblock %}

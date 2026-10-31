@@ -1,0 +1,12 @@
+{
+  "name": "modern-todo-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "第46天综合项目：原生 JavaScript + LocalStorage 的 Todo App",
+  "scripts": {
+    "test": "node --test tests/storage.test.mjs tests/app.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

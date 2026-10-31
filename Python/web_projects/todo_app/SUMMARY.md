@@ -30,6 +30,8 @@ web_projects/todo_app/
 └── TEST.md        (手工测试指南)
 ```
 
+> **后续变更（2026-10-29）**：新增 `package.json`、`package-lock.json`、`tests/storage.test.mjs` 与 `tests/app.test.mjs`，当前共 12 个文件（不含 `node_modules/`）。上面的 8 个文件是第 46 天完成时的真实状态，保留不改。测试共 19 项（存储 10 项 + DOM 9 项）。
+
 ---
 
 ## 🎯 学习成果

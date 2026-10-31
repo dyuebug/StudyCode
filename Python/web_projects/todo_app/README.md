@@ -45,14 +45,19 @@ python -m http.server 8000
 
 ```
 todo_app/
-├── index.html          # HTML结构
-├── style.css           # 自定义样式
-├── app.js              # 主应用逻辑
-├── storage.js          # 数据持久化模块
-├── PLAN.md             # 项目规划文档
-├── README.md           # 本文档
-├── SUMMARY.md          # 第46天项目总结
-└── TEST.md             # 手工测试清单
+├── index.html              # HTML结构
+├── style.css               # 自定义样式
+├── app.js                  # 主应用逻辑
+├── storage.js              # 数据持久化模块
+├── package.json            # Node 测试脚本与 jsdom 开发依赖
+├── package-lock.json       # 依赖版本锁定
+├── tests/
+│   ├── storage.test.mjs    # storage.js 单元测试（10 项）
+│   └── app.test.mjs        # app.js DOM 交互测试（9 项，jsdom）
+├── PLAN.md                 # 项目规划文档
+├── README.md               # 本文档
+├── SUMMARY.md              # 第46天项目总结
+└── TEST.md                 # 手工测试清单
 ```
 
 ---
@@ -330,9 +335,23 @@ background-color: #dc3545;
 
 ## 🧪 测试状态
 
-当前项目提供 `TEST.md` 手工测试清单，覆盖任务 CRUD、筛选、统计、持久化、响应式布局和安全输入等场景。项目目前没有浏览器自动化测试，因此“功能可用”应以实际执行测试清单后的记录为准。
+前端测试共 **19 项**，`npm test` 全部通过：
 
-建议使用本地服务器打开项目，以便后续接入模块化脚本、浏览器开发者工具和自动化测试：
+- `tests/storage.test.mjs`：10 项，覆盖读写往返、空存储、损坏 JSON、非数组数据、写入失败、清空和容量估算。
+- `tests/app.test.mjs`：9 项，使用 jsdom 加载真实 `index.html`，覆盖从 LocalStorage 恢复、添加任务并更新统计、空输入校验、完成状态切换、筛选按钮、事件委托、删除任务、XSS 转义和多任务统计。
+
+```bash
+cd web_projects/todo_app
+npm install     # 首次运行，安装 jsdom
+npm test
+```
+
+说明：
+
+- 存储层测试使用 Node 内置 `node:test` 与 `node:vm`。
+- DOM 测试使用 `jsdom` 与 `node:test`，不需要真实浏览器。
+- 页面功能仍需按 `TEST.md` 手工验证，尚未建立浏览器 E2E 测试。
+- 建议使用本地服务器打开项目：
 
 ```bash
 python -m http.server 8000
@@ -342,7 +361,8 @@ python -m http.server 8000
 
 - 数据只保存在当前浏览器的 LocalStorage 中，不支持多设备同步。
 - LocalStorage 是同步浏览器存储，不是后端异步 API。
-- 当前没有任务编辑、搜索、导入导出和自动化 E2E 测试。
+- 当前没有任务编辑、搜索、导入导出和浏览器 E2E 测试。
+- `storage.js` 与 `app.js` 已有 Node/jsdom 自动化测试；真实浏览器兼容性仍需手工验证。
 
 ---
 
@@ -368,4 +388,4 @@ Claude Code 学习项目 - 第46天
 
 **项目完成时间**：2026-06-16  
 **学习阶段**：Web开发综合实战  
-**当前状态**：核心功能已实现；手工测试清单仍需实际执行，自动化浏览器测试尚未建立
+**当前状态**：核心功能已实现；前端自动化测试 19 项通过（存储 10 项 + DOM 9 项）；浏览器 E2E 测试尚未建立

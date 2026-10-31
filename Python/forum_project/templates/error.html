@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}{{ code }} · 学习论坛{% endblock %}
+
+{% block content %}
+<section class="error-page">
+    <h1>{{ code }}</h1>
+    <p>{{ message }}</p>
+    <p><a class="button" href="{{ url_for('index') }}">返回首页</a></p>
+</section>
+{% endblock %}

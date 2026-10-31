@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}帖子列表 · 学习论坛{% endblock %}
+
+{% block content %}
+<section class="toolbar">
+    <form action="{{ url_for('index') }}" method="get" class="search-form">
+        {% if active_category %}
+            <input type="hidden" name="category" value="{{ active_category }}">
+        {% endif %}
+        <input type="search" name="q" value="{{ keyword }}" placeholder="搜索标题或正文">
+        <button type="submit" class="button">搜索</button>
+    </form>
+    <p class="result-count">共 {{ total }} 个帖子</p>
+</section>
+
+<section class="post-list">
+    {% for post in posts %}
+        <article class="post-card">
+            <h2><a href="{{ url_for('post_detail', post_id=post['id']) }}">{{ post['title'] }}</a></h2>
+            <p class="meta">
+                <span class="badge">{{ post['category_name'] }}</span>
+                {{ post['username'] }} · {{ post['created_at'] }} · {{ post['reply_count'] }} 条回复
+            </p>
+        </article>
+    {% else %}
+        <p class="empty-state">还没有帖子。{% if current_user %}<a href="{{ url_for('create_post') }}">发布第一个帖子</a>{% endif %}</p>
+    {% endfor %}
+</section>
+
+{% if total_pages > 1 %}
+<nav class="pagination">
+    {% if page > 1 %}
+        <a href="{{ url_for('index', page=page-1, q=keyword, category=active_category) }}">上一页</a>
+    {% endif %}
+    <span>第 {{ page }} / {{ total_pages }} 页</span>
+    {% if page < total_pages %}
+        <a href="{{ url_for('index', page=page+1, q=keyword, category=active_category) }}">下一页</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

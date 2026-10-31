@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post['title'] }} · 学习论坛{% endblock %}
+
+{% block content %}
+<article class="post-detail">
+    <p class="meta"><span class="badge">{{ post['category_name'] }}</span></p>
+    <h1>{{ post['title'] }}</h1>
+    <p class="meta">{{ post['username'] }} · {{ post['created_at'] }}</p>
+    <div class="post-content">{{ post['content'] }}</div>
+
+    {% if current_user and current_user['id'] == post['user_id'] %}
+        <form action="{{ url_for('delete_post', post_id=post['id']) }}" method="post"
+              class="inline-form" data-confirm="确定删除这个帖子吗？">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="danger">删除帖子</button>
+        </form>
+    {% endif %}
+</article>
+
+<section class="replies">
+    <h2>回复（{{ replies|length }}）</h2>
+    {% for reply in replies %}
+        <article class="reply">
+            <p class="meta">{{ reply['username'] }} · {{ reply['created_at'] }}</p>
+            <p>{{ reply['content'] }}</p>
+        </article>
+    {% else %}
+        <p class="empty-state">还没有回复。</p>
+    {% endfor %}
+</section>
+
+{% if current_user %}
+<section class="reply-form">
+    <h2>发表回复</h2>
+    <form action="{{ url_for('create_reply', post_id=post['id']) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <textarea name="content" rows="4" maxlength="2000" required placeholder="写下你的看法"></textarea>
+        <button type="submit" class="button">提交回复</button>
+    </form>
+</section>
+{% else %}
+<p><a href="{{ url_for('login') }}">登录</a>后可以回复。</p>
+{% endif %}
+
+<p><a href="{{ url_for('index') }}">← 返回列表</a></p>
+{% endblock %}

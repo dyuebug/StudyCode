@@ -1,0 +1,35 @@
+[Unit]
+Description=Study Forum (Flask + Gunicorn)
+Documentation=file:///opt/study-forum/forum_project/README.md
+After=network.target
+
+[Service]
+Type=simple
+User=forum
+Group=forum
+WorkingDirectory=/opt/study-forum
+EnvironmentFile=/etc/study-forum/forum.env
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/opt/study-forum/.venv/bin/gunicorn \
+    --bind 127.0.0.1:8000 \
+    --workers 1 \
+    --threads 4 \
+    --access-logfile - \
+    --error-logfile - \
+    "forum_project:create_app()"
+
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+KillSignal=SIGTERM
+
+# 基础加固：只读系统目录、禁止提权、限制可写路径
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/study-forum
+
+[Install]
+WantedBy=multi-user.target

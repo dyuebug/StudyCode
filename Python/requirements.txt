@@ -1,15 +1,20 @@
-# Web applications
-Flask
-flask-cors
+# Web 应用
+Flask>=3.1,<4.0
+flask-cors>=6.0,<7.0
+Werkzeug>=3.1,<4.0
+Jinja2>=3.1,<4.0
+gunicorn>=22.0,<24.0 ; sys_platform != "win32"
 
-# Data processing and visualization
-matplotlib
-numpy
-pandas
+# 数据处理与可视化
+matplotlib>=3.9,<4.0
+numpy>=2.0,<3.0
+pandas>=2.2,<3.0
 
-# HTTP and system utilities
-psutil
-requests
+# HTTP 与系统工具
+psutil>=6.1,<7.0
+requests>=2.32,<3.0
 
-# Automated testing
-pytest
+# 自动化测试
+pytest>=8.3,<9.0
+pytest-asyncio>=0.24,<1.0
+pytest-mock>=3.14,<4.0
