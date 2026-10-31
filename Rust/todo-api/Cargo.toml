@@ -8,3 +8,14 @@ actix-web = "4"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# 第 33 天新增：数据库层
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "migrate"] }
+
+[dev-dependencies]
+# 仅测试使用：测试替身要构造原始 `Request` 类型返回给 call_service。
+# 该类型定义在 actix-http 里，而 actix-web 没有把它在根模块重导出，
+# 所以集成测试（独立 crate）必须自己声明依赖。
+# 版本 3 已经作为 actix-web 的依赖存在于 Cargo.lock，不会引入新代码。
+actix-http = "3"
+# 注：临时目录用 tests/api.rs 里的手写 TempDirGuard（约 25 行），
+# 没有引入 tempfile —— 它的核心价值是"drop 时清理"，这点自己写也够。

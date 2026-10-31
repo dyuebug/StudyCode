@@ -1,0 +1,14 @@
+[package]
+name = "errors-and-logs"
+version = "0.1.0"
+edition = "2021"
+description = "错误处理工程化（thiserror + anyhow）与结构化日志（tracing）"
+
+[dependencies]
+# thiserror：为「本层定义的领域错误」生成 Display / Error / From
+thiserror = "2"
+# anyhow：为「跨层传播的临时错误」加 context，保留整条因果链
+anyhow = "1"
+# tracing：结构化日志（span + 字段），替代 println!
+tracing = "0.1"
+tracing-subscriber = "0.3"

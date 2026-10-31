@@ -1,0 +1,13 @@
+[package]
+name = "validate-derive"
+description = "最小可用的过程宏：#[derive(Validate)] 生成字段校验"
+edition.workspace = true
+version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true

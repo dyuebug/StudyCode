@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>第34天 · WebSocket 聊天室</title>
+<style>
+  /* 不用任何前端框架：这一页的目的是验证协议，不是展示 UI 技巧 */
+  :root {
+    --bg: #14161a;
+    --panel: #1c1f24;
+    --line: #2a2f36;
+    --fg: #e6e8eb;
+    --muted: #9aa3ae;
+    --accent: #4a9eff;
+    --ok: #3ecf8e;
+    --warn: #ffb020;
+    --err: #ff5c5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    background: var(--bg); color: var(--fg);
+    font: 14px/1.6 ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  h1 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+  .bar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  button {
+    background: var(--panel); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 14px; cursor: pointer; font: inherit;
+  }
+  button:hover { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .status { padding: 2px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); }
+  .status.on  { color: var(--ok);   border-color: var(--ok); }
+  .status.off { color: var(--err);  border-color: var(--err); }
+  .status.wait{ color: var(--warn); border-color: var(--warn); }
+  #log {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    height: 380px; overflow-y: auto; padding: 12px; margin-bottom: 12px;
+  }
+  .row { margin-bottom: 6px; word-break: break-word; }
+  .row .meta { color: var(--muted); font-size: 12px; margin-right: 8px; }
+  .row.system .meta { color: var(--warn); }
+  .row.self .meta { color: var(--accent); }
+  .row.resync { color: var(--warn); }
+  .row.err { color: var(--err); }
+  .inputbar { display: flex; gap: 8px; }
+  #msg {
+    flex: 1; padding: 8px 12px; border-radius: 6px;
+    background: var(--panel); color: var(--fg);
+    border: 1px solid var(--line); font: inherit;
+  }
+  #msg:focus { outline: none; border-color: var(--accent); }
+  code { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>第34天 · WebSocket 聊天室</h1>
+<div class="sub">
+  打开两个标签页，在同一个页面里发消息，两页都应收到。
+  <br>浏览器 DevTools → Network → WS，能看到每一帧（绿色 ↑ 发送，红色 ↓ 接收）。
+</div>
+
+<div class="bar">
+  <button id="btn-connect">连接</button>
+  <button id="btn-disconnect" disabled>断开</button>
+  <span id="status" class="status off">未连接</span>
+  <span id="online" class="sub" style="margin:0"></span>
+</div>
+
+<div id="log"></div>
+
+<div class="inputbar">
+  <input id="msg" placeholder="输入消息，回车发送" disabled>
+  <button id="btn-send" disabled>发送</button>
+</div>
+
+<script>
+// ============================================
+// 连接状态
+// ============================================
+let ws = null;
+let attempt = 0;            // 已连续重连次数（成功连接后归零）
+let manualClose = false;    // 用户主动断开 → 不自动重连
+let reconnectTimer = null;
+
+const $ = (id) => document.getElementById(id);
+const log = $("log");
+const statusEl = $("status");
+
+function append(kind, meta, text) {
+  const row = document.createElement("div");
+  row.className = "row " + kind;
+  if (meta) {
+    const m = document.createElement("span");
+    m.className = "meta";
+    m.textContent = meta;
+    row.appendChild(m);
+  }
+  row.appendChild(document.createTextNode(text));
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setStatus(text, cls) {
+  statusEl.textContent = text;
+  statusEl.className = "status " + cls;
+}
+
+function setConnected(on) {
+  $("btn-connect").disabled = on;
+  $("btn-disconnect").disabled = !on;
+  $("msg").disabled = !on;
+  $("btn-send").disabled = !on;
+}
+
+// ============================================
+// 指数退避 + 抖动（与服务端 protocol.rs 的 backoff_ms 同思路）
+// ============================================
+function backoffMs(n) {
+  const base = 500, max = 30000;
+  const capped = Math.min(base * Math.pow(2, n), max);
+  const half = capped / 2;
+  // 抖动：落在 [half, capped) 区间
+  return Math.floor(half + Math.random() * half);
+}
+
+// ============================================
+// 连接
+// ============================================
+function connect() {
+  manualClose = false;
+  clearTimeout(reconnectTimer);
+
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const url = `${proto}//${location.host}/ws`;
+  append("system", "[系统]", `正在连接 ${url}`);
+  setStatus("连接中…", "wait");
+
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    attempt = 0;
+    setStatus("已连接", "on");
+    setConnected(true);
+    append("system", "[系统]", "握手完成（HTTP 101）");
+    $("msg").focus();
+  };
+
+  ws.onmessage = (ev) => {
+    // 服务端发来的是 JSON 字符串
+    let data;
+    try {
+      data = JSON.parse(ev.data);
+    } catch {
+      append("", "", ev.data);
+      return;
+    }
+
+    if (data.type === "system") {
+      append("system", "[系统]", data.text + (data.online != null ? `（在线 ${data.online}）` : ""));
+      if (data.online != null) $("online").textContent = `在线 ${data.online}`;
+    } else if (data.type === "resync") {
+      // 服务端判定我们落后了，明确告诉我们丢了几条
+      append("resync", "[追赶]", `已跳过 ${data.skipped} 条消息（你太慢了）`);
+    } else {
+      // 服务端不下发"这是你自己发的"，所以这里不区分 self
+      append("", `[${data.from}]`, data.text);
+      if (data.online != null) $("online").textContent = `在线 ${data.online}`;
+    }
+  };
+
+  ws.onclose = (ev) => {
+    setConnected(false);
+    ws = null;
+
+    // 1000 = 正常关闭（我们自己或服务端按礼节关的）
+    const normal = ev.code === 1000 || manualClose;
+    append("system", "[系统]",
+      `连接关闭 code=${ev.code}${ev.reason ? " reason=" + ev.reason : ""}`);
+
+    if (normal) {
+      setStatus("未连接", "off");
+      if (!manualClose) append("system", "[系统]", "服务端正常关闭，不自动重连");
+      return;
+    }
+
+    // 异常关闭 → 指数退避重连
+    const wait = backoffMs(attempt);
+    attempt++;
+    setStatus(`重连中 ${(wait / 1000).toFixed(1)}s（第 ${attempt} 次）`, "wait");
+    append("system", "[系统]", `异常断开，${wait}ms 后第 ${attempt} 次重连`);
+    reconnectTimer = setTimeout(connect, wait);
+  };
+
+  ws.onerror = () => {
+    // 浏览器出于安全考虑不暴露错误细节，只能标记
+    append("err", "[错误]", "连接出错（详情见 DevTools Console）");
+  };
+}
+
+function disconnect() {
+  manualClose = true;
+  clearTimeout(reconnectTimer);
+  if (ws) {
+    // 1000 = Normal Closure，告诉服务端"我是按礼节走的"
+    ws.close(1000, "用户主动断开");
+  }
+}
+
+function send() {
+  const el = $("msg");
+  const text = el.value.trim();
+  if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+  el.value = "";
+  // 客户端发 JSON，服务端会原样广播（带上发送者名字）
+  ws.send(JSON.stringify({ text }));
+}
+
+// ============================================
+// 事件绑定
+// ============================================
+$("btn-connect").onclick = connect;
+$("btn-disconnect").onclick = disconnect;
+$("btn-send").onclick = send;
+$("msg").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.isComposing) send();
+});
+
+// 页面可见性变化：切到后台时降低心跳频率是真实产品该做的事，
+// 这里只记录一下，用来观察浏览器对后台标签页的节流行为
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    append("system", "[系统]", "页面进入后台（注意：浏览器会节流后台标签页的定时器）");
+  }
+});
+</script>
+</body>
+</html>

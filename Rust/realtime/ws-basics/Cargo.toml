@@ -1,0 +1,18 @@
+[package]
+name = "ws-basics"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web 框架：提供 HTTP 服务与握手入口
+actix-web = "4"
+# WebSocket 实现：handle() 一次完成握手，Session 写 / MessageStream 读
+actix-ws = "0.3"
+# 异步运行时（actix-web 已自带，这里显式声明以便使用 select! / broadcast）
+tokio = { version = "1", features = ["full"] }
+# JSON 序列化
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# 握手 Accept 计算：SHA-1 + Base64
+sha1 = "0.10"
+base64 = "0.22"

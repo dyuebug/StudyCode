@@ -1,0 +1,9 @@
+/target
+
+# 数据库文件：WAL 模式会产生三个文件，必须一起忽略
+todos.db
+todos.db-wal
+todos.db-shm
+
+# 迁移后的旧数据归档
+todos.json.imported

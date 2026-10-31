@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["validate-derive", "validate-demo"]
+
+# 为什么用 workspace：
+# 过程宏 crate 只能是 proc-macro 库，不能同时当普通库用；
+# 而协议层（trait / 错误类型）必须放在普通 crate 里才能被两边共享。
+# 这就是「过程宏必须至少两个 crate」的结构性原因。
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+
+[workspace.dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+validate-derive = { path = "validate-derive" }

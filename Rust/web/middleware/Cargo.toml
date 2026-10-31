@@ -1,0 +1,13 @@
+[package]
+name = "middleware"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web 框架：中间件是它的 dev::{Service, Transform} 三层抽象
+actix-web = "4"
+# 日志门面后端：官方 Logger 中间件通过 log crate 输出，没有后端就什么都不打印
+env_logger = "0.11"
+# JSON 序列化：请求体与响应体
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

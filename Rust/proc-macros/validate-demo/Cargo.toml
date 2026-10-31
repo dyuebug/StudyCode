@@ -1,0 +1,8 @@
+[package]
+name = "validate-demo"
+description = "过程宏消费者：验证 #[derive(Validate)] 生成的代码"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+validate-derive.workspace = true

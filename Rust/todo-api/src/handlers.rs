@@ -1,11 +1,33 @@
 // ============================================
-// Todo API - 请求处理函数（带自动保存）
-// 日期：2026-06-22（第27天更新）
+// Todo API - 请求处理函数
+// 日期：2026-06-21（第25天）创建
+// 更新：2026-06-22（第27天：自动保存）
+// 更新：2026-10-29（第33天：改为 SQLite）
 // ============================================
 
 use crate::models::{ApiResponse, CreateTodo, ErrorResponse, Todo, UpdateTodo};
 use crate::state::AppState;
+
 use actix_web::{web, HttpResponse, Responder};
+
+// --------------------------------------------
+// 通用错误响应
+// --------------------------------------------
+
+/// 把数据库错误统一翻译成 500
+///
+/// 【为什么细节不返回给客户端】
+/// 数据库错误信息里可能包含表名、列名、SQL 片段——
+/// 那是给攻击者的地图。详细内容进日志（服务端），
+/// 客户端只看到 "内部数据库错误"。
+fn internal_error(e: sqlx::Error) -> HttpResponse {
+    eprintln!("❌ 数据库错误: {}", e);
+    HttpResponse::InternalServerError().json(ErrorResponse::error("内部数据库错误"))
+}
+
+fn not_found() -> HttpResponse {
+    HttpResponse::NotFound().json(ErrorResponse::error("Todo not found"))
+}
 
 // --------------------------------------------
 // GET /todos - 获取所有任务
@@ -13,36 +35,20 @@ use actix_web::{web, HttpResponse, Responder};
 
 /// 获取所有任务
 ///
-/// # 参数
-/// - state: web::Data<AppState> - 共享状态（自动注入）
+/// # 说明
+/// 第 27 天的实现是"加锁 → 克隆 Vec → 解锁 → 序列化"。
+/// 现在只有一步：查数据库。**没有锁，也没有内存副本。**
 ///
-/// # 返回
-/// - HttpResponse - JSON 响应，包含所有任务
-///
-/// # 示例响应
-/// ```json
-/// {
-///   "success": true,
-///   "data": [
-///     {"id": 1, "title": "学习 Rust", "completed": false}
-///   ]
-/// }
-/// ```
+/// 代价是每次请求都要走一次 SQL——但这正是数据库该做的事：
+/// 它保证你看到的永远是当前真相，而不是某个线程缓存的快照。
 pub async fn get_all(state: web::Data<AppState>) -> impl Responder {
-    // 1. 获取 Mutex 锁（阻塞，直到获取成功）
-    //    注意：现在 state 是结构体，需要访问 state.todos
-    let todos = state.todos.lock().unwrap();
-
-    // 2. 克隆数据（因为锁守卫不能跨 .await 点）
-    let todos_clone = todos.clone();
-
-    // 3. 锁守卫在这里离开作用域，自动释放锁
-
-    // 4. 构造成功响应
-    let response = ApiResponse::success(todos_clone);
-
-    // 5. 返回 JSON 响应
-    HttpResponse::Ok().json(response)
+    match sqlx::query_as::<_, Todo>("SELECT id, title, completed FROM todos ORDER BY id")
+        .fetch_all(&state.pool)
+        .await
+    {
+        Ok(todos) => HttpResponse::Ok().json(ApiResponse::success(todos)),
+        Err(e) => internal_error(e),
+    }
 }
 
 // --------------------------------------------
@@ -51,359 +57,208 @@ pub async fn get_all(state: web::Data<AppState>) -> impl Responder {
 
 /// 创建新任务
 ///
-/// # 参数
-/// - state: web::Data<AppState> - 共享状态（自动注入）
-/// - new_todo: web::Json<CreateTodo> - 请求体（自动解析 JSON）
-///
-/// # 返回
-/// - HttpResponse - JSON 响应，包含新创建的任务
-///
-/// # 请求示例
+/// # 请求
 /// ```json
-/// {
-///   "title": "学习 Actix-web"
-/// }
+/// { "title": "学习 Actix-web" }
 /// ```
 ///
-/// # 响应示例
+/// # 响应（201 Created）
 /// ```json
-/// {
-///   "success": true,
-///   "data": {
-///     "id": 1,
-///     "title": "学习 Actix-web",
-///     "completed": false
-///   }
-/// }
+/// { "success": true, "data": { "id": 1, "title": "学习 Actix-web", "completed": false } }
 /// ```
+///
+/// # 与第 27 天实现的差异
+/// - 旧：`todos.iter().max() + 1` 手工生成 id，然后整体写回文件
+/// - 新：由数据库生成 id（`INTEGER PRIMARY KEY`），只写入这一行
+///
+/// **手工生成 id 在并发下必然重复**：两个请求同时读到 max=5，
+/// 都算出 6，后写的覆盖先写的。数据库的自增是原子的，这类 bug 直接消失。
 pub async fn create(
     state: web::Data<AppState>,
     new_todo: web::Json<CreateTodo>,
 ) -> impl Responder {
-    // 1. 获取 Mutex 锁（可变访问）
-    //    注意：现在使用 state.todos
-    let mut todos = state.todos.lock().unwrap();
+    let result = sqlx::query(
+        "INSERT INTO todos (title, completed, created_at, updated_at)
+         VALUES (?, 0, datetime('now'), datetime('now'))",
+    )
+    .bind(&new_todo.title)
+    .execute(&state.pool)
+    .await;
 
-    // 2. 生成新的 ID
-    let new_id = todos.iter().map(|t| t.id).max().unwrap_or(0) + 1;
-
-    // 3. 创建新的 Todo 实例
-    let todo = Todo::new(new_id, new_todo.title.clone());
-
-    // 4. 添加到列表
-    todos.push(todo.clone());
-
-    // 5. 释放锁（显式 drop，为了后续保存）
-    drop(todos);
-
-    // 6. 保存到文件（自动保存）⭐⭐⭐ 新增
-    if let Err(e) = state.save_to_file().await {
-        // 保存失败只记录日志，不阻断请求
-        // 数据已经在内存中，下次修改时会再次尝试保存
-        eprintln!("⚠️  保存数据失败: {}", e);
+    match result {
+        Ok(r) => {
+            // `last_insert_rowid()` 是本次 INSERT 生成的主键
+            let id = r.last_insert_rowid();
+            let todo = Todo::new(id, new_todo.title.clone());
+            HttpResponse::Created().json(ApiResponse::success(todo))
+        }
+        Err(e) => internal_error(e),
     }
-
-    // 7. 构造成功响应
-    let response = ApiResponse::success(todo);
-
-    // 8. 返回 JSON 响应（HTTP 201 Created）
-    HttpResponse::Created().json(response)
 }
 
 // --------------------------------------------
-// GET /todos/:id - 获取单个任务
+// GET /todos/{id} - 获取单个任务
 // --------------------------------------------
 
 /// 获取单个任务
 ///
-/// # 参数
-/// - state: web::Data<AppState> - 共享状态（自动注入）
-/// - id: web::Path<u32> - 路径参数（自动提取）
-///
-/// # 返回
-/// - HttpResponse - JSON 响应，包含任务或 404 错误
-///
-/// # 路径参数
-/// - id: 任务的唯一标识符
-///
-/// # 成功响应示例
-/// ```json
-/// {
-///   "success": true,
-///   "data": {
-///     "id": 1,
-///     "title": "学习 Rust",
-///     "completed": false
-///   }
-/// }
-/// ```
-///
-/// # 错误响应示例（404）
-/// ```json
-/// {
-///   "success": false,
-///   "error": "Todo not found"
-/// }
-/// ```
-pub async fn get_by_id(
-    state: web::Data<AppState>,
-    id: web::Path<u32>,
-) -> impl Responder {
-    // 1. 获取 Mutex 锁
-    //    注意：现在使用 state.todos
-    let todos = state.todos.lock().unwrap();
-
-    // 2. 提取路径参数
+/// # 说明
+/// 用 `fetch_optional` 而不是 `fetch_one`：
+/// "查不到"是**业务上的正常分支**（→ 404），不是程序错误。
+/// 用 `fetch_one` 会把 404 变成 500，这是新手最常犯的错误之一。
+pub async fn get_by_id(state: web::Data<AppState>, id: web::Path<i64>) -> impl Responder {
     let todo_id = id.into_inner();
 
-    // 3. 在列表中查找任务
-    let todo = todos.iter().find(|t| t.id == todo_id);
+    let found = sqlx::query_as::<_, Todo>("SELECT id, title, completed FROM todos WHERE id = ?")
+        .bind(todo_id)
+        .fetch_optional(&state.pool)
+        .await;
 
-    // 4. 根据查找结果返回响应
-    match todo {
-        Some(found_todo) => {
-            // 找到了任务
-            let response = ApiResponse::success(found_todo.clone());
-            HttpResponse::Ok().json(response)
-        }
-        None => {
-            // 没找到任务，返回 404
-            let error = ErrorResponse::error("Todo not found");
-            HttpResponse::NotFound().json(error)
-        }
+    match found {
+        Ok(Some(todo)) => HttpResponse::Ok().json(ApiResponse::success(todo)),
+        Ok(None) => not_found(),
+        Err(e) => internal_error(e),
     }
 }
 
 // --------------------------------------------
-// PUT /todos/:id - 更新任务
+// PUT /todos/{id} - 更新任务
 // --------------------------------------------
 
-/// 更新任务
+/// 更新任务（支持部分更新）
 ///
-/// # 参数
-/// - state: web::Data<AppState> - 共享状态（自动注入）
-/// - id: web::Path<u32> - 路径参数（任务ID）
-/// - update_data: web::Json<UpdateTodo> - 请求体（更新数据）
-///
-/// # 返回
-/// - HttpResponse - JSON 响应，包含更新后的任务或 404 错误
-///
-/// # 请求示例
+/// # 请求
 /// ```json
-/// {
-///   "title": "学习 Actix-web（已更新）",
-///   "completed": true
-/// }
+/// { "title": "新标题", "completed": true }
+/// ```
+/// 两个字段都可省略：
+/// ```json
+/// { "completed": true }
 /// ```
 ///
-/// # 说明
-/// - 支持部分更新（只更新提供的字段）
-/// - title 和 completed 都是可选的
-/// - 至少需要提供一个字段
+/// # 实现要点：COALESCE 做部分更新
+/// ```sql
+/// UPDATE todos SET title = COALESCE(?, title), completed = COALESCE(?, completed)
+/// ```
+/// - 传了值 → 用新值
+/// - 传 NULL → 保持原值
+///
+/// 这比"先 SELECT 出来、在 Rust 里合并、再 UPDATE 整行"少一次往返，
+/// 也**避免了读-改-写之间的竞态窗口**。
+///
+/// # RETURNING
+/// SQLite 3.35+ 支持 `RETURNING`，一条语句同时完成"改"和"取回改后的值"。
+/// 这又是一次"少一次往返"，且天然原子。
 pub async fn update(
     state: web::Data<AppState>,
-    id: web::Path<u32>,
+    id: web::Path<i64>,
     update_data: web::Json<UpdateTodo>,
 ) -> impl Responder {
-    // 1. 获取 Mutex 锁（需要可变访问）
-    //    注意：现在使用 state.todos
-    let mut todos = state.todos.lock().unwrap();
-
-    // 2. 提取路径参数
     let todo_id = id.into_inner();
 
-    // 3. 在列表中查找任务（可变引用）
-    let todo = todos.iter_mut().find(|t| t.id == todo_id);
+    let updated = sqlx::query_as::<_, Todo>(
+        "UPDATE todos
+         SET title     = COALESCE(?, title),
+             completed = COALESCE(?, completed),
+             updated_at = datetime('now')
+         WHERE id = ?
+         RETURNING id, title, completed",
+    )
+    .bind(&update_data.title) // Option<&String> → NULL 或文本
+    .bind(update_data.completed) // Option<bool> → NULL 或 0/1
+    .bind(todo_id)
+    .fetch_optional(&state.pool)
+    .await;
 
-    // 4. 根据查找结果进行更新
-    match todo {
-        Some(found_todo) => {
-            // 找到了任务，进行更新
-
-            // 5. 更新 title（如果提供了）
-            if let Some(new_title) = &update_data.title {
-                found_todo.title = new_title.clone();
-            }
-
-            // 6. 更新 completed（如果提供了）
-            if let Some(new_completed) = update_data.completed {
-                found_todo.completed = new_completed;
-            }
-
-            // 7. 克隆更新后的任务（用于响应）
-            let updated_todo = found_todo.clone();
-
-            // 8. 释放锁（显式 drop，为了后续保存）
-            drop(todos);
-
-            // 9. 保存到文件（自动保存）⭐⭐⭐ 新增
-            if let Err(e) = state.save_to_file().await {
-                eprintln!("⚠️  保存数据失败: {}", e);
-            }
-
-            // 10. 返回更新后的任务
-            let response = ApiResponse::success(updated_todo);
-            HttpResponse::Ok().json(response)
-        }
-        None => {
-            // 没找到任务，返回 404
-            let error = ErrorResponse::error("Todo not found");
-            HttpResponse::NotFound().json(error)
-        }
+    match updated {
+        // 命中并返回了改后的行
+        Ok(Some(todo)) => HttpResponse::Ok().json(ApiResponse::success(todo)),
+        // 没有行被更新 —— id 不存在
+        Ok(None) => not_found(),
+        Err(e) => internal_error(e),
     }
 }
 
 // --------------------------------------------
-// DELETE /todos/:id - 删除任务
+// DELETE /todos/{id} - 删除任务
 // --------------------------------------------
 
 /// 删除任务
 ///
-/// # 参数
-/// - state: web::Data<AppState> - 共享状态（自动注入）
-/// - id: web::Path<u32> - 路径参数（任务ID）
+/// # 说明
+/// 同样用 `RETURNING` 把"删"和"取回被删的行"合成一条语句。
 ///
-/// # 返回
-/// - HttpResponse - JSON 响应，确认删除或 404 错误
-///
-/// # 成功响应示例
-/// ```json
-/// {
-///   "success": true,
-///   "data": {
-///     "id": 1,
-///     "title": "学习 Rust",
-///     "completed": false
-///   }
-/// }
-/// ```
-pub async fn delete(
-    state: web::Data<AppState>,
-    id: web::Path<u32>,
-) -> impl Responder {
-    // 1. 获取 Mutex 锁（需要可变访问）
-    //    注意：现在使用 state.todos
-    let mut todos = state.todos.lock().unwrap();
-
-    // 2. 提取路径参数
+/// 第 27 天的实现是 `position()` + `remove(index)`，需要先找到索引；
+/// 数据库里 `DELETE ... WHERE id = ?` 直接表达意图，不需要知道位置。
+pub async fn delete(state: web::Data<AppState>, id: web::Path<i64>) -> impl Responder {
     let todo_id = id.into_inner();
 
-    // 3. 在列表中查找任务的位置
-    let position = todos.iter().position(|t| t.id == todo_id);
+    let removed = sqlx::query_as::<_, Todo>(
+        "DELETE FROM todos WHERE id = ? RETURNING id, title, completed",
+    )
+    .bind(todo_id)
+    .fetch_optional(&state.pool)
+    .await;
 
-    // 4. 根据查找结果进行删除
-    match position {
-        Some(index) => {
-            // 找到了任务
+    match removed {
+        Ok(Some(todo)) => HttpResponse::Ok().json(ApiResponse::success(todo)),
+        // 删一张不存在的行不是错误，只是"没命中" → 404
+        Ok(None) => not_found(),
+        Err(e) => internal_error(e),
+    }
+}
 
-            // 5. 从列表中移除任务
-            let removed_todo = todos.remove(index);
+// --------------------------------------------
+// GET /health - 健康检查
+// --------------------------------------------
 
-            // 6. 释放锁（显式 drop，为了后续保存）
-            drop(todos);
-
-            // 7. 保存到文件（自动保存）⭐⭐⭐ 新增
-            if let Err(e) = state.save_to_file().await {
-                eprintln!("⚠️  保存数据失败: {}", e);
-            }
-
-            // 8. 返回被删除的任务
-            let response = ApiResponse::success(removed_todo);
-            HttpResponse::Ok().json(response)
-        }
-        None => {
-            // 没找到任务，返回 404
-            let error = ErrorResponse::error("Todo not found");
-            HttpResponse::NotFound().json(error)
+/// 健康检查：确认进程活着 **且** 数据库可用
+///
+/// 【为什么不能只返回 200】
+/// 进程活着但数据库挂了，负载均衡器仍会把流量打进来，
+/// 每个请求都 500。这种"假健康"比直接 DOWN 更难排查。
+/// 所以这里真的查一次库。
+pub async fn health(state: web::Data<AppState>) -> impl Responder {
+    match sqlx::query("SELECT 1").execute(&state.pool).await {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({
+            "success": true,
+            "data": { "status": "ok", "db": "ok" }
+        })),
+        Err(e) => {
+            eprintln!("❌ 健康检查失败: {}", e);
+            HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                "success": false,
+                "error": "数据库不可用"
+            }))
         }
     }
 }
 
 /*
-【关键知识点】
+【第 33 天迁移要点：旧实现里的问题在这里如何消失】
 
-1. async fn（异步函数）：
-   - 所有 handler 必须是 async fn
-   - 可以在函数内使用 .await
-   - 返回 impl Responder（实现 Responder trait 的类型）
+1. 「手工生成 ID」→ 数据库自增
+   旧：`todos.iter().map(|t| t.id).max().unwrap_or(0) + 1`
+   并发下两个请求算出同一个 id，后写覆盖先写。
+   新：`INTEGER PRIMARY KEY` 由数据库原子分配。
 
-2. web::Data<T>（状态提取器）：
-   - Actix-web 自动注入共享状态
-   - Data<T> 内部是 Arc<T>，可以安全共享
-   - 在配置路由时通过 .app_data() 传入
+2. 「整体覆写文件」→ 行级写入
+   旧：`state.save_to_file()` 把整个 Vec 序列化后重写。
+   改一条 = 写全部，且不是原子的（靠 tmp+rename 才勉强救回来）。
+   新：`UPDATE ... WHERE id = ?` 只碰一行，事务性由数据库保证。
 
-3. web::Json<T>（JSON 提取器）：
-   - 自动解析请求体为 JSON
-   - 自动反序列化为指定类型（需要 Deserialize trait）
-   - 如果解析失败，自动返回 400 Bad Request
+3. 「锁守卫不能跨 await」→ 问题不存在了
+   旧：必须先 clone 数据、drop 锁，再 await 保存。
+   新：`&state.pool` 可以直接跨 await（Pool 是 Send + Sync）。
 
-4. web::Path<T>（路径参数提取器）：
-   - 自动从 URL 路径中提取参数
-   - /todos/{id} -> web::Path<u32>
-   - into_inner() 获取内部值
-   - 支持元组：web::Path<(u32, String)>
+4. 「保存失败只记日志」→ 语义正确了
+   旧：内存已改、文件写失败 → 内存与磁盘不一致。
+   新：INSERT/UPDATE 返回 Ok 就意味着**已落库**；
+   返回 Err 就是真的没做成，直接 500 给客户端。
 
-5. impl Responder（响应类型）：
-   - Responder 是一个 trait
-   - HttpResponse、String、&str、Json<T> 都实现了它
-   - impl Responder 表示返回任何实现该 trait 的类型
-
-6. Mutex 锁的使用：
-   - lock() 获取锁（阻塞操作）
-   - unwrap() 处理锁中毒错误
-   - 锁守卫（MutexGuard）离开作用域时自动释放锁
-   - 为什么要克隆？因为锁守卫不能跨 .await 点
-
-7. HTTP 状态码：
-   - 200 OK: 成功（get_all, get_by_id, update, delete）
-   - 201 Created: 创建成功（create）
-   - 400 Bad Request: 请求无效（自动处理）
-   - 404 Not Found: 资源不存在（get_by_id, update, delete）
-
-8. ID 生成策略：
-   - 简单的自增 ID
-   - 使用 iter().map().max() 找到最大 ID
-   - unwrap_or(0) 处理空列表情况
-   - 生产环境可能需要更复杂的 ID 生成策略
-
-9. 为什么需要 clone()？
-   - new_todo.title.clone(): CreateTodo 被 Json 包装，需要克隆
-   - todo.clone(): 需要在返回响应时使用，但 todos 列表也需要所有权
-   - todos.clone(): 释放锁后仍需要数据
-
-10. iter() vs iter_mut()：
-    - iter(): 不可变迭代器，返回不可变引用 &T
-    - iter_mut(): 可变迭代器，返回可变引用 &mut T
-    - 更新操作需要使用 iter_mut()
-
-11. find() vs position()：
-    - find(): 返回 Option<&T>，找到元素的引用
-    - position(): 返回 Option<usize>，找到元素的索引
-    - 删除操作需要索引，所以用 position()
-
-12. Vec::remove()：
-    - remove(index): 移除指定位置的元素
-    - 返回被移除的元素（获取所有权）
-    - 后续元素会向前移动
-
-13. Option 的 if let 模式：
-    - if let Some(value) = option { ... }
-    - 只有当 Option 是 Some 时才执行代码块
-    - 用于部分更新（UpdateTodo）
-
-14. match 表达式：
-    - 用于处理 Option 和 Result
-    - Some/None 分支处理不同情况
-    - 404 错误在 None 分支返回
-
-15. 多个 Extractor 组合：
-    - update() 同时使用 web::Path 和 web::Json
-    - 参数顺序不重要，Actix-web 自动匹配类型
-    - 每个 Extractor 独立工作
-
-16. RESTful 设计模式：
-    - GET /todos/:id - 获取单个资源
-    - PUT /todos/:id - 更新资源
-    - DELETE /todos/:id - 删除资源
-    - 路径参数表示资源标识符
+5. 仍然存在的并发问题
+   PUT 现在是单条原子的 UPDATE，不会丢失更新。
+   但如果将来实现"先 SELECT 校验业务规则再 UPDATE"，
+   丢失更新会重新出现——那时才需要乐观锁（见第 32 天）。
+   届时加 `version` 列即可，API 形状不用变。
 */

@@ -1,0 +1,12 @@
+[package]
+name = "file-manager"
+version = "0.1.0"
+edition = "2021"
+description = "第14周项目补做：递归遍历 / 按扩展名查找 / 体积统计 / 流式复制（零依赖）"
+
+# 零依赖的原因（如实记录）：
+# 原本打算用 clap，但本机 crates.io 不可达且 clap 未进本地缓存。
+# 于是手写了一个 60 行的子命令解析器（src/cli.rs）——
+# 顺带看清了 clap 到底替你做了什么：短/长选项、取值、错误提示、help 生成。
+# 取舍见 README「为什么没上 clap」。
+[dependencies]
