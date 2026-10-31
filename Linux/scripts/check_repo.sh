@@ -68,10 +68,15 @@ else
         bad "naming" "命名不符合约定: ${badnames[*]}"
 fi
 
-# 4. README 里的相对链接必须存在（只查实验与项目，外链与锚点跳过）
+# 4. README 与笔记里的相对链接必须存在（外链与锚点跳过）
+#
+# 2026-10-30：原来只扫 experiments/projects/knowledge_base，而 notes/ 是文档最多的目录、
+# 恰恰没被检查——`notes/README.md` 里新增的链接不计数也不判定。补上 notes/ 与其它 Markdown 目录。
 broken=()
 checked=0
-for md in experiments/*/README.md projects/*/README.md knowledge_base/*.md; do
+for md in experiments/*/README.md projects/*/README.md knowledge_base/*.md \
+          notes/*.md notes/*/*.md weekly_reports/*.md daily_logs/*.md daily_tasks/*.md \
+          README.md; do
         [ -f "$md" ] || continue
         d=$(dirname "$md")
         while IFS= read -r target; do

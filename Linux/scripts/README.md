@@ -43,7 +43,7 @@
 | 平台 / shell | WSL2 Ubuntu，`bash 4+` |
 | 用法 | `./scripts/check_repo.sh`（无参数） |
 | 依赖 | `grep` `sed` `find` `git`（用 `git check-ignore` 区分"残留"与"已被忽略的产物"） |
-| 检查项 | 实验/项目 README 存在性、日志与周报命名（§5）、README 相对链接可达性、临时文件残留、`benchmarks/` 与 `scripts/` 是否有实质文件 |
+| 检查项 | 实验/项目 README 存在性、日志与周报命名（§5）、Markdown 相对链接可达性、临时文件残留、`benchmarks/` 与 `scripts/` 是否有实质文件 |
 | 生成 / 修改 | **只读**，不修改任何文件 |
 | 退出状态 | `0` 全部通过；`1` 有 FAIL；`2` 不在预期目录 |
 | 破坏性操作 | 无 |
@@ -51,9 +51,16 @@
 边界：它读不出"文档里写的结论是否真的实测过"——那属于 §1.1 的人工判断。
 它只保证**结构**不出错：目录有说明、命名合约定、链接不悬空、没有残留物。
 
-两条误报已经踩过并修掉，留在这里免得下一个人重踩：
+三条已经踩过的坑，留在这里免得下一个人重踩：
 
 - C++ lambda 写法 `= [](int fd, ...)` 会被链接正则误认成 Markdown 链接 →
   现在跳过含空格或 `<>{},` 的目标；
 - `tests/qemu-stm32/aviation/__pycache__` 被根 `.gitignore` 忽略，不该算"残留" →
-  现在先过一遍 `git check-ignore`。
+  现在先过一遍 `git check-ignore`；
+- **链接检查的范围漏了 `notes/`**（2026-10-30 修）：原先只扫
+  `experiments/*/README.md`、`projects/*/README.md`、`knowledge_base/*.md`，
+  而 `notes/` 是 Markdown 最多的目录，新增链接既不计数也不判定——
+  `notes/README.md` 加了一行索引，读数却停在 150 不动，才发现没被扫。
+  现在把 `notes/*.md`、`notes/*/*.md`、`weekly_reports/`、`daily_logs/`、`daily_tasks/` 与根
+  `README.md` 一并纳入。**范围扩大后读数从 150 跳到 390 且 0 断链**——
+  跳变来自覆盖面，不是新增文件；比较链接数时必须连范围一起说。

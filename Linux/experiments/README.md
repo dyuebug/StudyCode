@@ -123,11 +123,15 @@ accept、读、分帧、写三形态共用同一份代码，差别只在 `deploy
 | [`F103_17_ADC_Polling`](F103_17_ADC_Polling/README.md) | ADC1 轮询：内部温度传感器（ch16）与 Vrefint（ch17）、`ADCCLK` 与采样时间换算、`RSTCAL`/`CAL` 校准顺序、"等硬件清零"判据的假阳性 | 构建实测 + **QEMU 实测超时分支**：`ADON`/`RSTCAL`/`CAL` 读回全 0、两路 `EOC` 不置位；校准判据主动判"不可判定"而非"校准完成"（首版正是假阳性，已改正）。**真板 `code` 读数、`Vdda` 反推、出厂标定值未验证** |
 | [`F103_18_CAN_Loopback`](F103_18_CAN_Loopback/README.md) | bxCAN 回环自测：`INRQ`/`INAK`、500 kbps 位时序（`BTR=0x401C0000`）、32 位掩码过滤器、邮箱发送与 FIFO0 接收、`RFOM0` 释放 | 构建实测 + **寄存器路径核对**（反汇编 2 处 `0x40006400` 字面量）+ **QEMU 实测访问即 HardFault**（`CFSR=0x00008200`、`HFSR=0x40000000`、`BFAR=0x40006400`，该段未映射）。**功能零验证：收发、过滤器、位时序全部待真板** |
 | [`F103_19_DMA_Mem2Mem`](F103_19_DMA_Mem2Mem/README.md) | DMA1 ch1 内存到内存：轮询 `TCIF`、TC 中断、"不清标志直接复用"造成的假完成、`CNDTR` 重装前必须关 `EN`、mem2mem 的 `PINC` 陷阱 | 构建实测 + **QEMU 实测超时分支**：`CCR` 读回 0、`TCIF1` 不置位、`dst` 保持原值，三个用例全部落在超时/原值分支。**真板数据比对、中断次数、真实耗时未验证** |
+| [`F103_20_LogicAnalyzer`](F103_20_LogicAnalyzer/README.md) | 教材第 4 章逻辑分析仪方案的**可判定实现**：核心逻辑（8 通道打包、环形缓冲满时策略、SUMP 深度字段、UART 波形还原、容量算术）抽进不依赖 HAL 的 `la_core.c`，固件与两个主机判定程序链接**同一份源码**；固件只保留定时器节拍、读 `IDR`、串口流出 | **主机端实测**：`lab_la_proto` 54/54 断言通过 `rc=0`、`lab_la_arith` 六节 `assert` 全过 `rc=0`；**QEMU 实测**数据链路（`mode=sw got=256 dropped=0`、`decode n=3 bytes=4C 41 21`、`verdict=PASS`），探针实测 **TIM2 整段无模型**（`PSC/ARR/CR1/DIER` 读回全 0，不是"不计数"）；负向验证 `spp` 改 7 → `decode n=1 bytes=0D` / `verdict=FAIL`。**定时器采样、真实引脚波形、抖动全部未验证** |
+| [`F103_HAL_DriverLab`](F103_HAL_DriverLab/README.md) | 课程官方驱动库（20 个模块 + `driver_irq.c`）的 GCC/CMake 构建与 Cursor 调试环境：Keil↔GCC 的启动文件/链接脚本/重定向差异、`LAB_TEST` 编译期裁剪、模块↔驱动↔引脚↔HAL 依赖总表、`lab_pins.c` 补 CubeMX 模板的引脚缺口 | **构建实测**（arm-none-eabi-gcc 14.2.1 + CMake 4.0.3 + Ninja）：0 error / 13 warning（13 条全在上游驱动），`text 15276 / data 100 / bss 3176`（Flash 23.5 %）；向量表、`--gc-sections` 裁剪经 `nm`/`xxd` 核对。**烧写链路与 20 个模块的板上现象全部未验证**（本机无 ST-Link、无外部模块） |
 
 QEMU 验证的完整能力边界、原始串口日志与复现命令见 [`../tests/qemu-stm32/`](../tests/qemu-stm32/README.md)。
 一句话小结：能仿真验证的链路是"串口 + SysTick + NVIC"以及**建立在它们之上的 FreeRTOS 调度器、
 中断→任务交接、同步原语、软件定时器与心跳监督**；
-GPIO/TIM/I2C/DWT/IWDG/ADC/DMA 全部未建模（`RCC->CSR` 复位标志同样读回 0），
+GPIO/TIM/I2C/DWT/IWDG/ADC/DMA 全部未建模（`RCC->CSR` 复位标志同样读回 0；
+`F103_20` 进一步实测：TIM2 的 `PSC/ARR/CR1/DIER` **写进去一个都没读回来**，
+说明是"整段没有模型"，而不是"计数器不跑"——前者永远等不到，后者可以等），
 CAN1 更进一步：`0x40006400` 这一段**根本没有映射**，第一次访问就 `BusFault → HardFault`。
 且 QEMU 的 SYSCLK 是 24 MHz（固件按 8 MHz 假设），
 时间相关结论只可用于比较比例，不得用于绝对毫秒。
