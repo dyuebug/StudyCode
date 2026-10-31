@@ -1,0 +1,129 @@
+# ============================================
+# Rust · realtime-chat 质量门禁
+# 日期：2026-11-07（第43天）
+# ============================================
+#
+# 【为什么这个文件在仓库根，而不是 realtime-chat/.github/workflows/】
+# GitHub 只读取**仓库根目录**下的 `.github/workflows/`。
+# 放在子项目目录里的同名文件不会报错、也不会提示——它被完全忽略。
+# 这是新手最常踩的一个"静默失败"：文件明明写了，就是从不运行。
+# 所以这里放在根目录，用 paths 过滤只对 Rust/realtime-chat 的改动触发。
+#
+# 【本文件的状态：未实测】
+# 本机是 Windows + 局域环境，无法真实触发 GitHub Actions。
+# 下方每一步的**命令**都在本机手工跑过（结论见 realtime-chat/CI.md §2），
+# 但 action 版本号、runner 镜像、缓存命中率等只能在云端验证。
+# 不要把"本地通过"当成"CI 通过"——这正是第 42 天 stub 二进制的教训。
+
+name: Rust · realtime-chat
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Rust/realtime-chat/**'
+      - '.github/workflows/rust-realtime-chat.yml'
+  pull_request:
+    paths:
+      - 'Rust/realtime-chat/**'
+  # 允许手动触发，便于第一次上线时先跑通再交给 push
+  workflow_dispatch:
+
+# 同一分支的新推送取消旧任务：省机器，也避免"旧提交的绿灯"误导人
+concurrency:
+  group: rust-realtime-chat-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 日志里带颜色，但用 "always" 而不是自动判断：CI 里不是 tty，自动判断会关掉颜色
+  CARGO_TERM_COLOR: always
+  # 失败时打印调用栈，否则"在哪 panic"要重跑才知道
+  RUST_BACKTRACE: 1
+  # 增量编译会把中间产物写进 target/，与缓存配合时反而更慢、体积更大
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  check:
+    name: fmt / clippy / test
+    runs-on: ubuntu-latest
+    # 防止卡死：缓存损坏或测试挂住时，任务在 20 分钟后被强制结束
+    timeout-minutes: 20
+    defaults:
+      run:
+        # 每条 run 都在子项目目录里执行（只有 run 受影响，uses 不受影响）
+        working-directory: Rust/realtime-chat
+
+    steps:
+      - name: 取代码
+        uses: actions/checkout@v4
+
+      # 【固定工具链】
+      # 钉住 1.92.0 = 与本机一致。理由见第 42 天实测：
+      # 同一条代码在 1.92.0 零警告，在 1.99.1 报 fetch_update 已废弃。
+      # 用 `@stable` 而不指定版本，会在某天早上让"没改代码的仓库"变红。
+      - name: 安装 Rust 1.92.0
+        id: toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.92.0'
+          components: rustfmt, clippy
+
+      # 【缓存】
+      # 键绑定 Cargo.lock 的内容 + 工具链 + 操作系统，三者任一变化都重建。
+      # 不用 run_id / 日期：那会让缓存从不命中，或命中不该命中的旧缓存。
+      - name: 缓存依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            Rust/realtime-chat/target
+          key: cargo-${{ runner.os }}-${{ steps.toolchain.outputs.cachekey }}-${{ hashFiles('Rust/realtime-chat/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-${{ steps.toolchain.outputs.cachekey }}-
+
+      # 【闸门 1：格式】只判断，不改代码。--check 不通过时退出码非 0。
+      - name: 格式检查
+        run: cargo fmt --all -- --check
+
+      # 【闸门 2：惯用法】-D warnings 把警告升级为错误，否则检查等于没做。
+      # --all-targets 是关键：不加它，tests/ 和 examples/ 不会被检查。
+      # 第 43 天实测：就是这三处 examples/flood.rs、tests/ws.rs 里的多余 .into()
+      # 让本地这条命令从 exit 0 变成 exit 101。
+      - name: clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      # 【闸门 3：行为】
+      # 第 41 天的教训：`stop(true)` 会让每条用例白等 30 秒（31.05 s → 1.01 s）。
+      # 测试慢到没人跑就等于没有测试，所以这里不设 --release、不加 --all-features，
+      # 保持与本地 `cargo test` 完全一致的默认路径。
+      #
+      # 【为什么用 tee + pipefail】
+      # 下一步要读日志做数量断言，所以这里必须把输出落盘。
+      # 但 `cargo test | tee log` 的退出码是 **tee 的**——tee 永远成功，
+      # 于是测试失败也会变成绿灯。`set -o pipefail` 让管道返回最左侧失败命令的退出码。
+      # 这是"退出码被吃掉"的第二副面孔（第一副是 `cmd; echo $?`，第 42 天）。
+      - name: 测试
+        run: |
+          set -o pipefail
+          cargo test 2>&1 | tee /tmp/test.log
+
+      # 【数量断言】
+      # `cargo test` 在"0 个用例"时退出码仍是 0（第 43 天实测）。
+      # 注意本项目正常输出里**天然就有两段 `0 passed`**：
+      #   src/main.rs 的 bin 单测（main 里没有 #[test]）和 doctest（没有文档示例）。
+      # 所以不能用"每一行都必须 ≥1 个通过"这种写法，那会把正常情况判成失败。
+      # 这里用**汇总**：所有 `test result:` 行的 passed 数之和不得少于 10。
+      # 项目当前是 3 + 0 + 7 + 0 = 10。加测试时要往上改这个数字（只增不减）。
+      - name: 断言测试确实被收集
+        run: |
+          set -e
+          total=$(grep -Eo 'test result: ok\. [0-9]+ passed' /tmp/test.log \
+                  | grep -Eo '[0-9]+' \
+                  | awk '{s += $1} END {print s + 0}')
+          echo "本次通过用例总数：$total"
+          if [ "$total" -lt 10 ]; then
+            echo "::error::通过用例总数 $total < 10，测试可能没被收集"
+            exit 1
+          fi
