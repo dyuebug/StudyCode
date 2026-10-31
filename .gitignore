@@ -63,9 +63,13 @@ Linux/tests/qemu-vexpress/100ask-vexpress.dtb
 Linux/tests/qemu-vexpress/.100ask-vexpress.pre.dts
 
 # F103 裸机实验的 CMake 构建目录（.elf/.hex/.map 另由上面的通配规则忽略）
-Linux/experiments/F103_*/build/
-Linux/experiments/F103_*/build-qemu/
+# build* 覆盖 build/、build-qemu/、build-board/、build_t0/ 等板级与对照构建变体
+Linux/experiments/F103_*/build*/
 Linux/tests/qemu-stm32/probe/build/
+
+# F103 HAL 实验的 vendor SDK（STM32 CMSIS + HAL 驱动，27MB / 248 文件）
+# 沿用仓库惯例：vendor 源码不入库，只保留许可证声明（见 F103_common/vendor/）
+Linux/experiments/F103_HAL_DriverLab/Drivers/
 
 # 综合项目的 CMake 构建目录（与 F103 实验同规则）；
 # build-* 覆盖 build-qemu 与对照构建（如 aviation-node 的 build-noinj，
@@ -79,3 +83,7 @@ Linux/projects/*/build-*/
 # Python 字节码缓存（测试工具的副产物，可再生）
 __pycache__/
 *.pyc
+
+# AI 工具元数据与改写前备份快照（各语言目录通用，不入库）
+**/.spec-workflow/
+**/*.doctor-backup

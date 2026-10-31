@@ -14,11 +14,18 @@ env/
 .vscode/
 *.iml
 
+# Tool metadata
+.spec-workflow/
+.mindfs/
+
 # Runtime data and local databases
 *.db
 *.sqlite
 *.sqlite3
 *.log
+
+# Node.js dependencies (jsdom for tests)
+node_modules/
 
 # Generated backups and archives
 *.bak
