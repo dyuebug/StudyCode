@@ -142,9 +142,108 @@
 
 - **I2C**：`i2c_client` 表示设备，`i2c_adapter` 表示控制器/总线访问能力；`i2c_transfer()` 成功返回完成的消息数，应与期望数量比较，非负数也可能不完整。
 - **SPI**：`spi_device` 连接设备与控制器，驱动按设备协议组织传输；控制器或设备可能要求特定片选、模式、速率和 DMA 缓冲区条件。
-- **input**：驱动报告事件，由输入子系统统一呈现给应用；与每个设备自定义私有字符协议不同。
+- **input**：驱动报告事件，由输入子系统统一呈现给应用；与每个设备自定义私有字符协议不同。接口卡片见本节末尾。
 - **framebuffer/fbdev**：课程中的传统显示抽象；缓冲区布局、像素格式、刷新与 SPI 传输需适配。不能把所有现代显示驱动都归为 fbdev，后续还需了解 DRM/KMS。
 - **限制**：普通用户程序不能假设直接访问硬件；但“所有设备逻辑都必须在内核实现”也过于绝对。用户态可以在授权和内核框架支持下使用设备接口，本课程主线学习的是内核驱动。
+
+### input 子系统：注册与上报
+
+作用：把设备事件交给 input core，由 evdev 等 handler 统一生成 `/dev/input/eventN`，
+用户态读标准 `struct input_event`，不需要知道驱动内部实现。
+
+最小骨架：
+
+```c
+struct input_dev *idev = input_allocate_device();
+idev->name = "my-key";
+idev->id.bustype = BUS_VIRTUAL;        /* 不是真实总线就必须标 VIRTUAL */
+__set_bit(EV_KEY, idev->evbit);        /* 支持哪类事件 */
+__set_bit(KEY_ENTER, idev->keybit);    /* 支持哪个键码 */
+err = input_register_device(idev);     /* evbit/keybit 全空会返回 -ENODEV */
+
+input_report_key(idev, KEY_ENTER, 1);
+input_sync(idev);                      /* 缺这句，帧边界失效 */
+
+input_unregister_device(idev);         /* 内部会 input_free_device */
+```
+
+资源所有权：`input_allocate_device` 申请 → `input_register_device` 成功后由子系统管理 →
+`input_unregister_device` 释放（内部已含 free，重复调用 `input_free_device` 是错的；
+注册**失败**时才需要自己 `input_free_device`）。
+
+线程/上下文安全：`input_report_*` 可在中断上下文调用（内部加锁），`input_sync` 同理。
+定时器/工作队列里上报不需要额外加锁；跨上下文访问自己的私有结构仍需自保。
+
+常见误用：
+
+| 误用 | 后果 |
+| --- | --- |
+| 不声明 `evbit`/`keybit` | `input_register_device` 返回 `-ENODEV`；若只声明部分，evdev 过滤掉未声明的类型，表现为"注册成功但不产生事件" |
+| 漏 `input_sync()` | 事件**不丢**，但被 `drivers/input/input.c:351-354` 在累积到 `max_vals-2`（初始 8 个）时强制切帧，一批事件跨多次物理按键，用户态无法判断哪几个属于同一次按下 |
+| 假设 `eventN` 的 `N` 固定 | `inputN`（input core 编号）与 `eventN`（evdev 编号）是两套独立编号，且随注册顺序变化；用户态应按 `EVIOCGNAME` 匹配名字 |
+| `timer_delete_sync()` 放在 `input_unregister_device()` 之后 | 定时器回调访问已释放的 `input_dev`，use-after-free |
+
+### sysfs 属性：驱动参数的标准出口
+
+作用：把"改一个参数、读一个统计"从私有 `ioctl` 里拿出来，交给 driver core 统一成
+`/sys/...` 下的文本文件。用户态只有普通 `open`/`read`/`write`，不需要 `mknod`、不需要知道驱动。
+
+```c
+static ssize_t interval_show(struct device *dev,
+			     struct device_attribute *attr, char *buf)
+{
+	return sysfs_emit(buf, "%u\n", READ_ONCE(ctx->interval_ms));
+}
+
+static ssize_t interval_store(struct device *dev,
+			      struct device_attribute *attr,
+			      const char *buf, size_t count)
+{
+	unsigned int val;
+
+	if (kstrtouint(buf, 0, &val))
+		return -EINVAL;
+	if (val < 10 || val > 5000)
+		return -EINVAL;          /* 负 errno = 唯一可靠的失败通道 */
+	WRITE_ONCE(ctx->interval_ms, val);
+	return count;                /* 必须返回 count */
+}
+
+static DEVICE_ATTR_RW(interval);     /* 生成 dev_attr_interval */
+static DEVICE_ATTR_RO(stats);
+```
+
+成组注册：
+
+```c
+static struct attribute *attrs[] = {
+	&dev_attr_interval.attr, &dev_attr_stats.attr, NULL,
+};
+static const struct attribute_group grp = { .attrs = attrs };
+
+sysfs_create_group(&pdev->dev.kobj, &grp);
+sysfs_remove_group(&pdev->dev.kobj, &grp);
+```
+
+三条实测语义（QEMU 实测，见 [`Day16`](../experiments/Day16_sysfs属性/README.md)）：
+
+| 写法 | 用户态看到 | 结论 |
+| --- | --- | --- |
+| `return count`（4 字节） | `write()` 返回 4 | 正确 |
+| `return 3`（短值） | `write()` 返回 3，**参数照样被改**，无错误 | 不报错的静默短写 |
+| 越界 `return 0` | `write()` 返回 0、`errno` 不变 | 与"写了 0 字节"无法区分 |
+| 越界 `return -EINVAL` | `rc=-1 errno=22` | 正确 |
+| 写 `DEVICE_ATTR_RO` 属性 | `rc=-1 errno=13(EACCES)` | kernfs 层拒绝，**驱动的 `store()` 没被调用**，不计入驱动自己的计数 |
+
+常见误用：
+
+| 误用 | 后果 |
+| --- | --- |
+| `store()` 返回小于 `count` 的正数 | 静默短写，`echo` 察觉不到 |
+| 拒绝写入返回 0 | 用户态与"成功写入 0 字节"无法区分 |
+| 用 `printk` 输出供程序解析 | 应走 `sysfs_emit()` / 属性，`dmesg` 不是稳定接口 |
+| 卸载时先停定时器再 `sysfs_remove_group` | 留下"属性可写、事件源已停"的窗口 |
+| 在 sysfs 里实现大数据量传输 | 属性设计为单值/短文本，大块数据用 `bin_attribute` 或字符设备 |
 
 ## 9. 最小实验、观察与故障定位
 

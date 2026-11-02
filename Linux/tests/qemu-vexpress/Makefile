@@ -23,7 +23,16 @@ MODULES := \
 	$(EXP)/Day07_多设备与drvdata/led_platform_dev.ko \
 	$(EXP)/Day07_多设备与drvdata/led_platform_drv.ko \
 	$(EXP)/Day08_设备树匹配/led_dts_drv.ko \
-	$(EXP)/Day09_pinctrl与GPIO/led_gpio_drv.ko
+	$(EXP)/Day09_pinctrl与GPIO/led_gpio_drv.ko \
+	$(EXP)/Day15_Input子系统/key_input_drv.ko \
+	$(EXP)/Day15_Input子系统/key_chrdev_drv.ko \
+	$(EXP)/Day16_sysfs属性/param_demo_dev.ko \
+	$(EXP)/Day16_sysfs属性/param_demo_drv.ko
+
+# 用户态测试程序：由 init fork+exec 运行，不是 init 的一部分
+USERPROGS := \
+	$(EXP)/Day15_Input子系统/key_input_test \
+	$(EXP)/Day16_sysfs属性/param_test
 
 EVENT_KO := module/event_demo.ko
 
@@ -37,11 +46,13 @@ dtb:
 event-module:
 	$(MAKE) -C $(KDIR) M=$(PWD)/module ARCH=arm CROSS_COMPILE=$(CROSS) modules
 
-init:
+# 必须声明 init.c 为先决条件：没有先决条件的目标在文件已存在时永远被视为最新，
+# 导致改了 init.c 也静默沿用旧二进制（2026-10-31 实测踩到，Day15 标记全部未执行）
+init: init.c
 	$(CC) -static -O2 -Wall -o init init.c
 
 modules:
-	cd $(EXP) && for d in Day02_* Day03_* Day04_* Day05_* Day06_* Day07_* Day08_* Day09_*; do \
+	cd $(EXP) && for d in Day02_* Day03_* Day04_* Day05_* Day06_* Day07_* Day08_* Day09_* Day15_* Day16_*; do \
 		$(MAKE) -s -C $$d all KDIR=$(KDIR) KERN_DIR=$(KDIR) \
 			ARCH=arm CROSS_COMPILE=$(CROSS); \
 	done
@@ -52,6 +63,7 @@ initramfs: init modules event-module
 	cp init rootfs/init
 	cp $(MODULES) rootfs/
 	cp $(EVENT_KO) rootfs/
+	cp $(USERPROGS) rootfs/
 	cd rootfs && find . -print0 | cpio --null -o -H newc 2>/dev/null | gzip -9 > ../initramfs.cpio.gz
 	@ls -lh initramfs.cpio.gz
 

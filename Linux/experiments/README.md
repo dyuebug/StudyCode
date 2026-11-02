@@ -15,7 +15,7 @@ experiments/主题名称/
 ## 驱动入门实验准备
 
 - [环境与验证指南](驱动入门_环境与验证指南.md)：先确认平台能力、内核与工具链，再进行只打印模块实验；板级代码仅用于匹配的目标系统。
-- 各 Day 的 README 末尾「验证状态」写明**已实测**与**未验证**的边界：Day2–Day9 有 QEMU 运行证据（见 `../tests/qemu-vexpress/RESULT.md`）；Day10–Day14 为 QEMU 实测的等价机制 + 本日驱动的交叉编译验证；真实外设行为一律留待目标板。
+- 各 Day 的 README 末尾「验证状态」写明**已实测**与**未验证**的边界：Day2–Day9 有 QEMU 运行证据（见 `../tests/qemu-vexpress/RESULT.md`）；Day10–Day14 为 QEMU 实测的等价机制 + 本日驱动的交叉编译验证；[Day15 Input 子系统](Day15_Input子系统/README.md) 有独立 QEMU 实测（`input_report_key` → `input_sync` → evdev → 用户态 `read`，附私有字符设备对照与 4 条负向验证）；[Day16 sysfs 属性](Day16_sysfs属性/README.md) 有独立 QEMU 实测（`attribute_group` + `DEVICE_ATTR_RW/RO`，12 条判据 + 3 条负向验证）；真实外设行为一律留待目标板。
 - 实际命令输出写入 `../daily_logs/`，不在材料准备阶段伪造 evidence。
 - [每日任务导航](../daily_tasks/README.md) 区分无板必做和条件实验，原始课程代码保留不变。
 

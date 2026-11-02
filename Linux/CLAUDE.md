@@ -1071,6 +1071,45 @@ Day14 只做了 19 模块的**总复盘**，17 个模块小节没有逐模块讲
 - [ ] 硬前置（满足任一再推进）：拿到 `22`/`23` 的 CM4 侧源码 / 拿到 MP157 板与可启动镜像 /
       确认能把关键源码摘出入库。**在此之前不写"STM32MP157 讲义"**——没有 CM4 侧源码，写出来只能是转述。
 
+### P0.12：驱动入门路线缺口补充（2026-10-31，Input 子系统 + sysfs）
+
+按 §3 阶段 7「能说明何时接入内核子系统，而非套用私有字符设备」这条验收线盘点：
+驱动入门课程 30 集只做了 12 集（Day01–Day14 覆盖第 1–15、24–25、27–30 集），
+**缺第 16–23、26 集**——即"kthread / 传感器实战（SR04、DHT11、DS18B20、HS0038）/ Input 子系统 / I2C 触摸屏"。
+补做的两个实验都走 QEMU 实测，不是构建级：
+
+- [x] **Input 子系统**（第 23 集）—— `experiments/Day15_Input子系统/`。
+      `input_allocate_device` → `evbit`/`keybit` → `input_register_device` →
+      `input_report_key` + `input_sync` → input core → evdev → 用户态 `read(struct input_event)`
+      全链路实测：`key_events=6 syn_events=6 failures=0`，`RESULT: PASS`，
+      整体 `result: PASSED (failures=0)`，Day02–Day11 既有判据零回归。
+      另附同一事件源的**私有字符设备对照**（实测 `read()` 返回 1 字节且空队列 `read=0` 与 EOF 同值）。
+      4 条负向验证（3 变异 + 恢复）：删 `input_sync` → `key_events=24 syn_events=3`、
+      改键码 → `key_events=0`、删 `EV_KEY` 位 → `key_events=0`，恢复后转绿。
+      **变异 A 的机制已用源码钉死**：`drivers/input/input.c:351-354` 在
+      `num_vals >= max_vals-2`（初始 8 个）时自动插 `input_value_sync` 并提交，
+      所以漏调 `input_sync` **不是丢事件，而是帧边界与按键语义脱钩**——24 个事件被切成 3 批。
+      日志 `tests/qemu-vexpress/logs/2026-10-31_day15_*.log`。
+- [x] **sysfs 属性**（课程外，driver core）—— `experiments/Day16_sysfs属性/`。
+      `attribute_group` + `DEVICE_ATTR_RW`/`DEVICE_ATTR_RO`，12 条判据全过（`failures=0`）。
+      三条实测语义：`store()` 返回 `count` 才是完整消费（改 `return 3` 得 `write rc=3`、
+      **参数照样被改且无报错**）；拒绝写必须返回负 errno（改 `return 0` 得 `rc=0 errno=0`，
+      与"写 0 字节"无法区分）；写只读属性得 `errno=13(EACCES)`，是 **kernfs 层拒绝，
+      驱动的 `store()` 根本没被调用**，因此不计入驱动自己的 `rejects`（实测 `rejects=2` 只含越界与非数字）。
+      3 条负向验证，日志 `tests/qemu-vexpress/logs/2026-10-31_day16_*.log`。
+- [x] 两个实验各自顺带修掉一个**实测出来的真实缺陷**：
+      `tests/qemu-vexpress/Makefile` 的 `init:` 目标无先决条件 ⇒ 改了 `init.c` 仍静默用旧二进制，
+      首轮 Day15 判据一条没跑、整体却打印 `PASSED (failures=0)`（`strings init | grep Day15` 返回 0 才暴露）；
+      `key_input_test.c` 只等 `got_key` ⇒ 第 6 帧的 `EV_SYN` 永远读不到，`syn_events` 恒为 `key_events-1`。
+- [ ] **环境限制，不是代码问题**：本内核 `CONFIG_IIO`、`CONFIG_DEBUG_FS`、`CONFIG_DYNAMIC_DEBUG`、
+      `CONFIG_PROVE_LOCKING`、`CONFIG_KCSAN` **全部未设置**。因此
+      ① IIO 子系统实验做不了（`iio_device_register` 符号不存在，模块无法链接）；
+      ② `dynamic_debug` 与 `ftrace` 的用户态接口不可用（开关都在 debugfs 下）；
+      ③ 并发保护无法确定性检出（无 lockdep/KCSAN），`spinlock` 类实验只能验证功能正确性、
+      不能验证"抓到竞争"。三项均如实记录，未写成已完成。
+- [ ] **仍未做**：课程第 16–22、26 集对应内容——`kthread` 化轮询、SR04 测距、DHT11（含 IIO 路径）、
+      DS18B20 单总线时序、HS0038 红外解码、I2C 触摸屏。其中 DHT11 的 IIO 路径受上条限制。
+
 ### P1：启动航空主题项目的可仿真部分（路线图第 7–8 周）
 
 - [x] 传感器模拟输入（PC 经 UART 注入）—— `tests/qemu-stm32/aviation/inject.py`，50 Hz `SENSOR`

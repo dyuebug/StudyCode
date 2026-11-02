@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/sysmacros.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define EVENT_IOC_CLEAR  _IO('q', 0)
@@ -277,6 +278,114 @@ static void test_day05(void)
 	/* 注意：不打开设备，避免访问 i.MX6ULL 寄存器地址 */
 }
 
+/*
+ * 运行 initramfs 里的独立测试程序，返回其退出码。
+ *
+ * 用 fork+exec 而不是把测试逻辑抄进 init：init 是 PID 1，
+ * 它的任何崩溃都会 panic；测试程序崩了只影响一个子进程。
+ * 这也是 Day15 课的重点——用户态程序不该依赖驱动的私有认知。
+ */
+static int run_program(const char *path)
+{
+	char *argv[] = { (char *)path, NULL };
+	pid_t pid;
+	int status;
+
+	pid = fork();
+	if (pid < 0) {
+		printf("[FAIL] fork: %s\n", strerror(errno));
+		return -1;
+	}
+	if (pid == 0) {
+		execve(path, argv, NULL);
+		_exit(127);          /* exec 失败：用 127 区分"没跑起来" */
+	}
+
+	if (waitpid(pid, &status, 0) < 0)
+		return -1;
+
+	if (WIFEXITED(status))
+		return WEXITSTATUS(status);
+	return -1;                   /* 被信号杀死 */
+}
+
+/*
+ * 对照组：同一事件源换成私有字符设备。
+ *
+ * 这里只读 1 字节，因为私有协议就是这么定的（drv 里写死的 '1'/'0'）。
+ * 用户态得不到时间戳、事件类型，也无法区分"暂无数据"和"设备结束"——
+ * key_read() 空队列直接 return 0，与 EOF 同值。
+ */
+static void test_day15_chrdev(void)
+{
+	char c = 0;
+	int fd, waited = 0, reported_empty = 0;
+
+	if (make_node("/dev/key_sim", "key_sim"))
+		return;
+
+	fd = open("/dev/key_sim", O_RDONLY);
+	mark(fd >= 0, "Day15 对照 open /dev/key_sim");
+	if (fd < 0)
+		return;
+
+	while (waited < 3000) {
+		ssize_t n = read(fd, &c, 1);
+
+		if (n == 1) {
+			mark(c == '1' || c == '0',
+			     "Day15 对照 read 1 字节私有协议");
+			printf("[INFO] Day15 private byte='%c' "
+			       "(no timestamp/type/code)\n", c);
+			break;
+		}
+		if (n == 0 && !reported_empty) {
+			printf("[INFO] Day15 private read=0 (空队列与 EOF 同值)\n");
+			reported_empty = 1;
+		}
+		usleep(10000);
+		waited += 10;
+	}
+	if (waited >= 3000)
+		mark(0, "Day15 对照 3s 内未读到私有协议字节");
+
+	close(fd);
+}
+
+static void test_day15(void)
+{
+	int rc;
+
+	/*
+	 * 前提判据：input core 与 evdev 都在，且模块已把事件源接上。
+	 * /dev/input 由 devtmpfs + evdev 创建，不存在就说明内核缺
+	 * CONFIG_INPUT_EVDEV，后面的读一定失败——先分清"没配"和"配了但坏了"。
+	 */
+	mark(access("/dev/input", F_OK) == 0, "Day15 /dev/input 存在");
+
+	rc = run_program("/key_input_test");
+	mark(rc == 0, "Day15 用户态经 evdev 收到 EV_KEY 事件（退出码 0）");
+	if (rc == 127)
+		mark(0, "Day15 key_input_test 未能执行（execve 127）");
+
+	if (load_module("/key_chrdev_drv.ko") == 0) {
+		mark(get_major("key_sim") > 0,
+		     "Day15 对照：私有字符设备已注册");
+		test_day15_chrdev();
+		test_unload("key_chrdev_drv");
+	}
+}
+
+static void test_day16(void)
+{
+	int rc;
+
+	rc = run_program("/param_test");
+	mark(rc == 0, "Day16 sysfs 属性读写（退出码 0）");
+	if (rc == 127)
+		mark(0, "Day16 param_test 未能执行（execve 127）");
+}
+
 int main(void)
 {
 	printf("\n===== qemu-vexpress verification =====\n");
@@ -327,6 +436,21 @@ int main(void)
 	if (load_module("/event_demo.ko") == 0) {
 		test_event();
 		test_unload("event_demo");
+	}
+
+	/* Day15：同一事件源，input 子系统 vs 私有字符设备 */
+	if (load_module("/key_input_drv.ko") == 0) {
+		test_day15();
+		test_unload("key_input_drv");
+	}
+
+	/* Day16：driver core 的 sysfs 属性（设备与驱动同名，先设备后驱动） */
+	if (load_module("/param_demo_dev.ko") == 0) {
+		if (load_module("/param_demo_drv.ko") == 0) {
+			test_day16();
+			test_unload("param_demo_drv");
+		}
+		test_unload("param_demo_dev");
 	}
 
 	printf("===== result: %s (failures=%d) =====\n",
